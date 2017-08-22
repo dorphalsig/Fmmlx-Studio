@@ -1,7 +1,7 @@
 "use strict";
-if (typeof Helper === "undefined") var Helper = {}
+if (typeof Helper === "undefined") window.Helper = {};
 
- Helper.Set = class extends Set {
+Helper.Set = class extends Set {
     constructor(value) {
         super(value);
     }
@@ -12,30 +12,36 @@ if (typeof Helper === "undefined") var Helper = {}
      * @param value
      */
     add(value) {
-        if (!this.has(value)) super.add(value);
-        return this;
+        if (typeof val.equals === "function" && value.equals === "function") {
+            if (!this.has(value)) super.add(value);
+            return this;
+        }
+        return super.add(value);
     }
 
     delete(value) {
-        for (let val of this) {
-            if (typeof val.equals === "function" && val.equals(value) || (typeof val === "undefined" && typeof value === "undefined" || val === value || isNaN(val) && isNaN(value))) {
-    return super.delete(val);
-}
+        for (let val of super) {
+            if (typeof val.equals === "function" && value.equals === "function") {
+                if (val.equals(value)) return super.delete(val);
+                return false;
+            }
+            else
+                return super.delete(value);
         }
-        return false;
     }
 
     has(value) {
-        for (let val of this) {
+        for (let val of super) {
             if (typeof val.equals === "function" && value.equals === "function") {
-                if (val.equals(value)) return true;
+                if (val.equals(value))
+                    return true;
+                return false;
             }
-            else if ((typeof val === "undefined" && typeof value === "undefined") || (val === value) || (isNaN(val) && isNaN(value))) {
-                return true;
-            }
+            else
+                return super.has(value);
         }
-        return false;
     }
+
 
     isSuperset(subset) {
         for (let elem of subset) {
@@ -69,3 +75,4 @@ if (typeof Helper === "undefined") var Helper = {}
         return Array.from(this)
     }
 }
+;

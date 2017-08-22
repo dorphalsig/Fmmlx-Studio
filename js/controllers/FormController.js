@@ -1,17 +1,22 @@
 "use strict";
 
-if (typeof Controller === "undefined") {
-    var Controller;
-    Controller = {};
-}
+if (typeof Controller === "undefined") window.Controller = {};
 
 Controller.FormController = {
 
-    __error: function (modal, message) {
+    /**
+     *
+     * @param {JQuery} modal
+     * @param {Error} error
+     * @private
+     */
+    __error: function (modal, error=undefined) {
         let alert = modal.find(".alert");
-        if (typeof message !== "undefined") {
-            alert.find(".message").text(message);
+        if (typeof error !== "undefined") {
+            alert.find(".message").text(error.message);
             alert.show();
+            console.log("\n***********************************");
+            console.log(error);
             return;
         }
         alert.hide();
@@ -25,24 +30,27 @@ Controller.FormController = {
 
     /**
      * Generic form filler
-     * @param {jquery} modal window
+     * @param {JQuery} modal window
      * @param data
      * @private
      */
     __fillForm: function (modal, data) {
         for (let fieldName in data) {
+            if (!data.hasOwnProperty(fieldName))
+                continue;
+
             let field = modal.find(`[name=${fieldName}]`);
 
-            if (field.type === "checkbox")
-                field.checked = field.value === data[fieldName];
+            if (field.prop("type") === "checkbox")
+                field.prop("checked", field.val() === data[fieldName]);
             else
-                field.value = data[fieldName];
+                field.val(data[fieldName]);
         }
     },
 
     /**
      * Parses a form into an object. The field names are the properties of the object
-     * @param modal
+     * @param {JQuery} form
      * @returns {{}}
      * @private
      */
@@ -52,8 +60,8 @@ Controller.FormController = {
         for (let field of fields) {
             //field = $(field)
             let name = field.name;
-            if (name != "")
-                fieldData[`${name}`] = ( (field.type ==="checkbox"&& field.checked) || field.type !== "checkbox") ? field.value : "";
+            if (name !== "")
+                fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
             else
                 fieldData[`${name}`] = field.value;
         }
@@ -80,20 +88,21 @@ Controller.FormController = {
         })
     },
 
-    displayClassForm: function (point = "", entityId = "") {
+    displayClassForm: function (event, obj) {
         let self = Controller.FormController;
         let modal = $("#fmmlxClassModal");
+        let point = go.Point.stringify(event.documentPoint);
+        let entityId = obj.data !== null ? obj.data.id : "";
+
         self.__reset(modal);
         self.setupExtraDataFields(modal);
         modal.find("[name=isExternal]").click(function (event) {
             event.target.checked ? modal.find("[name=metaclass]").closest(".form-group").hide() : modal.find("[name=metaclass]").closest(".form-group").show()
         });
-        //modal.find('.btn-primary').one(Controller.FormController.addEditFmmlxClass);
-        if (point !== "")
-            modal.find("[name=coords]").val(point);
+
+        modal.find("[name=coords]").val(point);
         if (entityId !== "") {
-            let data = studio.getNodeData(entityId);
-            this.__fillForm(modal, data);
+            self.__fillForm(modal, obj.data);
         }
         modal.modal();
     },
@@ -114,18 +123,30 @@ Controller.FormController = {
         alert(JSON.stringify(obj.part.data))
     },
 
+    displayPropertyForm: function (event, obj) {
+        alert(JSON.stringify(obj.part.data))
+    },
+
+    displayAssociationForm: function (event, obj) {
+        alert(JSON.stringify(obj.part.data));
+    },
+
+    displayInheritanceForm: function (event, obj) {
+        alert(JSON.stringify(obj.part.data))
+    },
 
     addEditFmmlxClass: function () {
 
         const self = Controller.FormController;
         const form = $("#classForm");
+        const modal = form.closest('modal');
 
         if (!form[0].checkValidity()) {
             form.find(':invalid').closest('.form-group').addClass('has-error');
-            let modal = form.closest('modal');
-            self.__error(form, "Invalid input. Check the highlighted fields and try again.");
+            self.__error(form, new Error("Invalid input. Check the highlighted fields and try again."));
             return false;
         }
+
         try {
             if (form.find("[name=id]").val() === "") {
                 let formVals = self.__readForm(form);
@@ -133,49 +154,10 @@ Controller.FormController = {
             }
         }
         catch (error) {
-            let modal = form.closest(".modal");
-            self.__error(modal,error.message);
-            console.log(error)
+            self.__error(modal, error);
         }
-
+        modal.close();
         return false;
     },
 
-    dragStartHandler: function (event) {
-        event.originalEvent.dataTransfer.setData("shape", event.target.id)
-    },
-
-    /**
-     * handles dropping of menu items into the main div
-     * @param event
-     */
-    dropHandler: function (event) {
-        let shape = event.originalEvent.dataTransfer.getData("shape");
-        // Dragging onto a Diagram
-        let can = event.originalEvent.target;
-        let pixelratio = window.PIXELRATIO;
-
-        // if the target is not the canvas, we may have trouble, so just quit:
-        if (!(can instanceof HTMLCanvasElement)) return;
-
-        let bbox = can.getBoundingClientRect();
-        let bbw = Math.max(0.001, bbox.width);
-        let bbh = Math.max(0.001, bbox.height);
-        if (bbh === 0) bbh = 0.001;
-        let mx = event.clientX - bbox.left * ((can.width / pixelratio) / bbw);
-        let my = event.clientY - bbox.top * ((can.height / pixelratio) / bbh);
-
-        switch (shape) {
-            case "fmmlxClass":
-                Controller.FormController.addEditFmmlxClass(mx, my);
-                break;
-            case "relationship":
-                formHandler.showRelForm(mx, my);
-                break;
-
-            case "inheritance":
-                formHandler.showInheritanceForm(mx, my);
-                break;
-        }
-    }
-}
+};

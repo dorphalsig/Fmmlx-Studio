@@ -1,6 +1,10 @@
 "use strict";
 if (typeof Model === "undefined") var Model = {};
 
+/**
+ *
+ * @type {Model.FmmlxRelationEndpoint}
+ */
 Model.FmmlxRelationEndpoint = class {
 
     constructorw(instrinsicness, cardinality, role, fmmlxClass, relation) {
@@ -38,7 +42,7 @@ Model.FmmlxRelationEndpoint = class {
             fmmlxClass: this.class.id,
             relation: this.relation.id
         };
-        return Helper.Helper.hashCode(JSON.stringify(id));
+        return SparkMD5.hash(JSON.stringify(id),false);
     }
 
 
@@ -47,5 +51,4 @@ Model.FmmlxRelationEndpoint = class {
     }
 
 
-}
-
+};

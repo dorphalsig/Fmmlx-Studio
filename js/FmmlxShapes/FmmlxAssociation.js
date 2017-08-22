@@ -6,6 +6,8 @@ gMake = go.GraphObject.make;
 
 
 FmmlxShapes.FmmlxAssociation = {};
+
+
 FmmlxShapes.FmmlxAssociation._sourceRole = gMake(go.TextBlock, new go.Binding("text", "sourceRole")
     , {
         segmentIndex: 0,

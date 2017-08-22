@@ -1,6 +1,9 @@
 "use strict";
 if (typeof Model === "undefined") var Model = {};
-
+/**
+ *
+ * @type {Model.FmmlxProperty}
+ */
 Model.FmmlxProperty = class {
 
     constructor(name, type, intrinsicness, isOperation, operationBody) {
@@ -38,9 +41,9 @@ Model.FmmlxProperty = class {
     /**
      * Removes FMMLx Class from set. Recalculates max intrinsicness
      * @param fmmmlxClass
-     * @returns {Models.FmmlxProperty}
+     * @returns {Model.FmmlxProperty}
      */
-    removeClass(fmmmlxClass) {
+    deleteClass(fmmmlxClass) {
         this.classes.remove(fmmmlxClass);
         this.maxIntrinsicness = -1;
         for (let item of this.classes) {
@@ -55,13 +58,13 @@ Model.FmmlxProperty = class {
         return valObj;
     }
 
-    removeValue(value) {
+    deleteValue(value) {
         this.values.remove(value);
     }
 
     get id() {
         let id = {name: this.name, intrinsicness: this.intrinsicness, isOperation: this.isOperation, type: this.type};
-        return Helper.Helper.hashCode(JSON.stringify(id));
+        return SparkMD5.hash(JSON.stringify(id),false);
     }
 
 

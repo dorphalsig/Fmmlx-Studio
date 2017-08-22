@@ -1,11 +1,15 @@
 "use strict";
-if (typeof Model === "undefined") var Model = {};
+if (typeof Model === "undefined") window.Model = {};
 
+
+/**
+ * Represents an Association
+ * @type {Model.FmmlxAssociation}
+ */
 Model.FmmlxAssociation = class {
 
 
     /**
-     * Represents an Association
      * @param {Model.FmmlxRelationEndpoint} source
      * @param {Model.FmmlxRelationEndpoint} target
      * @param {Model.FmmlxAssociation} primitive
@@ -165,7 +169,7 @@ Model.FmmlxAssociation = class {
             primitive: (this.isRefinement) ? this.primitive.id : "",
             metaAssociation: (this.isInstance) ? this.metaAssociation.id : ""
         });
-        return Helpers.Helper.hashCode(id);
+        return SparkMD5.hash(JSON.stringify(id),false);
     }
 
-}
+};

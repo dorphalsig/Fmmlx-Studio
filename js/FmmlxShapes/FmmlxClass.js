@@ -1,28 +1,33 @@
 "use strict";
 
-if (typeof FmmlxShapes === "undefined") var FmmlxShapes = {}
-if (typeof gMake === "undefined") var gMake = "";
-gMake = go.GraphObject.make;
+if (typeof FmmlxShapes === "undefined") window.FmmlxShapes = {};
+if (typeof gMake === "undefined") window.gMake = go.GraphObject.make;
 
 FmmlxShapes.FmmlxClass = {};
 
-
 /**
- *
+ * Returns font Style for the name block. if class isAbstract then the style is Oblique
  * @param {string} isAbstract
  * @returns {string}
  * @private
  */
 FmmlxShapes.FmmlxClass._getFontStyle = function (isAbstract) {
-    let font =  `15px 'Open Sans', sans-serif`
-    if (isAbstract === "true")
-        font = "Oblique" + font;
+    let font = `15px 'Cormorant', serif`;
+    if (isAbstract == "true")
+        font = `Italic ${font}`;
     return font;
 };
 
-FmmlxShapes.FmmlxClass._getFontColor = function(level){
-    return (Number.parseInt(level) < 2)? "#000000":"#FFFFFF";
-}
+/**
+ *  Returns the font color based on the classification level of the Fmmlx Class
+ *  (black for 0 and 1, white all else)
+ * @param {string} level
+ * @returns {string}
+ * @private
+ */
+FmmlxShapes.FmmlxClass._getFontColor = function (level) {
+    return (Number.parseInt(level) < 2) ? "#000000" : "#FFFFFF";
+};
 
 /**
  * Specifies background color based on level
@@ -68,30 +73,30 @@ FmmlxShapes.FmmlxClass._getBgColor = function (level) {
  * @param {Model.FmmlxClass} fmmlxClass
  * @private
  */
-FmmlxShapes.FmmlxClass._getName = function(fmmlxClass){
+FmmlxShapes.FmmlxClass._getName = function (fmmlxClass) {
     let name = "";
-    if(fmmlxClass.isExternal){
+    if (fmmlxClass.isAbstract) {
         name = (fmmlxClass.externalMetaclass === "") ? "^METACLASS^" : `^${fmmlxClass.externalMetaclass.toUpperCase()}^`;
     }
     else
         name = (fmmlxClass.metaclass === "") ? "^METACLASS^" : `^${fmmlxClass.metaclass.name.toUpperCase()}^`;
 
     name += `\n${fmmlxClass.name}`;
-
     return name;
-}
-
+};
 
 FmmlxShapes.FmmlxClass._externalLanguageBlock = gMake(go.Panel, "Auto", {
         stretch: go.GraphObject.Fill,
         alignment: new go.Spot(1, 0),
         maxSize: new go.Size(54, Infinity)
     },
+    new go.Binding("visible", "isExternal"),
     gMake(go.Shape, "Rectangle", {
         fill: "orange"
     }),
     gMake(go.TextBlock,
-        new go.Binding("text", "externalLanguage"), {
+        new go.Binding("text", "externalLanguage"),
+        {
             margin: 2,
             wrap: go.TextBlock.None,
             overflow: go.TextBlock.OverflowEllipsis,
@@ -115,9 +120,9 @@ FmmlxShapes.FmmlxClass._nameBlock = gMake(go.Panel, "Auto", {
     },
     gMake(go.Shape, "Rectangle", new go.Binding("fill", "level", FmmlxShapes.FmmlxClass._getBgColor)),
     gMake(go.TextBlock,
-        new go.Binding("text", "",FmmlxShapes.FmmlxClass._getName),
-        new go.Binding("font", "", FmmlxShapes.FmmlxClass._getFontStyle),
-        new go.Binding("stroke","level",FmmlxShapes.FmmlxClass._getFontColor),
+        new go.Binding("text", "", FmmlxShapes.FmmlxClass._getName),
+        new go.Binding("font", "isAbstract", FmmlxShapes.FmmlxClass._getFontStyle),
+        new go.Binding("stroke", "level", FmmlxShapes.FmmlxClass._getFontColor),
         {
             textAlign: "center",
             margin: 7
@@ -209,13 +214,31 @@ FmmlxShapes.FmmlxClass._contextMenu = gMake(go.Adornment, "Vertical",
     gMake("ContextMenuButton",
         gMake(go.TextBlock, "Delete Class"), {
             click: Controller.FormController.deleteClass
+        }),
+
+    gMake("ContextMenuButton",
+        gMake(go.TextBlock, "Add Property / Value"), {
+            click: Controller.FormController.displayPropertyForm
+        }),
+
+    gMake("ContextMenuButton",
+        gMake(go.TextBlock, "Associate"), {
+            click: Controller.FormController.displayAssociationForm
+        }),
+
+    gMake("ContextMenuButton",
+        gMake(go.TextBlock, "Set Superclass"), {
+            click: Controller.FormController.displayInheritanceForm
         })
 );
 
 
 FmmlxShapes.FmmlxClass.shape = gMake(go.Node, "Spot", {
-    contextMenu: FmmlxShapes.FmmlxClass._contextMenu
-}, FmmlxShapes.FmmlxClass._mainBlock    , FmmlxShapes.FmmlxClass._externalLanguageBlock);
+        contextMenu: FmmlxShapes.FmmlxClass._contextMenu,
+        doubleClick: Controller.FormController.displayClassForm,
+    },
+    new go.Binding("location", "location", go.Point.parse),
+    FmmlxShapes.FmmlxClass._mainBlock, FmmlxShapes.FmmlxClass._externalLanguageBlock);
 ;
     
 

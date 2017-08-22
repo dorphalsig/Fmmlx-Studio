@@ -1,5 +1,5 @@
 "use strict";
-if (typeof Helper === "undefined") var Helper = {}
+if (typeof Helper === "undefined") window.Helper = {}
 
 Helper.Helper = {
 

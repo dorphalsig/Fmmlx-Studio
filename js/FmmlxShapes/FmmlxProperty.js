@@ -7,6 +7,7 @@ gMake = go.GraphObject.make;
 FmmlxShapes.FmmlxProperty = {};
 
 
+
 FmmlxShapes.FmmlxProperty._contextMenu = gMake(go.Adornment, "Vertical",
     gMake("ContextMenuButton",
         gMake(go.TextBlock, "Raise Property"), {

@@ -1,11 +1,12 @@
 "use strict";
-if (typeof Controller === "undefined") {
-    var Controller;
-    Controller = {};
-}
+if (typeof Controller === "undefined") window.Controller = {};
 
 Controller.StudioController = class {
 
+    /**
+     *  Constructor, receives the id of the div that's the parent for the GoJS canvas
+     * @param {string} div
+     */
     constructor(div) {
         if (typeof div === "undefined") {
             div = "canvas";
@@ -20,9 +21,7 @@ Controller.StudioController = class {
                 this._$("ContextMenuButton",
                     this._$(go.TextBlock, "Add Fmmlx Class"),
                     {
-                        click: function (e, obj) {
-                            Controller.FormController.displayClassForm(go.Point.stringify(e.documentPoint))
-                        }
+                        click: Controller.FormController.displayClassForm
                     })
             )
         });
@@ -39,13 +38,13 @@ Controller.StudioController = class {
 
     /**
      * Adds a new FMMLX Class to the diagram
-     * @param x
-     * @param y
-     * @param name
-     * @param level
-     * @param externalLanguage
-     * @param externalMetaclass
-     * @returns {*}
+     * @param {string} point
+     * @param {string} name
+     * @param {string} isAbstract
+     * @param {string} level
+     * @param {string} externalLanguage
+     * @param {string} externalMetaclass
+     * @returns undefined
      */
     addFmmlxClass(point, name, level, isAbstract, externalLanguage, externalMetaclass) {
 
@@ -54,7 +53,7 @@ Controller.StudioController = class {
         let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass);
         let dupe = this._model.findNodeDataForKey(fmmlxClass.id);
         if (dupe !== null)
-            throw  new Error(`An equivalent class definition already exists.`);            
+            throw  new Error(`An equivalent class definition already exists.`);
 
         //Step 2 Add basic definition to diagram
         let transactionId = Helper.Helper.uuid4();
@@ -64,14 +63,17 @@ Controller.StudioController = class {
         this._diagram.startTransaction(transactionId);
 
         let nodeData = {
-            location: go.Point.parse(point),
+            location: point,
             category: "fmmlxClass",
-            get (target, key) {
-                if (["location", "category"].indexOf(key) === -1)
+            get(target, key) {
+                if (key == "fmmlxClass") {
+                    return target;
+                }
+                else if (["location", "category"].indexOf(key) === -1)
                     return target[key];
                 return this[key]
             },
-            set (target, key, value) {
+            set(target, key, value) {
                 if (["location", "category"].indexOf(key) === -1)
                     target[key] = value;
                 this[key] = value
@@ -86,22 +88,85 @@ Controller.StudioController = class {
     }
 
     /**
-     *
      * @param {Model.FmmlxClass} fmmlxClass
-     * @param level
+     * @param {Model.FmmlxClass} metaclass
      */
-    fmmlxClassLevelChange(fmmlxClass, newLevel, upstream = true, txId = undefined) {
-        if (!upstream && ( typeof fmmlxClass.metaclass !== "undefined" || typeof fmmlxClass.superclass !== undefined))
-            throw new Error(`${fmmlxClass.name}  has predecessors (metaclass / superclass). Only the complete instantiation tree can be raised/lowered`)
+    changeFmmlxMetaclass(fmmlxClass, metaclass) {
+        if (fmmlxClass.isExternal)
+            throw new Error("External classes can not have a local metaclass");
 
-        if (newLevel === fmmlxClass.level)
-            return;
+        let delProps = fmmlxClass.metaclass.properties;
+        for (let delProp of delProps) {
+            this.deleteProperty(fmmlxClass, delProp);
+        }
 
-        //let txId = Helper.Helper.uuid4();
-        let delta = (newLevel === "?") ? "?" : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level();
+        fmmlxClass.metaclass = metaclass;
+        let newProps = fmmlxClass.metaclass.properties
 
-
-        //model.setDataProperty(fmmlxClass,)
+        for (let newProp of newProps) {
+            this.addProperty(fmmlxClass, newProp);
+        }
     }
 
-}
+    /**
+     * Internal method. Deletes <Property> (and/or its corresponding <Value>) from <fmmlxClass>, its predecessors ("upstream") and descendants ("downstream")
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} property
+     * @param {boolean} upstream
+     * @param {boolean} downstream
+     * @private
+     */
+    _deleteProperty(fmmlxClass, property, upstream = true, downstream = false) {
+
+        //Delete Own
+        let pVal = fmmlxClass.findValueFromProperty(property);
+        if (pVal !== null) {
+            fmmlxClass.deleteValue(pVal);
+            property.deleteValue(pVal);
+        }
+
+        fmmlxClass.deleteProperty(property);
+        property.deleteClass(fmmlxClass);
+
+        if (downstream) {
+            for (let instance of fmmlxClass.instances) {
+                this._deleteProperty(instance, property, upstream, downstream);
+            }
+
+            for (let subclass of fmmlxClass.subclasses) {
+                this._deleteProperty(subclass, property, upstream, downstream);
+            }
+        }
+
+        if (upstream) {
+            if (fmmlxClass.superclass !== null) {
+                this._deleteProperty(fmmlxClass.superclass,property,upstream,downstream);
+            }
+            if(fmmlxClass.metaclass !== null){
+                this._deleteProperty(fmmlxClass.metaclass,property,upstream,downstream);
+            }
+        }
+    }
+
+    /**
+     * Deletes <Property> from <fmmlxClass> and its descendants
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} property
+     */
+    deleteProperty(fmmlxClass, property) {
+        this._deleteProperty(fmmlxClass, property, true, false)
+
+        throw new Error("DeleteProperty @@@Todo!!")
+    }
+
+    /**
+     * Adds <Property> to <fmmlxClass> and its descendants
+     * @param fmmlxClass
+     * @param property
+     */
+    addProperty(fmmlxClass, property) {
+        throw new Error("DeleteProperty @@@Todo!!")
+    }
+
+
+};
