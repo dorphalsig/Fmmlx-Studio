@@ -1,0 +1,107 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/css/selectize.bootstrap3.min.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/css/bootstrap-material-design.min.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/css/ripples.min.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
+@import url('https://fonts.googleapis.com/css?family=Lato|Roboto:300,400,500,700|Slabo+27px');
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+
+body{
+    margin: 0;
+}
+
+.row hr {
+    border: 2px #DDD;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.modal-header > hr {
+    border: 2px #DDD;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+.add {
+    cursor: pointer;
+}
+
+.modal-content .modal-body {
+    padding-top: 15px;
+}
+
+.remove {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+.toggle {
+    margin-left: 12px;
+}
+
+body{
+    min-height: 100vh;
+}
+
+.body > div{
+    min-height: 100vh !important;
+}
+
+#file i{
+    font-size: 18px !important;
+    margin-right:15px;
+    display: inline-block;
+}
+
+#menu{
+    text-align: center;
+}
+
+#menu img{
+    width: 100px;
+    margin-bottom: 35px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+#moodler {
+    height: 100vh;
+    display: block;
+    resize: both;
+    overflow: scroll;
+}
+
+.info:before
+{
+    content: '?';
+    font-family: sans-serif;
+    display: inline-block;
+    font-weight: bold;
+    text-align: center;
+    width: 1.8ex;
+    height: 1.8ex;
+    line-height: 1.8ex;
+    border-radius: 1.2ex;
+    margin-right: 4px;
+    padding: 2px;
+    border: 1px solid;
+    text-decoration: none;
+}
+
+.info:hover:before
+{
+    color: white;
+    background: black;
+    border-color: white;
+    text-decoration: none;
+}
+
+
+.extraInfo{
+    display: none; !important;
+}
