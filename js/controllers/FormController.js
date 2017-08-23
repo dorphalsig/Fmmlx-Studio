@@ -10,7 +10,7 @@ Controller.FormController = {
      * @param {Error} error
      * @private
      */
-    __error: function (modal, error=undefined) {
+    __error: function (modal, error = undefined) {
         let alert = modal.find(".alert");
         if (typeof error !== "undefined") {
             alert.find(".message").text(error.message);
@@ -55,7 +55,7 @@ Controller.FormController = {
      * @private
      */
     __readForm: function (form) {
-        let fields = form.find(':input');
+        let fields = form.find(":input");
         let fieldData = {};
         for (let field of fields) {
             //field = $(field)
@@ -69,13 +69,13 @@ Controller.FormController = {
     },
 
     setupExtraDataFields: function (modal) {
-        let field = modal.find('.needsExtraInfo');
+        let field = modal.find(".needsExtraInfo");
         field.change(function (event) {
             let target = $(event.target);
             let relNames = target.data("related").split(",");
             for (let name of relNames) {
                 let related = target.closest("form").find(`[name=${name.trim()}]`);
-                if (target.prop('checked')) {
+                if (target.prop("checked")) {
                     related.prop("disabled", false);
                     related.closest(".form-group").show();
                 }
@@ -85,7 +85,7 @@ Controller.FormController = {
                 }
 
             }
-        })
+        });
     },
 
     displayClassForm: function (event, obj) {
@@ -97,7 +97,8 @@ Controller.FormController = {
         self.__reset(modal);
         self.setupExtraDataFields(modal);
         modal.find("[name=isExternal]").click(function (event) {
-            event.target.checked ? modal.find("[name=metaclass]").closest(".form-group").hide() : modal.find("[name=metaclass]").closest(".form-group").show()
+            event.target.checked ? modal.find("[name=metaclass]").closest(".form-group")
+                                        .hide() : modal.find("[name=metaclass]").closest(".form-group").show();
         });
 
         modal.find("[name=coords]").val(point);
@@ -108,23 +109,23 @@ Controller.FormController = {
     },
 
     raiseProperty: function (event, obj) {
-        alert(JSON.stringify(obj.part.data))
+        alert(JSON.stringify(obj.part.data));
     },
 
     deleteProperty: function (event, obj) {
-        alert(JSON.stringify(obj.part.data))
+        alert(JSON.stringify(obj.part.data));
     },
 
     abstractClass: function (event, obj) {
-        alert(JSON.stringify(obj.part.data))
+        alert(JSON.stringify(obj.part.data));
     },
 
     deleteClass: function (event, obj) {
-        alert(JSON.stringify(obj.part.data))
+        alert(JSON.stringify(obj.part.data));
     },
 
     displayPropertyForm: function (event, obj) {
-        alert(JSON.stringify(obj.part.data))
+        alert(JSON.stringify(obj.part.data));
     },
 
     displayAssociationForm: function (event, obj) {
@@ -132,17 +133,17 @@ Controller.FormController = {
     },
 
     displayInheritanceForm: function (event, obj) {
-        alert(JSON.stringify(obj.part.data))
+        alert(JSON.stringify(obj.part.data));
     },
 
     addEditFmmlxClass: function () {
 
         const self = Controller.FormController;
         const form = $("#classForm");
-        const modal = form.closest('modal');
+        const modal = form.closest("modal");
 
         if (!form[0].checkValidity()) {
-            form.find(':invalid').closest('.form-group').addClass('has-error');
+            form.find(":invalid").closest(".form-group").addClass("has-error");
             self.__error(form, new Error("Invalid input. Check the highlighted fields and try again."));
             return false;
         }
@@ -150,7 +151,7 @@ Controller.FormController = {
         try {
             if (form.find("[name=id]").val() === "") {
                 let formVals = self.__readForm(form);
-                window.studio.addFmmlxClass(formVals.coords, formVals.name, formVals.level, formVals.isAbstract, formVals.externalLanguage, formVals.externalMetaclass)
+                window.studio.addFmmlxClass(formVals.coords, formVals.name, formVals.level, formVals.isAbstract, formVals.externalLanguage, formVals.externalMetaclass);
             }
         }
         catch (error) {
@@ -158,6 +159,6 @@ Controller.FormController = {
         }
         modal.close();
         return false;
-    },
+    }
 
 };

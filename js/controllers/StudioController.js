@@ -18,11 +18,11 @@ Controller.StudioController = class {
             "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
             model: new go.GraphLinksModel(),
             contextMenu: this._$(go.Adornment, "Vertical",
-                this._$("ContextMenuButton",
-                    this._$(go.TextBlock, "Add Fmmlx Class"),
-                    {
-                        click: Controller.FormController.displayClassForm
-                    })
+                                 this._$("ContextMenuButton",
+                                         this._$(go.TextBlock, "Add Fmmlx Class"),
+                                         {
+                                             click: Controller.FormController.displayClassForm
+                                         })
             )
         });
 
@@ -50,10 +50,10 @@ Controller.StudioController = class {
 
 
     __commitTransaction(id) {
-        console.log(`%c${transactionId} :: Committing Transaction`, 'color: green');
+        console.log(`%c${transactionId} :: Committing Transaction`, "color: green");
         if (!this._diagram.commitTransaction(id)) {
             console.log(`%Commit Fail!%c Transaction ${id} - Attempting rollback`, "color: cyan; font-size:16px;  background-color:black", "");
-            throw new Error("Transaction commit failed - Rolled back succesfully Check the console for more info.")
+            throw new Error("Transaction commit failed - Rolled back succesfully Check the console for more info.");
         }
     }
 
@@ -61,7 +61,7 @@ Controller.StudioController = class {
         console.log(`${transactionId} :: Rollback Transaction`);
         if (!this._diagram.rollbackTransaction(id)) {
             console.log(`%Rollback Fail!%c Transaction ${id} -- Attempting rollback`, "color: cyan; font-size:16px;  background-color:black", "");
-            throw new Error("Transaction rollback failed -  Check the console for more info.")
+            throw new Error("Transaction rollback failed -  Check the console for more info.");
         }
     }
 
@@ -91,19 +91,19 @@ Controller.StudioController = class {
         let nodeData = {
             location: point,
             category: "fmmlxClass",
-            get (target, key) {
+            get(target, key) {
                 if (key == "fmmlxClass") {
                     return target;
                 }
                 else if (["location", "category"].indexOf(key) === -1)
                     return target[key];
-                return this[key]
+                return this[key];
             },
-            set (target, key, value) {
+            set(target, key, value) {
                 if (["location", "category"].indexOf(key) === -1)
                     target[key] = value;
-                this[key] = value
-            },
+                this[key] = value;
+            }
         };
         try {
             fmmlxClass.lastChangeId = transactionId;
@@ -158,10 +158,23 @@ Controller.StudioController = class {
             fmmlxClass.deleteProperty(property);
             property.deleteClass(fmmlxClass);
 
-            let
+/*
 
-                if;
-            (downstream);
+            Change;
+            all;
+            this;
+            to;
+            use;
+            the;
+            array;
+            methods;
+            provided;
+            by;
+            model;
+*/
+
+
+            if (downstream) ;
             {
                 for (let instance of fmmlxClass.instances) {
                     this.deleteProperty(instance, property, upstream, downstream);

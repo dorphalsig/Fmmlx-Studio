@@ -26,12 +26,12 @@ if (window.jQuery) {
     $.each(scripts, function (i, val) {
         pipe = pipe.pipe(function () {
             return jQuery.ajax({
-                type: "GET",
-                url: val,
-                success: console.log("Loaded " + val),
-                dataType: "script",
-                cache: false
-            });
+                                   type: "GET",
+                                   url: val,
+                                   success: console.log("Loaded " + val),
+                                   dataType: "script",
+                                   cache: false
+                               });
         });
     });
 

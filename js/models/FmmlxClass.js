@@ -20,8 +20,10 @@ Model.FmmlxClass = class {
         this._lastChangeId = "";
         this._instances = new Helper.Set();
         this._subclasses = new Helper.Set();
-        this._properties = new Helper.Set();
-        this._values = new Helper.Set();
+        this.attributes = [];
+        this.operations = [];
+        this.slotValues = [];
+        this.operationValues = [];
         this.endpoints = new Helper.Set();
         this.tags = [];
         this.externalMetaclass = externalMetaclass;
@@ -52,45 +54,7 @@ Model.FmmlxClass = class {
         return SparkMD5.hash(JSON.stringify(id), false);
     }
 
-    /**
-     *
-     * @returns {Array.<Model.FmmlxProperty>}
-     */
-    get attributes() {
-        return this._properties.toArray().filter(property => {
-            return property.isOperation === false
-        })
-    }
 
-    /**
-     *
-     * @returns {Array.<Model.FmmlxProperty>}
-     */
-    get operations() {
-        return this._properties.toArray().filter(property => {
-            return property.isOperation === true
-        })
-    }
-
-    /**
-     *
-     * @returns {Array.<Model.FmmlxValue>}
-     */
-    get slotValues() {
-        return this._values.toArray().filter(value => {
-            return value.property.isOperation === false
-        })
-    }
-
-    /**
-     *
-     * @returns {Array.<Model.FmmlxValue>}
-     */
-    get operationValues() {
-        return this._values.toArray().filter(value => {
-            return value.property.isOperation === true
-        })
-    }
 
     /**
      *
@@ -98,22 +62,6 @@ Model.FmmlxClass = class {
      */
     get subclasses() {
         return this._subclasses;
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} subclass
-     */
-    addSubclass(subclass) {
-        this._subclasses.add(subclass)
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} subclass
-     */
-    deleteSubclass(subclass) {
-        this._subclasses.delete(subclass);
     }
 
     /**
@@ -128,19 +76,9 @@ Model.FmmlxClass = class {
             throw new Error("Class can not be an external concept");
 
         if ((superclass.level !== this.level + 1) && ( (superclass.level === "?" || this.level === "?") && this.level !== superclass.level))
-            throw new Error(`Invalid classification level for ${superclass.name}. It can not be the supeclass of ${this.name}`)
+            throw new Error(`Invalid classification level for ${superclass.name}. It can not be the supeclass of ${this.name}`);
     }
 
-
-    /**
-     *
-     * returns {Helper.Set}
-     */
-    get properties() {
-        if (this._metaclass === "")
-            return new Helper.Set();
-        return this._properties;
-    }
 
     /**
      *
@@ -148,16 +86,6 @@ Model.FmmlxClass = class {
      */
     get instances() {
         return this._instances;
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} metaclass
-     */
-    set metaclass(metaclass) {
-        if (metaclass.level !== this.level + 1)
-            throw new Error('Metaclass level is invalid');
-        this._metaclass = metaclass;
     }
 
     /**
@@ -170,10 +98,20 @@ Model.FmmlxClass = class {
 
     /**
      *
+     * @param {Model.FmmlxClass} metaclass
+     */
+    set metaclass(metaclass) {
+        if (metaclass.level !== this.level + 1)
+            throw new Error("Metaclass level is invalid");
+        this._metaclass = metaclass;
+    }
+
+    /**
+     *
      * @returns {boolean}
      */
     get isExternal() {
-        return (this.externalLanguage !== "")
+        return (this.externalLanguage !== "");
     }
 
     /**
@@ -186,26 +124,47 @@ Model.FmmlxClass = class {
 
     /**
      *
-     * @param {Model.FmmlxProperty} property
+     * @param {Model.FmmlxProperty|Model.FmmlxValue} propertyOrValue
+     * @return {Helper.Set|*}
+     * @private
      */
-    deleteProperty(property) {
-        this._properties.delete(property);
+    _getCollection(propertyOrValue) {
+        if (propertyOrValue.constructor === Model.Property)
+            return (propertyOrValue.isOperation) ? this.operations : this.attributes;
+        return (propertyOrValue.property.isOperation) ? this.operationValues : this.slotValues;
+    }
+
+    has(propertyOrValue){
+        let col = this._getCollection(propertyOrValue);
     }
 
     /**
      *
-     * @param {Model.FmmlxValue} value
+     * @param {Model.FmmlxClass} subclass
      */
-    deleteValue(value) {
-        this._values.delete(value)
+    addSubclass(subclass) {
+        this._subclasses.add(subclass);
     }
+
+    /**
+     *
+     * @param {Model.FmmlxClass} subclass
+     */
+    deleteSubclass(subclass) {
+        this._subclasses.delete(subclass);
+    }
+
 
     /**
      *
      * @param {Model.FmmlxProperty} property
      */
     addProperty(property) {
-        this._properties.add(property);
+        this._getCollection(property).add(property)
+    }
+
+    addValue(value){
+        this._getCollection(value).add(value);
     }
 
     /**
@@ -214,8 +173,14 @@ Model.FmmlxClass = class {
      * @return {null|Model.FmmlxValue}
      */
     findValueFromProperty(property) {
-        let val = null;
-        for (let value of this._values) {
+        let val = null, values;
+        if (property.isOperation) {
+            values = this._operationValues;
+        }
+        else
+            values = this._slotValues;
+
+        for (let value of values) {
             if (value.property.equals(property)) {
                 val = value;
                 break;
@@ -229,11 +194,16 @@ Model.FmmlxClass = class {
      * @param {Model.FmmlxProperty} property
      * @returns {boolean}
      */
-    propertyOrValueExists(property) {
-        if (this._properties.has(property))
+    /*propertyOrValueExists(property) {
+        let coll =this._getCollection(property)
+        if(coll.has(property))
+            return true;
+        else
+
+        if (coll.
             return true;
         return this.findValueFromProperty(property) !== null;
-    }
+    }*/
 
     /**
      * For object comparison. Determines an unique identifier based on the content of the obj
@@ -250,4 +220,4 @@ Model.FmmlxClass = class {
         return val;
     }
 
-}
+};

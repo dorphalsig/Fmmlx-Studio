@@ -1,78 +1,41 @@
 "use strict";
 if (typeof Helper === "undefined") window.Helper = {};
 
-Helper.Set = class extends Set {
+Helper.Set = class {
     constructor(value) {
-        super(value);
+        this._array = [];
     }
 
 
     /**
-     * Adds an item or array to the collection by comparing it with all others (using obj.equals())
+     * Adds an item or array to the collection if it doesnt exist. (Comparing it with all others (using obj.equals()) )
      * @param value
      */
     add(value) {
-        if (typeof val.equals === "function" && value.equals === "function") {
-            if (!this.has(value)) super.add(value);
-            return this;
-        }
-        return super.add(value);
+        if (!this.has(value))
+            this._array.push(value);
+        return this;
     }
 
     delete(value) {
-        for (let val of super) {
-            if (typeof val.equals === "function" && value.equals === "function") {
-                if (val.equals(value)) return super.delete(val);
-                return false;
-            }
-            else
-                return super.delete(value);
-        }
+        let pos = this._findIndex(value);
+        this._array.slice(pos,1);
     }
+
+    _findIndex(value) {
+        return this._array.findIndex(item => {
+            return (typeof value.equals !== "undefined" && typeof value.equals === "function" && value.equals(item) ) || (value === item);
+        });
+    }
+
 
     has(value) {
-        for (let val of super) {
-            if (typeof val.equals === "function" && value.equals === "function") {
-                if (val.equals(value))
-                    return true;
-                return false;
-            }
-            else
-                return super.has(value);
-        }
-    }
-
-
-    isSuperset(subset) {
-        for (let elem of subset) {
-            if (!this.has(elem)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    union(setB) {
-        let union = new Set(this);
-        for (let elem of setB) {
-            union.add(elem);
-        }
-        return union;
-    }
-
-    intersection(setB) {
-        let intersection = new Set();
-        for (let elem of setB) {
-            if (this.has(elem)) {
-                intersection.add(elem);
-            }
-        }
-        return intersection;
+        return this._findIndex(value) !== -1;
     }
 
 
     toArray() {
-        return Array.from(this)
+        return this._array;
     }
 }
 ;

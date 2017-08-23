@@ -17,14 +17,19 @@ Model.FmmlxProperty = class {
         this.classes = new Helpers_Set();
     }
 
+    get intrinsicness() {
+        return this._intrinsicness;
+    }
+
     set intrinsicness(val) {
         if (val > this.maxIntrinsicness)
-            throw new Error(`Invalid intrinsicness for class ${name}`)
+            throw new Error(`Invalid intrinsicness for class ${name}`);
         this._intrinsicness = val;
     }
 
-    get intrinsicness() {
-        return this._intrinsicness
+    get id() {
+        let id = {name: this.name, intrinsicness: this.intrinsicness, isOperation: this.isOperation, type: this.type};
+        return SparkMD5.hash(JSON.stringify(id), false);
     }
 
     /**
@@ -62,14 +67,8 @@ Model.FmmlxProperty = class {
         this.values.remove(value);
     }
 
-    get id() {
-        let id = {name: this.name, intrinsicness: this.intrinsicness, isOperation: this.isOperation, type: this.type};
-        return SparkMD5.hash(JSON.stringify(id),false);
-    }
-
-
     equals(obj) {
 
-        return this.constructor === Model.FmmlxProperty && this.name === obj.name && this.intrinsicness === obj.intrinsicness
+        return this.constructor === Model.FmmlxProperty && this.name === obj.name && this.intrinsicness === obj.intrinsicness;
     }
-}
+};
