@@ -37,6 +37,35 @@ Controller.StudioController = class {
     }
 
     /**
+     * Obtains a transaction id, starts the transaction and returns the id
+     * @returns {*}
+     * @private
+     */
+    __beginTransaction() {
+        let transactionId = Helper.Helper.uuid4();
+        this._diagram.startTransaction(transactionId);
+        console.log(`${transactionId} :: Start Transaction`);
+        return transactionId;
+    }
+
+
+    __commitTransaction(id) {
+        console.log(`%c${transactionId} :: Committing Transaction`, 'color: green');
+        if (!this._diagram.commitTransaction(id)) {
+            console.log(`%Commit Fail!%c Transaction ${id} - Attempting rollback`, "color: cyan; font-size:16px;  background-color:black", "");
+            throw new Error("Transaction commit failed - Rolled back succesfully Check the console for more info.")
+        }
+    }
+
+    __rollbackTransaction(id) {
+        console.log(`${transactionId} :: Rollback Transaction`);
+        if (!this._diagram.rollbackTransaction(id)) {
+            console.log(`%Rollback Fail!%c Transaction ${id} -- Attempting rollback`, "color: cyan; font-size:16px;  background-color:black", "");
+            throw new Error("Transaction rollback failed -  Check the console for more info.")
+        }
+    }
+
+    /**
      * Adds a new FMMLX Class to the diagram
      * @param {string} point
      * @param {string} name
@@ -55,17 +84,14 @@ Controller.StudioController = class {
         if (dupe !== null)
             throw  new Error(`An equivalent class definition already exists.`);
 
+        let transactionId = this.__beginTransaction();
         //Step 2 Add basic definition to diagram
-        let transactionId = Helper.Helper.uuid4();
-
-        console.log(`${transactionId} :: Start Transaction`);
         console.log(`${transactionId} :: Add Class ${name}`);
-        this._diagram.startTransaction(transactionId);
 
         let nodeData = {
             location: point,
             category: "fmmlxClass",
-            get(target, key) {
+            get (target, key) {
                 if (key == "fmmlxClass") {
                     return target;
                 }
@@ -73,17 +99,22 @@ Controller.StudioController = class {
                     return target[key];
                 return this[key]
             },
-            set(target, key, value) {
+            set (target, key, value) {
                 if (["location", "category"].indexOf(key) === -1)
                     target[key] = value;
                 this[key] = value
             },
         };
-
-        fmmlxClass.lastChangeId = transactionId;
-        let nodeProxy = new Proxy(fmmlxClass, nodeData);
-        this._diagram.model.addNodeData(nodeProxy);
-        this._diagram.commitTransaction(transactionId);
+        try {
+            fmmlxClass.lastChangeId = transactionId;
+            let nodeProxy = new Proxy(fmmlxClass, nodeData);
+            this._diagram.model.addNodeData(nodeProxy);
+        }
+        catch (e) {
+            this.__rollbackTransaction(transactionId);
+            throw e;
+        }
+        this.__commitTransaction(transactionId);
         console.log(`${transactionId} :: End Transaction`);
     }
 
@@ -95,69 +126,67 @@ Controller.StudioController = class {
         if (fmmlxClass.isExternal)
             throw new Error("External classes can not have a local metaclass");
 
-        let delProps = fmmlxClass.metaclass.properties;
-        for (let delProp of delProps) {
-            this.deleteProperty(fmmlxClass, delProp);
-        }
+        let transactionId = this.__beginTransaction();
+        console.log(`${transactionId} :: Change Metaclass for ${fmmlxClass.name} from  ${fmmlxClass.metaclass.name} to ${metaclass.name}`);
+
+        for (let delProp of fmmlxClass.metaclass.properties) this.deleteProperty(fmmlxClass, delProp, false, true);
 
         fmmlxClass.metaclass = metaclass;
-        let newProps = fmmlxClass.metaclass.properties
 
-        for (let newProp of newProps) {
-            this.addProperty(fmmlxClass, newProp);
-        }
+        for (let newProp of fmmlxClass.metaclass.properties) this.addProperty(fmmlxClass, newProp);
     }
 
     /**
-     * Internal method. Deletes <Property> (and/or its corresponding <Value>) from <fmmlxClass>, its predecessors ("upstream") and descendants ("downstream")
+     * Deletes <Property> (and/or its corresponding <Value>) from <fmmlxClass>, its predecessors ("upstream") and descendants ("downstream")
      * @param {Model.FmmlxClass} fmmlxClass
      * @param {Model.FmmlxProperty} property
      * @param {boolean} upstream
      * @param {boolean} downstream
      * @private
      */
-    _deleteProperty(fmmlxClass, property, upstream = true, downstream = false) {
+    deleteProperty(fmmlxClass, property, upstream = false, downstream = true) {
 
-        //Delete Own
-        let pVal = fmmlxClass.findValueFromProperty(property);
-        if (pVal !== null) {
-            fmmlxClass.deleteValue(pVal);
-            property.deleteValue(pVal);
+        let transId = this.__beginTransaction();
+        try {
+            //Delete Own
+            let pVal = fmmlxClass.findValueFromProperty(property);
+            if (pVal !== null) {
+                fmmlxClass.deleteValue(pVal);
+                property.deleteValue(pVal);
+            }
+
+            fmmlxClass.deleteProperty(property);
+            property.deleteClass(fmmlxClass);
+
+            let
+
+                if;
+            (downstream);
+            {
+                for (let instance of fmmlxClass.instances) {
+                    this.deleteProperty(instance, property, upstream, downstream);
+                }
+
+                for (let subclass of fmmlxClass.subclasses) {
+                    this.deleteProperty(subclass, property, upstream, downstream);
+                }
+            }
+
+            if (upstream) {
+                if (fmmlxClass.superclass !== null) {
+                    this.deleteProperty(fmmlxClass.superclass, property, upstream, downstream);
+                }
+                if (fmmlxClass.metaclass !== null) {
+                    this.deleteProperty(fmmlxClass.metaclass, property, upstream, downstream);
+                }
+            }
+
         }
-
-        fmmlxClass.deleteProperty(property);
-        property.deleteClass(fmmlxClass);
-
-        if (downstream) {
-            for (let instance of fmmlxClass.instances) {
-                this._deleteProperty(instance, property, upstream, downstream);
-            }
-
-            for (let subclass of fmmlxClass.subclasses) {
-                this._deleteProperty(subclass, property, upstream, downstream);
-            }
-        }
-
-        if (upstream) {
-            if (fmmlxClass.superclass !== null) {
-                this._deleteProperty(fmmlxClass.superclass,property,upstream,downstream);
-            }
-            if(fmmlxClass.metaclass !== null){
-                this._deleteProperty(fmmlxClass.metaclass,property,upstream,downstream);
-            }
+        catch (e) {
+            his.__rollbackTransaction(transId);
         }
     }
 
-    /**
-     * Deletes <Property> from <fmmlxClass> and its descendants
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Model.FmmlxProperty} property
-     */
-    deleteProperty(fmmlxClass, property) {
-        this._deleteProperty(fmmlxClass, property, true, false)
-
-        throw new Error("DeleteProperty @@@Todo!!")
-    }
 
     /**
      * Adds <Property> to <fmmlxClass> and its descendants
@@ -165,7 +194,7 @@ Controller.StudioController = class {
      * @param property
      */
     addProperty(fmmlxClass, property) {
-        throw new Error("DeleteProperty @@@Todo!!")
+
     }
 
 
