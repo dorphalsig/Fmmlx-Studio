@@ -18,11 +18,11 @@ Helper.Set = class {
     }
 
     delete(value) {
-        let pos = this._findIndex(value);
+        let pos = this.findIndex(value);
         this._array.slice(pos,1);
     }
 
-    _findIndex(value) {
+    findIndex(value) {
         return this._array.findIndex(item => {
             return (typeof value.equals !== "undefined" && typeof value.equals === "function" && value.equals(item) ) || (value === item);
         });
@@ -30,7 +30,7 @@ Helper.Set = class {
 
 
     has(value) {
-        return this._findIndex(value) !== -1;
+        return this.findIndex(value) !== -1;
     }
 
 

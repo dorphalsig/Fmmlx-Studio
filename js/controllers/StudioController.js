@@ -13,26 +13,29 @@ Controller.StudioController = class {
         }
         go.licenseKey = "54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3";
         this._$ = go.GraphObject.make;
+
         this._diagram = this._$(go.Diagram, div, {
             padding: new go.Margin(75, 5, 5, 5),
             "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
             model: new go.GraphLinksModel(),
             contextMenu: this._$(go.Adornment, "Vertical",
-                                 this._$("ContextMenuButton",
-                                         this._$(go.TextBlock, "Add Fmmlx Class"),
-                                         {
-                                             click: Controller.FormController.displayClassForm
-                                         })
+                this._$("ContextMenuButton",
+                    this._$(go.TextBlock, "Add Fmmlx Class"),
+                    {
+                        click: Controller.FormController.displayClassForm
+                    })
             )
         });
+
+        this._model = this._diagram.model;
 
         window.PIXELRATIO = this._diagram.computePixelRatio();
 
         this._diagram.nodeTemplateMap.add("fmmlxClass", FmmlxShapes.FmmlxClass.shape);
         this._diagram.linkTemplateMap.add("fmmlxAssociation", FmmlxShapes.FmmlxAssociation.shape);
         //linkTemplates.add("fmmlxInheritance", FmmlxShapes.FmmlxInheritance.shape);
-        this._diagram.model.nodeKeyProperty = "id";
-        this._model = this._diagram.model;
+        this._model.nodeKeyProperty = "id";
+
 
     }
 
@@ -44,13 +47,13 @@ Controller.StudioController = class {
     __beginTransaction() {
         let transactionId = Helper.Helper.uuid4();
         this._diagram.startTransaction(transactionId);
-        console.log(`${transactionId} :: Start Transaction`);
+        console.log(`${transactionId} :: %cStart Transaction`, 'color: green');
         return transactionId;
     }
 
 
     __commitTransaction(id) {
-        console.log(`%c${transactionId} :: Committing Transaction`, "color: green");
+        console.log(`${transactionId} :: %cCommitting Transaction`, "color: green");
         if (!this._diagram.commitTransaction(id)) {
             console.log(`%Commit Fail!%c Transaction ${id} - Attempting rollback`, "color: cyan; font-size:16px;  background-color:black", "");
             throw new Error("Transaction commit failed - Rolled back succesfully Check the console for more info.");
@@ -91,7 +94,7 @@ Controller.StudioController = class {
         let nodeData = {
             location: point,
             category: "fmmlxClass",
-            get(target, key) {
+            get (target, key) {
                 if (key == "fmmlxClass") {
                     return target;
                 }
@@ -99,7 +102,7 @@ Controller.StudioController = class {
                     return target[key];
                 return this[key];
             },
-            set(target, key, value) {
+            set (target, key, value) {
                 if (["location", "category"].indexOf(key) === -1)
                     target[key] = value;
                 this[key] = value;
@@ -134,6 +137,11 @@ Controller.StudioController = class {
         fmmlxClass.metaclass = metaclass;
 
         for (let newProp of fmmlxClass.metaclass.properties) this.addProperty(fmmlxClass, newProp);
+
+        /**
+         * @todo finish the UC
+         */
+
     }
 
     /**
@@ -147,44 +155,39 @@ Controller.StudioController = class {
     deleteProperty(fmmlxClass, property, upstream = false, downstream = true) {
 
         let transId = this.__beginTransaction();
+        console.log(`${transId} :: Delete Property ${property.name} from ${fmmlxClass.name}`);
+
         try {
+
             //Delete Own
-            let pVal = fmmlxClass.findValueFromProperty(property);
-            if (pVal !== null) {
-                fmmlxClass.deleteValue(pVal);
-                property.deleteValue(pVal);
+            let val = fmmlxClass.findValueFromProperty(property);
+            if (val !== null) {
+                this.deleteValue(val);
             }
 
-            fmmlxClass.deleteProperty(property);
-            property.deleteClass(fmmlxClass);
+            let propArray = (property.isOperation) ? fmmlxClass.operations : fmmlxClass.attributes;
+            let index = propArray.findIndex(item => {
+                return value.equals(item);
+            });
+            if (index !== -1) {
+                this._model.removeArrayItem(propArray, index);
 
-/*
-
-            Change;
-            all;
-            this;
-            to;
-            use;
-            the;
-            array;
-            methods;
-            provided;
-            by;
-            model;
-*/
+            }
+            if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
 
 
-            if (downstream) ;
-            {
+            //del downstream
+            if (downstream) {
                 for (let instance of fmmlxClass.instances) {
                     this.deleteProperty(instance, property, upstream, downstream);
-                }
 
+                }
                 for (let subclass of fmmlxClass.subclasses) {
                     this.deleteProperty(subclass, property, upstream, downstream);
                 }
             }
 
+            //del upstream
             if (upstream) {
                 if (fmmlxClass.superclass !== null) {
                     this.deleteProperty(fmmlxClass.superclass, property, upstream, downstream);
@@ -194,9 +197,31 @@ Controller.StudioController = class {
                 }
             }
 
+
         }
         catch (e) {
-            his.__rollbackTransaction(transId);
+            this.__rollbackTransaction(transId);
+        }
+        this.__commitTransaction(transId);
+    }
+
+    deleteValue(fmmlxClass, value) {
+        let valueArray = (property.isOperation) ? fmmlxClass.operationValues : fmmlxClass.slotValues;
+        let index = valueArray.findIndex(item => {
+            return value.equals(item);
+        });
+        if (index !== -1) {
+            let transId = this.__beginTransaction();
+            console.log(`${transId} :: Delete Value for ${value.property.name} in ${fmmlxClass.name}`);
+            try {
+                this._model.removeArrayItem(valueArray, index);
+            }
+            catch (error) {
+                this.__rollbackTransaction(transId);
+                throw error;
+            }
+            this.__commitTransaction(transId);
+            if (this._model.undoManager.transactionLevel === 1) fmmlxClass.lastChangeId = transId;
         }
     }
 

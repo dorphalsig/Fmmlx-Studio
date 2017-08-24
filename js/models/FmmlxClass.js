@@ -55,7 +55,6 @@ Model.FmmlxClass = class {
     }
 
 
-
     /**
      *
      * @return {Helper.Set}
@@ -122,21 +121,7 @@ Model.FmmlxClass = class {
         return this.level === "?";
     }
 
-    /**
-     *
-     * @param {Model.FmmlxProperty|Model.FmmlxValue} propertyOrValue
-     * @return {Helper.Set|*}
-     * @private
-     */
-    _getCollection(propertyOrValue) {
-        if (propertyOrValue.constructor === Model.Property)
-            return (propertyOrValue.isOperation) ? this.operations : this.attributes;
-        return (propertyOrValue.property.isOperation) ? this.operationValues : this.slotValues;
-    }
 
-    has(propertyOrValue){
-        let col = this._getCollection(propertyOrValue);
-    }
 
     /**
      *
@@ -156,24 +141,13 @@ Model.FmmlxClass = class {
 
 
     /**
-     *
-     * @param {Model.FmmlxProperty} property
-     */
-    addProperty(property) {
-        this._getCollection(property).add(property)
-    }
-
-    addValue(value){
-        this._getCollection(value).add(value);
-    }
-
-    /**
      * Finds the respective <Value> for <Property> if it exists. Returns null otherwise
      * @param {Model.FmmlxProperty} property
      * @return {null|Model.FmmlxValue}
      */
     findValueFromProperty(property) {
         let val = null, values;
+
         if (property.isOperation) {
             values = this._operationValues;
         }
@@ -194,8 +168,9 @@ Model.FmmlxClass = class {
      * @param {Model.FmmlxProperty} property
      * @returns {boolean}
      */
+
     /*propertyOrValueExists(property) {
-        let coll =this._getCollection(property)
+        let coll =this.getCollection(property)
         if(coll.has(property))
             return true;
         else
