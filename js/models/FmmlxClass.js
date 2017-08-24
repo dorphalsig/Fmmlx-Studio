@@ -14,23 +14,41 @@ Model.FmmlxClass = class {
      * @param {string} externalMetaclass
      */
     constructor(name = "", level = "0", isAbstract = false, externalLanguage = "", externalMetaclass = "") {
+        this.__foundPropIndex = null;
+        this.__foundValIndex = null;
+        this._metaclass = "";
         this.externalLanguage = externalLanguage;
         this.name = name;
         this._distanceFromRoot = 0;
-        this._lastChangeId = "";
         this._instances = new Helper.Set();
         this._subclasses = new Helper.Set();
         this.attributes = [];
+        this.lastChangeId = "";
         this.operations = [];
         this.slotValues = [];
         this.operationValues = [];
         this.endpoints = new Helper.Set();
         this.tags = [];
         this.externalMetaclass = externalMetaclass;
-        this._metaclass = "";
-        this.level = level;
+        this._level = level;
         this.isAbstract = isAbstract;
     };
+
+
+    set level(level){
+
+        if(level!=="?"){
+            let parsedLevel = Number.parseInt(level);
+            if(isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`)
+            this._level =   parsedLevel;
+        }
+        else
+            this._level ="?"
+    }
+
+    get level(){
+        return this._level;
+    }
 
     /**
      *
@@ -121,7 +139,16 @@ Model.FmmlxClass = class {
         return this.level === "?";
     }
 
-
+    /**
+     *  returns the appropriate array for a property or value. Ie. if its an attribute returns a ref to the attribute array.
+     * @param {Model.FmmlxProperty|Model.FmmlxValue} propOrValue
+     * @return
+     */
+    findCorrespondingArray(propOrValue) {
+        if (propOrValue.constructor === Model.FmmlxProperty)
+            return (propOrValue.isOperation) ? this.operations : this.attributes;
+        return (propOrValue.property.isOperation) ? this.operationValues : this.slotValues;
+    }
 
     /**
      *
@@ -146,21 +173,47 @@ Model.FmmlxClass = class {
      * @return {null|Model.FmmlxValue}
      */
     findValueFromProperty(property) {
-        let val = null, values;
+        let values;
 
         if (property.isOperation) {
-            values = this._operationValues;
+            values = this.operationValues;
         }
         else
-            values = this._slotValues;
+            values = this.slotValues;
 
-        for (let value of values) {
-            if (value.property.equals(property)) {
-                val = value;
-                break;
-            }
+        let index = values.findIndex(item => {
+            return value.equals(item);
+        });
+
+        this.__foundValIndex = (index === -1) ? null : index;
+        return (index === -1) ? null : values[index];
+    }
+
+
+    /**
+     * returns the corresponding index of an Attribute or Operation, or null if not found
+     * @param property
+     * @return {null|number}
+     */
+    findIndexForProperty(property) {
+        let array = this.findCorrespondingArray(property);
+        if (this.__foundPropIndex === null || !array[this.__foundPropIndex].equals(property)) {
+            this.hasPropertyOrValue(property);
         }
-        return val;
+        return this.__foundPropIndex;
+    }
+
+    /**
+     * returns the corresponding index of an Attribute or Operation, or null if not found
+     * @param property
+     * @return {null|number}
+     */
+    findIndexForValue(value){
+        let array = this.findCorrespondingArray(value);
+        if (this.__foundValIndex === null || !array[this.__foundValIndex].equals(value)) {
+            this.hasPropertyOrValue(value);
+        }
+        return this.__foundValIndex;
     }
 
     /**
@@ -168,17 +221,20 @@ Model.FmmlxClass = class {
      * @param {Model.FmmlxProperty} property
      * @returns {boolean}
      */
+    hasPropertyOrValue(propOrValue) {
+        let correspondingArray = this.findCorrespondingArray(propOrValue);
+        let index = correspondingArray.findIndex(item => {
+            return value.equals(item);
+        });
 
-    /*propertyOrValueExists(property) {
-        let coll =this.getCollection(property)
-        if(coll.has(property))
-            return true;
-        else
+        this.__foundPropIndex = (index === -1) ? null : index;
+        if (index !== -1) return true;
 
-        if (coll.
-            return true;
-        return this.findValueFromProperty(property) !== null;
-    }*/
+        if (propOrValue.constructor === Model.FmmlxProperty)
+            return this.findValueFromProperty(propOrValue) !== null;
+
+        return false;
+    }
 
     /**
      * For object comparison. Determines an unique identifier based on the content of the obj

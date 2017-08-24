@@ -5,7 +5,14 @@ if (typeof Model === "undefined") window.Model = {};
  * @type {Model.FmmlxValue}
  */
 Model.FmmlxValue = class {
-    constructor(property, value, fmmlxClass) {
+
+    /**
+     *
+     * @param {Model.FmmlxProperty} property
+     * @param {*} value
+     * @param {Model.FmmlxClass} fmmlxClass
+     */
+    constructor(property, value, fmmlxClass = null) {
         this.property = property;
         this.value = value;
         this.class = fmmlxClass;
@@ -21,7 +28,17 @@ Model.FmmlxValue = class {
         return SparkMD5.hash(JSON.stringify(id), false);
     }
 
+    /**
+     * Two properties are equal if their
+     * @param {Model.FmmlxValue} obj
+     * @return {boolean}
+     */
     equals(obj) {
-        return (obj.constructor === Model.FmmlxValue && this.class.name === obj.class.name && this.property.name === obj.property.name && this.value === obj.value);
+        let result = (obj.constructor === Model.FmmlxValue && this.property.equals(obj.property));
+        if (this.class !== null)
+            result = result && this.class.equals(obj.class);
+        else
+            result = result && obj.class === null;
+        return result;
     }
 };

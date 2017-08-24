@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="gojs Type Definitions" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$APPLICATION_CONFIG_DIR$/javascript/extLibs/go.d.ts" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$APPLICATION_CONFIG_DIR$/javascript/extLibs/go.d.ts" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>

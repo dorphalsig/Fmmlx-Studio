@@ -13,8 +13,8 @@ Model.FmmlxProperty = class {
         this.intrinsicness = intrinsicness;
         this.isOperation = isOperation;
         this.operationBody = operationBody;
-        this.values = new Helpers_Set();
-        this.classes = new Helpers_Set();
+        this.values = new Helper.Set();
+        this.classes = new Helper.Set();
     }
 
     get intrinsicness() {
@@ -22,9 +22,9 @@ Model.FmmlxProperty = class {
     }
 
     set intrinsicness(val) {
-        if (val > this.maxIntrinsicness)
-            throw new Error(`Invalid intrinsicness for class ${name}`);
-        this._intrinsicness = val;
+        let numberVal = Number.parseInt(val);
+        if (val === "?" && this.maxIntrinsicness !== "?" || isNaN(numberVal) || numberVal > Number.parseInt(this.maxIntrinsicness)) throw new Error(`Invalid intrinsicness for class ${name}`);
+        this._intrinsicness = isNaN(numberVal) ? "?" : numberVal;
     }
 
     get id() {
@@ -34,31 +34,36 @@ Model.FmmlxProperty = class {
 
     /**
      * Adds an FMMLx Class to the set. Recalculates max intrinsicness
-     * @param fmmlxClass
+     * @param {Model.FmmlxClass} fmmlxClass
      */
     addClass(fmmlxClass) {
+        let numLevel = Number.parseInt(fmmlxClass.level);
         this.classes.add(fmmlxClass);
-        this.maxIntrinsicness = (this.maxIntrinsicness <= fmmlxClass.intrinsicness)
-            ? (fmmlxClass.intrinsicness - 1) : this.maxIntrinsicness;
+        this.maxIntrinsicness = (this.maxIntrinsicness <= numLevel) ? (numLevel - 1) : this.maxIntrinsicness;
+
         return this;
     }
 
     /**
      * Removes FMMLx Class from set. Recalculates max intrinsicness
-     * @param fmmmlxClass
+     * @param {Model.FmmlxClass} fmmlxClass
      * @returns {Model.FmmlxProperty}
      */
-    deleteClass(fmmmlxClass) {
-        this.classes.remove(fmmmlxClass);
+    deleteClass(fmmlxClass) {
+        this.classes.remove(fmmlxClass);
         this.maxIntrinsicness = -1;
         for (let item of this.classes) {
-            this.maxIntrinsicness = (this.maxIntrinsicness <= item.intrinsicness)
-                ? (item.intrinsicness - 1) : this.maxIntrinsicness;
+            this.maxIntrinsicness = (this.maxIntrinsicness <= item.intrinsicness) ? (item.intrinsicness - 1) : this.maxIntrinsicness;
         }
     }
 
-    addValue(fmmlxClass, value) {
-        let valObj = new Model_FmmlxValue(this, value, fmmlxClass);
+    /**
+     * Creates an FmmlxValue
+     * @param value
+     * @return {Model.FmmlxValue}
+     */
+    createValue(value = null) {
+        let valObj = new Model.FmmlxValue(this, value);
         this.values.add(value);
         return valObj;
     }

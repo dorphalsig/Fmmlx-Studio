@@ -1,6 +1,10 @@
 "use strict";
 if (typeof Helper === "undefined") window.Helper = {};
 
+/**
+ *
+ * @type {Helper.Set}
+ */
 Helper.Set = class {
     constructor(value) {
         this._array = [];

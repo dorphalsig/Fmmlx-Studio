@@ -1,5 +1,5 @@
-"use strict";
-if (typeof Controller === "undefined") window.Controller = {};
+`use strict`;
+if (typeof Controller === `undefined`) window.Controller = {};
 
 Controller.StudioController = class {
 
@@ -8,64 +8,65 @@ Controller.StudioController = class {
      * @param {string} div
      */
     constructor(div) {
-        if (typeof div === "undefined") {
-            div = "canvas";
+        if (typeof div === `undefined`) {
+            div = `canvas`;
         }
-        go.licenseKey = "54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3";
+        go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
         this._$ = go.GraphObject.make;
 
+        /**
+         *
+         * @type {go.Diagram | *}
+         * @private
+         */
         this._diagram = this._$(go.Diagram, div, {
-            padding: new go.Margin(75, 5, 5, 5),
-            "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
+            padding: new go.Margin(75, 5, 5, 5), "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
             model: new go.GraphLinksModel(),
-            contextMenu: this._$(go.Adornment, "Vertical",
-                this._$("ContextMenuButton",
-                    this._$(go.TextBlock, "Add Fmmlx Class"),
-                    {
-                        click: Controller.FormController.displayClassForm
-                    })
-            )
+            contextMenu: this._$(go.Adornment, `Vertical`, this._$(`ContextMenuButton`, this._$(go.TextBlock, `Add Fmmlx Class`), {
+                click: Controller.FormController.displayClassForm
+            }))
         });
 
         this._model = this._diagram.model;
 
         window.PIXELRATIO = this._diagram.computePixelRatio();
 
-        this._diagram.nodeTemplateMap.add("fmmlxClass", FmmlxShapes.FmmlxClass.shape);
-        this._diagram.linkTemplateMap.add("fmmlxAssociation", FmmlxShapes.FmmlxAssociation.shape);
-        //linkTemplates.add("fmmlxInheritance", FmmlxShapes.FmmlxInheritance.shape);
-        this._model.nodeKeyProperty = "id";
+        this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
+        this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
+        //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
+        this._model.nodeKeyProperty = `id`;
 
 
     }
 
-    /**
-     * Obtains a transaction id, starts the transaction and returns the id
-     * @returns {*}
-     * @private
-     */
     __beginTransaction() {
-        let transactionId = Helper.Helper.uuid4();
-        this._diagram.startTransaction(transactionId);
-        console.log(`${transactionId} :: %cStart Transaction`, 'color: green');
-        return transactionId;
+        let id = Helper.Helper.uuid4();
+        this._diagram.startTransaction(id);
+        console.log(`${id} :: Begin Transaction`);
+        console.group();
+        return id;
     }
-
 
     __commitTransaction(id) {
-        console.log(`${transactionId} :: %cCommitting Transaction`, "color: green");
         if (!this._diagram.commitTransaction(id)) {
-            console.log(`%Commit Fail!%c Transaction ${id} - Attempting rollback`, "color: cyan; font-size:16px;  background-color:black", "");
-            throw new Error("Transaction commit failed - Rolled back succesfully Check the console for more info.");
+            console.warn(`✖ Commit Fail! Transaction ${id} - Attempting rollback`);
+            console.groupEnd();
+            throw new Error(`Transaction commit failed - Rolled back successfully Check the console for more info.`);
         }
+        console.log(`✔ ${id} :: Transaction committed`);
+        console.groupEnd();
     }
 
-    __rollbackTransaction(id) {
-        console.log(`${transactionId} :: Rollback Transaction`);
-        if (!this._diagram.rollbackTransaction(id)) {
-            console.log(`%Rollback Fail!%c Transaction ${id} -- Attempting rollback`, "color: cyan; font-size:16px;  background-color:black", "");
-            throw new Error("Transaction rollback failed -  Check the console for more info.");
+    __rollbackTransaction() {
+        let id = this._diagram.undoManager.currentTransaction;
+        if (!this._diagram.rollbackTransaction()) {
+            console.error(`✖  %Rollback Fail!%c Transaction ${id} -- Attempting rollback`, `color: cyan; font-size:16px;  background-color:black`, ``);
+            console.groupEnd();
+            throw new Error(`Transaction rollback failed -  Check the console for more info.`);
         }
+        console.groupEnd();
+        console.warn(`🡆 ${id} :: Rollback Transaction`);
+
     }
 
     /**
@@ -84,155 +85,258 @@ Controller.StudioController = class {
 
         let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass);
         let dupe = this._model.findNodeDataForKey(fmmlxClass.id);
-        if (dupe !== null)
-            throw  new Error(`An equivalent class definition already exists.`);
+        if (dupe !== null) throw  new Error(`An equivalent class definition already exists.`);
 
-        let transactionId = this.__beginTransaction();
+        console.log(`Add Class ${name}`);
+        let transId = this.__beginTransaction();
         //Step 2 Add basic definition to diagram
-        console.log(`${transactionId} :: Add Class ${name}`);
 
         let nodeData = {
-            location: point,
-            category: "fmmlxClass",
-            get (target, key) {
-                if (key == "fmmlxClass") {
+            location: point, category: `fmmlxClass`, get(target, key) {
+                if (key === `fmmlxClass`) {
                     return target;
-                }
-                else if (["location", "category"].indexOf(key) === -1)
-                    return target[key];
+                } else if ([`location`, `category`].indexOf(key) === -1) return target[key];
                 return this[key];
-            },
-            set (target, key, value) {
-                if (["location", "category"].indexOf(key) === -1)
-                    target[key] = value;
+            }, set(target, key, value) {
+                if ([`location`, `category`].indexOf(key) === -1) target[key] = value;
                 this[key] = value;
             }
         };
         try {
-            fmmlxClass.lastChangeId = transactionId;
+            fmmlxClass.lastChangeId = transId;
             let nodeProxy = new Proxy(fmmlxClass, nodeData);
             this._diagram.model.addNodeData(nodeProxy);
         }
         catch (e) {
-            this.__rollbackTransaction(transactionId);
+            this.__rollbackTransaction();
             throw e;
         }
-        this.__commitTransaction(transactionId);
-        console.log(`${transactionId} :: End Transaction`);
+        this.__commitTransaction(transId);
     }
 
     /**
      * @param {Model.FmmlxClass} fmmlxClass
      * @param {Model.FmmlxClass} metaclass
      */
-    changeFmmlxMetaclass(fmmlxClass, metaclass) {
-        if (fmmlxClass.isExternal)
-            throw new Error("External classes can not have a local metaclass");
+    changeClassMetaclass(fmmlxClass, metaclass) {
+        if (fmmlxClass.isExternal) throw new Error(`External classes can not have a local metaclass`);
+        if ((metaclass.level !== `?` && fmmlxClass.level === `?`) || metaclass.level !== fmmlxClass.level + 1) {
+            throw new Error(`Metaclass (${metaclass.name}) level must be ${fmmlxClass.level + 1}`);
+        }
+        if (fmmlxClass.metaclass.equals(metaclass)) {
+            console.log(`Old and new metaclasses are the same. Doing nothing.`);
+        }
 
-        let transactionId = this.__beginTransaction();
-        console.log(`${transactionId} :: Change Metaclass for ${fmmlxClass.name} from  ${fmmlxClass.metaclass.name} to ${metaclass.name}`);
+        console.log(`Change ${fmmlxClass.name}'s metaclass from  ${fmmlxClass.metaclass.name} to ${metaclass.name}`);
+        let transId = this.__beginTransaction();
+        try {
+            let deletableProperties = fmmlxClass.metaclass.attributes.concat(fmmlxClass.operations);
 
-        for (let delProp of fmmlxClass.metaclass.properties) this.deleteProperty(fmmlxClass, delProp, false, true);
+            for (let property of deletableProperties) {
+                this.deletePropertyFromClass(fmmlxClass, property);
+            }
 
-        fmmlxClass.metaclass = metaclass;
+            let newProperties = metaclass.attributes.concat(fmmlxClass.operations);
 
-        for (let newProp of fmmlxClass.metaclass.properties) this.addProperty(fmmlxClass, newProp);
+            for (let property of newProperties) {
+                this.addPropertyToClass(fmmlxClass, property);
+            }
+        }
+        catch (error) {
+            this.__rollbackTransaction();
+            throw error;
+        }
+        this.__commitTransaction(transId);
+    }
 
-        /**
-         * @todo finish the UC
-         */
+    /**
+     *  Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes downstream, and optionally upstream.
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {string} level
+     * @param upstream
+     * @param transId
+     */
+    changeClassLevel(fmmlxClass, level, upstream, transId) {
 
     }
 
     /**
-     * Deletes <Property> (and/or its corresponding <Value>) from <fmmlxClass>, its predecessors ("upstream") and descendants ("downstream")
+     * Deletes <Property> (and/or its corresponding <Value>) from <fmmlxClass>, its predecessors (`upstream`) and descendants (`downstream`)
      * @param {Model.FmmlxClass} fmmlxClass
      * @param {Model.FmmlxProperty} property
      * @param {boolean} upstream
      * @param {boolean} downstream
-     * @private
      */
-    deleteProperty(fmmlxClass, property, upstream = false, downstream = true) {
+    deletePropertyFromClass(fmmlxClass, property, upstream = false, downstream = true) {
+        //if prop or value do not exist there's nothing to do.
+        if (!fmmlxClass.hasPropertyOrValue(property)) {
+            console.log(`Property ${property.name} (and/or its value) not found in ${fmmlxClass.name}!`);
+            return;
+        }
 
         let transId = this.__beginTransaction();
-        console.log(`${transId} :: Delete Property ${property.name} from ${fmmlxClass.name}`);
+        console.log(`Delete Property ${property.name} (and/or its value) from ${fmmlxClass.name}`);
 
         try {
+            //Delete Property
+            let array = fmmlxClass.findCorrespondingArray(property);
+            let index = fmmlxClass.findIndexForProperty(property);
+            this._model.removeArrayItem(array, index);
 
-            //Delete Own
-            let val = fmmlxClass.findValueFromProperty(property);
-            if (val !== null) {
-                this.deleteValue(val);
-            }
+            //Delete Value (if present)
+            let value = fmmlxClass.findValueFromProperty(property);
+            this.deleteValueFromClass(fmmlxClass, value);
 
-            let propArray = (property.isOperation) ? fmmlxClass.operations : fmmlxClass.attributes;
-            let index = propArray.findIndex(item => {
-                return value.equals(item);
-            });
-            if (index !== -1) {
-                this._model.removeArrayItem(propArray, index);
-
-            }
+            // if this is not part of another transaction mark the class as changed
             if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
-
 
             //del downstream
             if (downstream) {
                 for (let instance of fmmlxClass.instances) {
-                    this.deleteProperty(instance, property, upstream, downstream);
-
+                    this.deletePropertyFromClass(instance, property, upstream, downstream);
                 }
                 for (let subclass of fmmlxClass.subclasses) {
-                    this.deleteProperty(subclass, property, upstream, downstream);
+                    this.deletePropertyFromClass(subclass, property, upstream, downstream);
                 }
             }
 
             //del upstream
             if (upstream) {
-                if (fmmlxClass.superclass !== null) {
-                    this.deleteProperty(fmmlxClass.superclass, property, upstream, downstream);
-                }
-                if (fmmlxClass.metaclass !== null) {
-                    this.deleteProperty(fmmlxClass.metaclass, property, upstream, downstream);
-                }
+                if (fmmlxClass.superclass !== null) this.deletePropertyFromClass(fmmlxClass.superclass, property, upstream, downstream);
+                if (fmmlxClass.metaclass !== null) this.deletePropertyFromClass(fmmlxClass.metaclass, property, upstream, downstream);
             }
-
-
         }
         catch (e) {
-            this.__rollbackTransaction(transId);
+            this.__rollbackTransaction();
         }
         this.__commitTransaction(transId);
     }
 
-    deleteValue(fmmlxClass, value) {
-        let valueArray = (property.isOperation) ? fmmlxClass.operationValues : fmmlxClass.slotValues;
-        let index = valueArray.findIndex(item => {
-            return value.equals(item);
-        });
-        if (index !== -1) {
-            let transId = this.__beginTransaction();
-            console.log(`${transId} :: Delete Value for ${value.property.name} in ${fmmlxClass.name}`);
-            try {
-                this._model.removeArrayItem(valueArray, index);
-            }
-            catch (error) {
-                this.__rollbackTransaction(transId);
-                throw error;
-            }
-            this.__commitTransaction(transId);
-            if (this._model.undoManager.transactionLevel === 1) fmmlxClass.lastChangeId = transId;
+    /**
+     * Deletes (if exists) <Value> from FmmlxClass
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxValue} value
+     */
+    deleteValueFromClass(fmmlxClass, value) {
+        let index = fmmlxClass.findIndexForValue(value);
+        if (index === null) {
+            console.log(`Value not found in class. Doing nothing.`);
+            return;
         }
+
+        console.log(`${transId} :: Delete Value for ${value.property.name} in ${fmmlxClass.name}`);
+        let transId = this.__beginTransaction();
+        try {
+            let array = fmmlxClass.findCorrespondingArray(value);
+            value.property.deleteValue(value);
+            this._model.removeArrayItem(array, index);
+        }
+        catch (error) {
+            this.__rollbackTransaction(transId);
+            throw error;
+        }
+        if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
     }
 
+    /**
+     * Adds <Property> to <fmmlxClass> and its descendants (if it does not exist)
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} property
+     */
+    addPropertyToClass(fmmlxClass, property) {
+        //Do nothing if it already exists of if property.intrinsicness >= fmmlxClass.level
+        if (fmmlxClass.level <= property.intrinsicness || fmmlxClass.hasPropertyOrValue(property)) {
+            console.log(`Property already exists OR intrinsicness >= level. doing nothing`);
+            return;
+        }
+
+        console.log(`Adding ${property.name} to ${fmmlxClass.name}`);
+        let transId = this.__beginTransaction();
+        try {
+            let array = fmmlxClass.findCorrespondingArray(property);
+            this._model.addArrayItem(array, property);
+            property.addClass(fmmlxClass);
+            if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
+        }
+        catch (error) {
+            this.__rollbackTransaction();
+            throw  error;
+        }
+        //Replicate downstream
+        for (let instance of fmmlxClass.instances) {
+            this.addPropertyToClass(instance, property);
+            this.processProperty(fmmlxClass, property, transId);
+        }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            this.addPropertyToClass(subclass, property);
+            this.processProperty(fmmlxClass, property, transId);
+        }
+
+        this.__commitTransaction(transId);
+    }
 
     /**
-     * Adds <Property> to <fmmlxClass> and its descendants
-     * @param fmmlxClass
-     * @param property
+     * Deletes the corresponding property from FmmlxClass and descendants, creates a new value and adds it
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} property
      */
-    addProperty(fmmlxClass, property) {
+    addValueToClass(fmmlxClass, property) {
 
+        if ((property.intrinsicness === "?" && fmmlxClass.level === "?") || property.intrinsicness !== fmmlxClass.level) {
+            console.log(`Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the property's (${property.name}) intrinsicness (${property.intrinsicness}). Doing nothing`);
+            return;
+        }
+
+        value.class = fmmlxClass;
+        if (fmmlxClass.findIndexForValue(value) !== null) {
+            console.log(`A value of ${value.property.name} already exists ${fmmlxClass.name}. doing Nothing`);
+            return;
+        }
+
+        console.log(`Adding a value of ${value.property.name} to ${fmmlxClass.name}`);
+        let transId = this.__beginTransaction();
+        //the property gets deleted from here downwards
+        this.deletePropertyFromClass(fmmlxClass, value.property);
+
+        try {
+            let array = fmmlxClass.findCorrespondingArray(value);
+            this._model.addArrayItem(array, item);
+        }
+        this.__commitTransaction(transId);
+
+        if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
+    }
+
+    /**
+     * Checks what to do with a property in a class:
+     *  if intrinsicness > level : the property + its value is deleted
+     *  if intrinsicness = level: the property gets deleted +  a value is created
+     *  if instrisicness < level: if there is a value its gets deleted and the property gets added
+     *
+     *  Then it does the same for each class downstream.
+     *
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} property
+     * @param {Number} transId
+     */
+    processProperty(fmmlxClass, property, transId) {
+        //if its already processed do nothing
+        if (transId === fmmlxClass.lastChangeId) {
+            console.log(`Transaction already processed. Doing nothing.`);
+            return;
+        }
+
+        if (property.intrinsicness > fmmlxClass.level) { //if intrinsicness > level : the property + its value is deleted
+            this.deletePropertyFromClass(fmmlxClass, property);
+        } else if (property.intrinsicness === fmmlxClass.level && property.intrinsicness !== "?") { // if intrinsicness = level: the property gets deleted +  a value is created
+            this.deletePropertyFromClass(fmmlxClass, property);
+            this.addValueToClass(fmmlxClass, property);
+        } else { //if instrisicness < level: if there is a value its gets deleted and the property gets added
+            let val = fmmlxClass.findValueFromProperty(property);
+            if (val !== null) this.deleteValueFromClass(fmmlxClass, val);
+            this.addPropertyToClass(fmmlxClass, property);
+        }
     }
 
 
