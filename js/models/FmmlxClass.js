@@ -1,5 +1,5 @@
 "use strict";
-if (typeof Model === "undefined") var Model = {};
+if (typeof Model === "undefined") window,Model = {};
 /**
  *
  * @type {Model.FmmlxClass}
@@ -10,36 +10,66 @@ Model.FmmlxClass = class {
      * @param {string} name
      * @param {string} level
      * @param {boolean} isAbstract
-     * @param {string} externalLanguage
-     * @param {string} externalMetaclass
+     * @param {*} externalLanguage
+     * @param {*} externalMetaclass
      */
-    constructor(name = "", level = "0", isAbstract = false, externalLanguage = "", externalMetaclass = "") {
+    constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null) {
         this.__foundPropIndex = null;
         this.__foundValIndex = null;
-        this._metaclass = "";
-        this.externalLanguage = externalLanguage;
-        this.name = name;
+        this._metaclass = null;
         this._distanceFromRoot = 0;
         this._instances = new Helper.Set();
         this._subclasses = new Helper.Set();
+        this.name = name;
         this.attributes = [];
         this.lastChangeId = "";
         this.operations = [];
         this.slotValues = [];
         this.operationValues = [];
-        this.endpoints = new Helper.Set();
+        this._endpoints = new Helper.Set();
         this.tags = [];
+        this.externalLanguage = externalLanguage;
         this.externalMetaclass = externalMetaclass;
         this._level = level;
         this.isAbstract = isAbstract;
     };
 
+    /**
+     *
+     * @return {Helper.Set}
+     */
+    get instances(){
+        return this._instances;
+    }
+
+    get endpoints(){
+        return this._endpoints;
+    }
+
+
+    set externalLanguage(extLang){
+        if(this.metaclass!== null) throw new Error("Classes that have a local metaclass can not be part of an external language");
+        this._externalMetaclass = extLang;
+    }
+
+    get externalLanguage(){
+        return this._externalLanguage
+    }
+
+
+    set externalMetaclass(extMeta){
+        if(!this.isExternal) throw new Error("Local classes can not have external metaclasses.");
+        this._externalMetaclass = extMeta;
+    }
+
+    get externalMetaclass(){
+        return this._externalMetaclass;
+    }
 
     set level(level){
-
         if(level!=="?"){
             let parsedLevel = Number.parseInt(level);
-            if(isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`)
+            if(isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`);
             this._level =   parsedLevel;
         }
         else
@@ -99,14 +129,6 @@ Model.FmmlxClass = class {
 
     /**
      *
-     * @return {Helper.Set}
-     */
-    get instances() {
-        return this._instances;
-    }
-
-    /**
-     *
      * @returns {Model.FmmlxClass}
      */
     get metaclass() {
@@ -118,9 +140,12 @@ Model.FmmlxClass = class {
      * @param {Model.FmmlxClass} metaclass
      */
     set metaclass(metaclass) {
+        if(this.isExternal)
+            throw new Error("Can not specify a local metaclass for an external concept");
         if (metaclass.level !== this.level + 1)
             throw new Error("Metaclass level is invalid");
         this._metaclass = metaclass;
+        this._distanceFromRoot=metaclass.distanceFromRoot+1;
     }
 
     /**
@@ -128,7 +153,7 @@ Model.FmmlxClass = class {
      * @returns {boolean}
      */
     get isExternal() {
-        return (this.externalLanguage !== "");
+        return (this.externalLanguage !== null);
     }
 
     /**
@@ -205,7 +230,7 @@ Model.FmmlxClass = class {
 
     /**
      * returns the corresponding index of an Attribute or Operation, or null if not found
-     * @param property
+     * @param value
      * @return {null|number}
      */
     findIndexForValue(value){
@@ -218,7 +243,7 @@ Model.FmmlxClass = class {
 
     /**
      * Determines if a Property or its corresponding value exist
-     * @param {Model.FmmlxProperty} property
+     * @param {Model.FmmlxProperty} propOrValue
      * @returns {boolean}
      */
     hasPropertyOrValue(propOrValue) {
@@ -245,7 +270,7 @@ Model.FmmlxClass = class {
 
         if (this.isExternal)
             val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        else if (typeof this.metaclass !== "")
+        else if (typeof this.metaclass !== "undefined")
             val = val && this.metaclass.id === obj.metaclass.id;
 
         return val;

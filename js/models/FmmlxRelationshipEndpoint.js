@@ -1,5 +1,5 @@
 "use strict";
-if (typeof Model === "undefined") var Model = {};
+if (typeof Model === "undefined") window.Model = {};
 
 /**
  *

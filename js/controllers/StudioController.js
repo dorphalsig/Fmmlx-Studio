@@ -120,6 +120,7 @@ Controller.StudioController = class {
      */
     changeClassMetaclass(fmmlxClass, metaclass) {
         if (fmmlxClass.isExternal) throw new Error(`External classes can not have a local metaclass`);
+
         if ((metaclass.level !== `?` && fmmlxClass.level === `?`) || metaclass.level !== fmmlxClass.level + 1) {
             throw new Error(`Metaclass (${metaclass.name}) level must be ${fmmlxClass.level + 1}`);
         }
@@ -150,14 +151,64 @@ Controller.StudioController = class {
     }
 
     /**
-     *  Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes downstream, and optionally upstream.
+     * Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes up and downstream
+     * @param fmmlxClass
+     * @param newLevel
+     */
+    changeClassLevel(fmmlxClass, newLevel) {
+        newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
+        if (newLevel === fmmlxClass.level) return;
+
+        let delta = isNaN(newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
+        console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
+        let transId = this.__beginTransaction();
+        try{
+            this._calculateClassLevel(fmmlxClass,delta,true, transId);
+        }
+        catch (error){
+            this.__rollbackTransaction();
+        }
+        this.__commitTransaction(transId);
+    }
+
+
+    /**
+     *  Changes the level of an FMMLx Class by delta, reevaluates its properties and propagates the changes downstream, and optionally upstream.
      * @param {Model.FmmlxClass} fmmlxClass
-     * @param {string} level
+     * @param {number|NaN} delta: NaN => change to "?"
      * @param upstream
      * @param transId
      */
-    changeClassLevel(fmmlxClass, level, upstream, transId) {
+    _calculateClassLevel(fmmlxClass, delta, upstream, transId = null) {
+        if (fmmlxClass.lastChangeId === transId) return;
 
+        if (upstream) {
+            if (fmmlxClass.metaclass !== null) this._calculateClassLevel(fmmlxClass.metaclass, delta, upstream, transId);
+            if (fmmlxClass.superclass !== null) this._calculateClassLevel(fmmlxClass.superclass, delta, upstream, transId);
+        }
+
+        fmmlxClass.level = (delta === 0) ? "?" : (fmmlxClass.level === "?") ? fmmlxClass.distanceFromRoot + delta : fmmlxClass.level + delta;
+        for (let property of fmmlxClass.attributes.concat(fmmlxClass.operations)) {
+            let transId2 = this.__beginTransaction();
+            try {
+                this.processProperty(fmmlxClass, property, transId2);
+            }
+            catch(error){
+                this.__rollbackTransaction();
+                throw error;
+            }
+            this.__commitTransaction(transId2);
+            fmmlxClass.lastChangeId = transId2;
+        }
+        fmmlxClass.lastChangeId = transId;
+
+        for (let instance of fmmlxClass.instances) {
+            this._calculateClassLevel(instance, delta, upstream, transId);
+        }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            this._calculateClassLevel(subclass, delta, upstream, transId);
+        }
     }
 
     /**
