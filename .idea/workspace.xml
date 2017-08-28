@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
+    <list default="true" id="2f774273-41f3-47c0-8b61-ff04b9d9198e" name="Default" comment="Added missing files">
     <list default="true" id="2f774273-41f3-47c0-8b61-ff04b9d9198e" name="Default" comment="- Edit Fmmlx class UC Finished">
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dictionaries/paavum.xml" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/vendor/bootstrap/bootstrap_3.3.7.js" />
@@ -19,6 +20,8 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/watcherTasks.xml" afterPath="$PROJECT_DIR$/.idea/watcherTasks.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/css/vendor/winstrap/winstrap.min.css" afterPath="$PROJECT_DIR$/css/vendor/winstrap/winstrap.min.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/vendor/winstrap/winstrap.js" afterPath="$PROJECT_DIR$/js/vendor/winstrap/winstrap.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/css/FmmlxStudio.css" afterPath="$PROJECT_DIR$/css/FmmlxStudio.css" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/FmmlxShapes/FmmlxClass.js" afterPath="$PROJECT_DIR$/js/FmmlxShapes/FmmlxClass.js" />
@@ -531,6 +534,7 @@
       <workItem from="1503653098190" duration="16623000" />
       <workItem from="1503739647729" duration="12820000" />
       <workItem from="1503818881394" duration="35302000" />
+      <workItem from="1503925540263" duration="1214000" />
       <workItem from="1503925540263" duration="222000" />
     </task>
     <task id="LOCAL-00001" summary="No more Set, everything with arrays.">
@@ -547,10 +551,26 @@
       <option name="project" value="LOCAL" />
       <updated>1503603490738</updated>
     </task>
+    <task id="LOCAL-00003" summary="- Edit Fmmlx class UC Finished">
+      <created>1503925801152</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1503925801152</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Added missing files from previous commit">
+      <created>1503926564993</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1503926564993</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="311238000" />
     <option name="totallyTimeSpent" value="310246000" />
   </component>
   <component name="TodoView" selected-index="4">
@@ -598,6 +618,9 @@
     <MESSAGE value="No more Set, everything with arrays." />
     <MESSAGE value="Finished use cases:&#10;- Add Property&#10;- Delete Property&#10;- Add Value&#10;- Change Fmmlx Class&#10;- Process Property" />
     <MESSAGE value="- Edit Fmmlx class UC Finished" />
+    <MESSAGE value="Added missing files from previous commit" />
+    <MESSAGE value="Added missing files" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added missing files" />
     <option name="LAST_COMMIT_MESSAGE" value="- Edit Fmmlx class UC Finished" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
