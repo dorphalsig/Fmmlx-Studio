@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="PROJECT" libraries="{FileSaver, bootstrap, go-debug, jquery, material, ripples, selectize, spark-md5, validator}" />
+    <file url="PROJECT" libraries="{FileSaver, bootstrap, go-debug, gojs Type Definitions, jquery, material, ripples, selectize, spark-md5, validator}" />
   </component>
 </project>

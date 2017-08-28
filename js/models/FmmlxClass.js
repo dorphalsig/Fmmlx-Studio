@@ -1,5 +1,5 @@
 "use strict";
-if (typeof Model === "undefined") window,Model = {};
+if (typeof Model === "undefined") window, Model = {};
 /**
  *
  * @type {Model.FmmlxClass}
@@ -14,12 +14,136 @@ Model.FmmlxClass = class {
      * @param {*} externalMetaclass
      */
     constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null) {
+
+        /**
+         * @type Number|String
+         */
+        Object.defineProperty(this, 'level', {
+            configurable: false,
+            enumerable: true,
+            get: function () {
+                return this._level;
+            },
+            set: function (level) {
+                if (level !== "?") {
+                    let parsedLevel = Number.parseInt(level);
+                    if (isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`);
+                    this._level = parsedLevel;
+                }
+                else
+                    this._level = "?"
+            }
+        });
+
+        /**
+         * @type Helper.Set
+         */
+
+        Object.defineProperty(this, 'instances', {
+            configurable: true,
+            enumerable: true, get: function () {
+                return this._instances
+            }, set: function (val) {
+                this._instances = val;
+            }
+        });
+
+
+        /**
+         * @type Helper.Set
+         */
+        Object.defineProperty(this, 'endpoints', {
+            configurable: true, enumerable: true, get: function () {
+                return this._endpoints
+            }
+        });
+
+
+        /**
+         * @type Number
+         */
+        Object.defineProperty(this, 'distanceFromRoot', {
+            configurable: true, enumerable: true, get: function () {
+                return this._distanceFromRoot
+            }
+        });
+
+        /**
+         * @type String
+         */
+        /* Object.defineProperty(this, 'id', {
+             configurable: true, enumerable: true, get: function () {
+                 let id = {
+                     name: this.name,
+                     level: this.level,
+                     externalLanguage: (this.isExternal) ? this.externalLanguage : "",
+                     metaclass: (this.isExternal) ? this.externalMetaclass : this.metaclass
+                 };
+                 return SparkMD5.hash(JSON.stringify(id), false);
+
+             }
+         });*/
+
+
+        /**
+         * @type Helper.Set
+         */
+        Object.defineProperty(this, 'subclasses', {
+            configurable: true, enumerable: true,
+            get: function () {
+                return this._subclasses;
+            }
+        });
+
+        /**
+         * @type boolean
+         */
+        Object.defineProperty(this, 'hasUnknownLevel', {
+            configurable: true, enumerable: true, get: function () {
+                return this.level === "?";
+            }
+        });
+
+
+        /**
+         * @type Model.FmmlxClass
+         */
+        Object.defineProperty(this, 'metaclass', {
+            configurable: true, enumerable: true, get: function () {
+                return this._metaclass
+            }, set: function (val) {
+                this._distanceFromRoot = (val === null) ? 0 : val.distanceFromRoot + 1;
+                this._metaclass = val;
+            }
+        });
+
+        /**
+         * @type String
+         */
+        Object.defineProperty(this, 'metaclassName', {
+            configurable: true, enumerable: true, get: function () {
+                return this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name;
+            }
+        });
+
+
+        /**
+         * @type boolean
+         */
+        Object.defineProperty(this, 'isExternal', {
+            configurable: true, enumerable: true, get: function () {
+                return (this.externalLanguage !== null);
+            }
+        });
+
+
         this.__foundPropIndex = null;
         this.__foundValIndex = null;
-        this._metaclass = null;
+        this.metaclass = null;
         this._distanceFromRoot = 0;
         this._instances = new Helper.Set();
         this._subclasses = new Helper.Set();
+        this.superclass = null;
         this.name = name;
         this.attributes = [];
         this.lastChangeId = "";
@@ -30,139 +154,11 @@ Model.FmmlxClass = class {
         this.tags = [];
         this.externalLanguage = externalLanguage;
         this.externalMetaclass = externalMetaclass;
-        this._level = level;
+        this.level = level;
         this.isAbstract = isAbstract;
+        this.id = Helper.Helper.uuid4();
     };
 
-    /**
-     *
-     * @return {Helper.Set}
-     */
-    get instances(){
-        return this._instances;
-    }
-
-    get endpoints(){
-        return this._endpoints;
-    }
-
-
-    set externalLanguage(extLang){
-        if(this.metaclass!== null) throw new Error("Classes that have a local metaclass can not be part of an external language");
-        this._externalMetaclass = extLang;
-    }
-
-    get externalLanguage(){
-        return this._externalLanguage
-    }
-
-
-    set externalMetaclass(extMeta){
-        if(!this.isExternal) throw new Error("Local classes can not have external metaclasses.");
-        this._externalMetaclass = extMeta;
-    }
-
-    get externalMetaclass(){
-        return this._externalMetaclass;
-    }
-
-    set level(level){
-        if(level!=="?"){
-            let parsedLevel = Number.parseInt(level);
-            if(isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`);
-            this._level =   parsedLevel;
-        }
-        else
-            this._level ="?"
-    }
-
-    get level(){
-        return this._level;
-    }
-
-    /**
-     *
-     * @returns {number}
-     */
-    get distanceFromRoot() {
-        return this._distanceFromRoot;
-    }
-
-    /**
-     *
-     * @returns {String}
-     */
-    get id() {
-        let id = {
-            name: this.name,
-            level: this.level,
-            externalLanguage: (this.isExternal) ? this.externalLanguage : "",
-            metaclass: (this.isExternal) ? this.externalMetaclass : this.metaclass
-        };
-        return SparkMD5.hash(JSON.stringify(id), false);
-    }
-
-
-    /**
-     *
-     * @return {Helper.Set}
-     */
-    get subclasses() {
-        return this._subclasses;
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} superclass
-     */
-    set superclass(superclass) {
-        if (typeof superclass !== "undefined" && superclass.constructor !== Model.FmmlxClass)
-            throw new Error("Metaclass must be an FMMLxClass");
-
-        if (typeof this.externalLanguage !== "undefined")
-            throw new Error("Class can not be an external concept");
-
-        if ((superclass.level !== this.level + 1) && ( (superclass.level === "?" || this.level === "?") && this.level !== superclass.level))
-            throw new Error(`Invalid classification level for ${superclass.name}. It can not be the supeclass of ${this.name}`);
-    }
-
-
-    /**
-     *
-     * @returns {Model.FmmlxClass}
-     */
-    get metaclass() {
-        return this._metaclass;
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} metaclass
-     */
-    set metaclass(metaclass) {
-        if(this.isExternal)
-            throw new Error("Can not specify a local metaclass for an external concept");
-        if (metaclass.level !== this.level + 1)
-            throw new Error("Metaclass level is invalid");
-        this._metaclass = metaclass;
-        this._distanceFromRoot=metaclass.distanceFromRoot+1;
-    }
-
-    /**
-     *
-     * @returns {boolean}
-     */
-    get isExternal() {
-        return (this.externalLanguage !== null);
-    }
-
-    /**
-     *
-     * @returns {boolean}
-     */
-    get hasUnknownLevel() {
-        return this.level === "?";
-    }
 
     /**
      *  returns the appropriate array for a property or value. Ie. if its an attribute returns a ref to the attribute array.
@@ -189,6 +185,38 @@ Model.FmmlxClass = class {
      */
     deleteSubclass(subclass) {
         this._subclasses.delete(subclass);
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxRelationEndpoint} endpoint
+     */
+    addEndpoint(endpoint) {
+        this._endpoints.add(endpoint)
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxRelationEndpoint} endpoint
+     */
+    removeEndpoint(endpoint) {
+        this._endpoints.remove(endpoint)
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxClass} instance
+     */
+    addInstance(instance) {
+        this._instances.add(instance);
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxClass} instance
+     */
+    removeInstance(instance) {
+        this._instances.remove(instance)
     }
 
 
@@ -233,7 +261,7 @@ Model.FmmlxClass = class {
      * @param value
      * @return {null|number}
      */
-    findIndexForValue(value){
+    findIndexForValue(value) {
         let array = this.findCorrespondingArray(value);
         if (this.__foundValIndex === null || !array[this.__foundValIndex].equals(value)) {
             this.hasPropertyOrValue(value);

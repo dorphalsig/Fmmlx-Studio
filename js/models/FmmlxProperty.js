@@ -1,5 +1,6 @@
 "use strict";
 if (typeof Model === "undefined") window.Model = {};
+
 /**
  *
  * @type {Model.FmmlxProperty}

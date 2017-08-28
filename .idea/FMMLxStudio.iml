@@ -8,14 +8,15 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="jquery" level="application" />
-    <orderEntry type="library" name="material" level="application" />
     <orderEntry type="library" name="bootstrap" level="application" />
-    <orderEntry type="library" name="ripples" level="application" />
-    <orderEntry type="library" name="selectize" level="application" />
     <orderEntry type="library" name="FileSaver" level="application" />
     <orderEntry type="library" name="go-debug" level="application" />
-    <orderEntry type="library" name="validator" level="application" />
+    <orderEntry type="library" name="jquery" level="application" />
+    <orderEntry type="library" name="material" level="application" />
+    <orderEntry type="library" name="ripples" level="application" />
+    <orderEntry type="library" name="selectize" level="application" />
     <orderEntry type="library" name="spark-md5" level="application" />
+    <orderEntry type="library" name="validator" level="application" />
+    <orderEntry type="library" name="gojs Type Definitions" level="project" />
   </component>
 </module>

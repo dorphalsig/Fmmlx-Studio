@@ -1,57 +1,55 @@
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gojs/1.7.7/go-debug.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gojs/1.7.19/go-debug.js"></script>
 </head>
 <body>
-<div id="moodlerDIV">
+<div id="canvas" style="width: 700px; height: 1000px;">
 </div>
+
 <script>
-var $ = go.GraphObject.make;
-var diagram = $(go.Diagram, "moodlerDIV");
 
-diagram.nodeTemplate =
-  $(go.Node, "Auto",
-    new go.Binding("location", "loc", go.Point.parse),
-    $(go.Shape, "RoundedRectangle", {
-      fill: "lightgray"
-    }),
-    $(go.TextBlock, {
-        margin: 5
-      },
-      new go.Binding("text", "key"))
-  );
+    function clicked(iE, gO) {
+        diagram.startTransaction();
+        let part = gO.part;
+        part.selectionObjectName = gO.name;
+        part.locationObjectName = gO.name;
+        diagram.commitTransaction();
+    }
 
+    window.gmake = go.GraphObject.make;
 
-
-
-
-diagram.linkTemplate =
-  $(go.Link,
-    $(go.Shape),
+    window.diagram = gmake(go.Diagram, "canvas", {
+        padding: new go.Margin(75, 5, 5, 5),
+        "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
+        model: new go.GraphLinksModel(),
+    });
+    window.model = diagram.model;
 
 
+    diagram.add(
+        gmake(go.Part, "Table",
+            gmake(go.Shape, {
+                row: 0, column: 0, figure: "Club", width: 60, height: 60, margin: 4,
+                fill: "green", name: "test1", click: clicked
+            }),
+            gmake(go.TextBlock, "green", {row: 1, column: 0}),
+            gmake(go.Shape, {
+                row: 0, column: 1, figure: "Club", width: 60, height: 60, margin: 4,
+                fill: "white",name: "test2", click: clicked
+            }),
+            gmake(go.TextBlock, "white", {row: 1, column: 1}),
+            gmake(go.Shape, {
+                row: 0, column: 2, figure: "Club", width: 60, height: 60, margin: 4,
+                fill: "transparent",name: "test3", click: clicked
+            }),
+            gmake(go.TextBlock, "transparent", {row: 1, column: 2}),
+            gmake(go.Shape, {
+                row: 0, column: 3, figure: "Club", width: 60, height: 60, margin: 4,
+                fill: null,name: "test4", click: clicked
+            }),
+            gmake(go.TextBlock, "null", {row: 1, column: 3})
+        ));
 
-    $(go.TextBlock, "name", {
-      segmentOffset: new go.Point(0, -10),
-      segmentOrientation: go.Link.OrientUpright
-    }),
-  );
-var nodeDataArray = [{
-    key: "Alpha",
-    loc: "0 0"
-  },
-
-
-  {
-    key: "Beta",
-    loc: "100 50"
-  }
-];
-var linkDataArray = [{
-  from: "Alpha",
-  to: "Beta"
-}];
-diagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
 
 </script>
 </body>

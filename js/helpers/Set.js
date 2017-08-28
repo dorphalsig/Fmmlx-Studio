@@ -3,22 +3,16 @@ if (typeof Helper === "undefined") window.Helper = {};
 
 /**
  *
- * @type {Helper.Set}
+ * @type {Helper.Set|Array}
  */
-Helper.Set = class {
-    constructor(value) {
-        this._array = [];
+Helper.Set = class extends Array {
+
+    get size(){
+        return super.length;
     }
 
-
-    /**
-     * Adds an item or array to the collection if it doesnt exist. (Comparing it with all others (using obj.equals()) )
-     * @param value
-     */
-    add(value) {
-        if (!this.has(value))
-            this._array.push(value);
-        return this;
+    push(value){
+        add(value);
     }
 
     delete(value) {
@@ -26,20 +20,28 @@ Helper.Set = class {
         this._array.slice(pos,1);
     }
 
+    /**
+     * Adds an item or array to the collection if it doesnt exist. (Comparing it with all others (using obj.equals()) )
+     * @param value
+     */
+    add(value) {
+        if (!this.has(value))
+            super.push(value);
+        return this;
+    }
+
     findIndex(value) {
-        return this._array.findIndex(item => {
+        return super.findIndex(item => {
             return (typeof value.equals !== "undefined" && typeof value.equals === "function" && value.equals(item) ) || (value === item);
         });
     }
-
 
     has(value) {
         return this.findIndex(value) !== -1;
     }
 
-
     toArray() {
-        return this._array;
+        return Array.from(this);
     }
 }
 ;

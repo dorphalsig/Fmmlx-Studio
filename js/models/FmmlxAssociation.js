@@ -25,60 +25,6 @@ Model.FmmlxAssociation = class {
         this.instances = new Helpers_Set();
     }
 
-    /**
-     *
-     * @returns {Model.FmmlxRelationEndpoint}
-     */
-    get source() {
-        return this._source;
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxRelationEndpoint} src
-     */
-    set source(src) {
-        if (src.constructor !== Model.FmmlxRelationEndpoint)
-            throw new Error("Association source must be a Relatonship endpoint");
-        this._source = src;
-    }
-
-    /**
-     *
-     * @returns {Model.FmmlxRelationEndpoint}
-     */
-    get target() {
-        return this._target;
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxRelationEndpoint} tgt
-     */
-    set target(tgt) {
-        if (tgt.constructor !== Model.FmmlxRelationEndpoint)
-            throw new Error("Association target must be a Relatonship endpoint");
-        this._target = tgt;
-    }
-
-
-    /**
-     *
-     * @returns {Model.FmmlxAssociation}
-     */
-    get metaAssociation() {
-        return this._metaAssociation;
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxAssociation} meta
-     */
-    set metaAssociation(meta) {
-        if (this.isRefinement)
-            throw new Error("An association can not be instance and refiement at the same time");
-        this._metaAssociation = meta;
-    }
 
     /**
      *

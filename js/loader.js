@@ -6,7 +6,7 @@ if (window.jQuery) {
         , "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/js/material.min.js"
         , "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/js/ripples.min.js"
         , "https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.8.5/js/standalone/selectize.min.js"
-        , "https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.js"
+        , "https://cdnjs.cloudflare.com/ajax/libs/filesaver.js/1.3.3/filesaver.js"
         , "https://cdnjs.cloudflare.com/ajax/libs/gojs/1.7.10/go-debug.js"
         , "js/helpers/Set.js"
         , "js/models/FmmlxProperty.js"
