@@ -419,6 +419,10 @@ Controller.StudioController = class {
         this.deletePropertyFromClass(fmmlxClass, property, upstream);
     }
 
+    addProperty(fmmlxClassId, name, type, intrinsicness, isOperation, isObtainable, isDerivable, isSimulated, isValue, value) {
+
+    }
+
     /**
      * Adds <Property> to <fmmlxClass> and its descendants (if it does not exist)
      * @param {Model.FmmlxClass} fmmlxClass

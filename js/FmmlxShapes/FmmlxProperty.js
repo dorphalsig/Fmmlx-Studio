@@ -31,8 +31,7 @@ FmmlxShapes.FmmlxProperty._behaviourBlock = gMake(go.Panel, "Horizontal", {
                                                                           },
                                                                           gMake(go.Shape, "Rectangle", {
                                                                               fill: "black"
-                                                                          }),
-                                                                          gMake(go.TextBlock, {
+                                                                          }), gMake(go.TextBlock, {
                                                                               stroke: "white",
                                                                               margin: new go.Margin(0, 2, 0, 2),
                                                                               font: "bold 14px monospace"
