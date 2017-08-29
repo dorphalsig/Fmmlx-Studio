@@ -278,7 +278,8 @@ Controller.StudioController = class {
             console.log(`Old and new metaclasses are the same. Doing nothing.`);
         }
 
-        console.log(`Change ${fmmlxClass.name}'s metaclass from  ${fmmlxClass.metaclass.name} to ${metaclass.name}`);
+        //let className = 
+        console.log(`Change ${fmmlxClass.name}'s metaclass from  ${(fmmlxClass.metaclass === null) ? "Metaclass" : fmmlxClass.metaclass.name} to ${metaclass.name}`);
 
         let transId = this._beginTransaction();
         try {

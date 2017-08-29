@@ -34,8 +34,8 @@ Controller.FormController = {
 
             let field = modal.find(`[name=${fieldName}]`);
 
-            if (field.prop("type") === "checkbox" && Boolean(field.val()) === data[fieldName]) field.click();
-            else if (field.prop("type") !== "checkbox") {
+            if (field.prop("type") === "checkbox" && Boolean(field.val()) === data[fieldName]) field.click(); else if (field.prop(
+                    "type") !== "checkbox") {
                 field.val(data[fieldName]);
                 field.click();
                 field.change();
@@ -56,8 +56,7 @@ Controller.FormController = {
          */
         select = select[0];
         for (let opt of select) {
-            if (typeof $(opt).data("keep") === "undefined")
-                select.remove(opt)
+            if (typeof $(opt).data("keep") === "undefined") select.remove(opt);
         }
         for (let option of options) {
             select.add(option);
@@ -134,8 +133,9 @@ Controller.FormController = {
         modal.find("[name=level]").change(function (event) {
             if (!metaClassSelect.prop("disabled")) {
                 let level = event.target.value;
-                let options = studio.getClassesbyLevel(level).map(fmmlxClass => new Option(fmmlxClass.name, fmmlxClass.id));
-                self.__fillSelect(metaClassSelect, options)
+                let options = studio.getClassesbyLevel(level).map(fmmlxClass => new Option(fmmlxClass.name,
+                    fmmlxClass.id));
+                self.__fillSelect(metaClassSelect, options);
             }
         });
         (entityId !== "") ? self.__fillForm(modal, obj.data) : modal.find("[name=coords]").val(point);
@@ -148,6 +148,16 @@ Controller.FormController = {
         alert(JSON.stringify(obj.part.data));
     },
 
+
+    showHideContextMenu: function (obj, diagram, tool) {
+
+        if (typeof obj.data.constructor !== "undefined") {
+            if (obj.data.constructor === Model.FmmlxClass) $("#classMenu").toggle(); else if (obj.data.constructor === Model.FmmlxProperty) $(
+                "#proertyMenu").toggle();
+        }
+
+    },
+
     displayPropertyForm: function (event, obj) {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
@@ -157,7 +167,8 @@ Controller.FormController = {
 
         let opBodyManager = function (event) {
             let opBody = modal.find("[name=operationBody]");
-            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]").prop("checked")) ? self.__showField(opBody) : self.__hideField(opBody);
+            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]").prop("checked")) ? self.__showField(
+                opBody) : self.__hideField(opBody);
         };
 
         modal.find("[name=isOperation]").change(opBodyManager);
@@ -182,7 +193,7 @@ Controller.FormController = {
     },
 
     deleteProperty: function (event, obj) {
-        alert(JSON.stringify(obj.part.data));
+        alert("Just did it");
     },
 
     abstractClass: function (event, obj) {
@@ -207,7 +218,19 @@ Controller.FormController = {
 
         try {
             let formVals = self.__readForm(form);
-            if (formVals.id === "") studio.addFmmlxClass(formVals.coords, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass); else studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
+            if (formVals.id === "") studio.addFmmlxClass(formVals.coords,
+                formVals.name,
+                formVals.level,
+                formVals.isAbstract,
+                formVals.metaclass,
+                formVals.externalLanguage,
+                formVals.externalMetaclass); else studio.editFmmlxClass(formVals.id,
+                formVals.name,
+                formVals.level,
+                formVals.isAbstract,
+                formVals.metaclass,
+                formVals.externalLanguage,
+                formVals.externalMetaclass);
 
         }
         catch (error) {
@@ -228,8 +251,17 @@ Controller.FormController = {
             return false;
         }
         let formVals = self.__readForm(form);
-        if (formVals.id === "") studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.isObtainable, formVals.isDerivable, formVals.isSimulation, formVals.isValue, formVals.value, formVals.operationBody);
-        else alert("ToDo xD");
-    }
+        if (formVals.id === "") studio.createMember(formVals.fmmlxClassId,
+            formVals.name,
+            formVals.type,
+            formVals.intrinsicness,
+            formVals.isOperation,
+            formVals.isObtainable,
+            formVals.isDerivable,
+            formVals.isSimulation,
+            formVals.isValue,
+            formVals.value,
+            formVals.operationBody); else alert("ToDo xD");
+    },
 
 };

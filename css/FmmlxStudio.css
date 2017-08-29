@@ -102,3 +102,8 @@ body {
     border-color: white;
     text-decoration: none;
 }
+
+.contextMenu {
+    position: absolute;
+    z-index: 1000;
+}

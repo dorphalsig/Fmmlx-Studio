@@ -274,7 +274,7 @@ Model.FmmlxClass = class {
     hasPropertyOrValue(propOrValue) {
         let correspondingArray = this.findCorrespondingArray(propOrValue);
         let index = correspondingArray.findIndex(item => {
-            return value.equals(item);
+            return propOrValue.equals(item);
         });
 
         this.__foundPropIndex = (index === -1) ? null : index;

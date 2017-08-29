@@ -18,5 +18,6 @@
     <orderEntry type="library" name="spark-md5" level="application" />
     <orderEntry type="library" name="validator" level="application" />
     <orderEntry type="library" name="gojs Type Definitions" level="project" />
+    <orderEntry type="library" name="jquery-DefinitelyTyped" level="application" />
   </component>
 </module>
