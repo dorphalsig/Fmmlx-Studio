@@ -104,6 +104,14 @@ body {
 }
 
 .contextMenu {
+    z-index: 300;
     position: absolute;
-    z-index: 1000;
+    left: 5px;
+    border: 1px solid #444;
+    background-color: #F5F5F5;
+    display: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .4);
+    font-size: 12px;
+    font-family: sans-serif;
+    font-weight: bold;
 }

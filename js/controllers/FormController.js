@@ -151,11 +151,17 @@ Controller.FormController = {
 
     showHideContextMenu: function (obj, diagram, tool) {
 
-        if (typeof obj.data.constructor !== "undefined") {
-            if (obj.data.constructor === Model.FmmlxClass) $("#classMenu").toggle(); else if (obj.data.constructor === Model.FmmlxProperty) $(
-                "#proertyMenu").toggle();
-        }
+        if (typeof obj.data !== "undefined" && typeof obj.data.constructor !== "undefined!") {
+            if (obj.data.constructor === Model.FmmlxClass) {
+                console.log("Class");
+                debugger;
+                $("#classMenu").show();
+            } else if (obj.data.constructor === Model.FmmlxProperty) {
+                console.log("prop");
+                $("#propertyMenu").show();
+            } else $(".contextMenu").hide();
 
+        }
     },
 
     displayPropertyForm: function (event, obj) {
