@@ -228,11 +228,8 @@ Controller.FormController = {
             return false;
         }
         let formVals = self.__readForm(form);
-        if (formVals.id === "") studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.isObtainable, formVals.isDerivable, formVals.isSimulated, formVals.isValue, formVals.value); else alert("ToDo xD");
-
-        debugger;
-
-
+        if (formVals.id === "") studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.isObtainable, formVals.isDerivable, formVals.isSimulation, formVals.isValue, formVals.value, formVals.operationBody);
+        else alert("ToDo xD");
     }
 
 };

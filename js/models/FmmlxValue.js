@@ -9,7 +9,7 @@ if (typeof Model === "undefined") window.Model = {};
  */
 Model.FmmlxValue = class {
 
-// Instance
+    // Instance
     /**
      *
      * @param {Model.FmmlxProperty} property
@@ -24,10 +24,7 @@ Model.FmmlxValue = class {
 
     get id() {
         let id = {
-            className: this.class.name,
-            propertyName: this.property.name,
-            value: this.value
-
+            className: this.class.name, propertyName: this.property.name, value: this.value
         };
         return SparkMD5.hash(JSON.stringify(id), false);
     }
@@ -39,10 +36,8 @@ Model.FmmlxValue = class {
      */
     equals(obj) {
         let result = (obj.constructor === Model.FmmlxValue && this.property.equals(obj.property));
-        if (this.class !== null)
-            result = result && this.class.equals(obj.class);
-        else
-            result = result && obj.class === null;
+        if (this.class !== null) result = result && this.class.equals(obj.class);
+        else result = result && obj.class === null;
         return result;
     }
 };

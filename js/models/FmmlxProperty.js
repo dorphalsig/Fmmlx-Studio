@@ -18,8 +18,6 @@ Model.FmmlxProperty = class {
 
 // Instance
     /**
-     *
-     * @param {Model.FmmlxClass} fmmlxClass
      * @param {String} name
      * @param {String} type
      * @param {Number|NaN} intrinsicness
@@ -27,18 +25,17 @@ Model.FmmlxProperty = class {
      * @param {Model.FmmlxBehaviors[]} behaviors
      * @param {String} operationBody
      */
-    constructor(fmmlxClass, name, type, intrinsicness, isOperation, behaviors, operationBody = null) {
+    constructor(name, type, intrinsicness, isOperation, behaviors = [], operationBody = null) {
         this.values = new Helper.Set();
         this.classes = new Helper.Set();
 
         this.maxIntrinsicness = -1;
         this.name = name;
         this.type = type;
-        this.intrinsicness = intrinsicness;
+        this._intrinsicness = (intrinsicness === "?") ? "?" : Number.parseInt(intrinsicness);
         this.isOperation = isOperation;
         this.behaviors = behaviors;
         this.operationBody = operationBody;
-        this.classes.add(fmmlxClass);
     }
 
     get id() {
@@ -52,8 +49,8 @@ Model.FmmlxProperty = class {
 
     set intrinsicness(val) {
         let numberVal = Number.parseInt(val);
-        if (val === "?" && this.maxIntrinsicness !== "?" || isNaN(numberVal) || numberVal > Number.parseInt(this.maxIntrinsicness)) throw new Error(`Invalid intrinsicness for class ${name}`);
-        this._intrinsicness = isNaN(numberVal) ? "?" : numberVal;
+        if (val === "?" && this.maxIntrinsicness !== "?" || isNaN(numberVal) || numberVal > Number.parseInt(this.maxIntrinsicness)) throw new Error(`Invalid intrinsicness ${val} for class ${this.fmmlxClass.name}`);
+        this._intrinsicness = (val === "?") ? "?" : numberVal;
     }
 
     /**

@@ -239,15 +239,15 @@
                                     </label>
                                     <label class="checkbox-inline">
                                         <small>Obtainable?</small>
-                                        <input name="isObtainable" value="true" type="checkbox"/>
+                                        <input name="isObtainable" value="O" type="checkbox"/>
                                     </label>
                                     <label class="checkbox-inline">
                                         <small>Derivable?</small>
-                                        <input name="isDerivable" value="true" type="checkbox"/>
+                                        <input name="isDerivable" value="D" type="checkbox"/>
                                     </label>
                                     <label class="checkbox-inline">
-                                        <small>Simulated?</small>
-                                        <input name="isSimulation" value="true" type="checkbox"/>
+                                        <small>Simulation?</small>
+                                        <input name="isSimulation" value="S" type="checkbox"/>
                                     </label>
                                     <label class="checkbox-inline">
                                         <small>Value?</small>
@@ -263,7 +263,7 @@
                         <div class="form-group collapse ">
                             <label class="col-md-2 control-label">Operation Body</label>
                             <div class="col-md-10">
-                                <textarea class="form-control" rows="3" name="operationBody"></textarea>
+                                <textarea disabled class="form-control" rows="3" name="operationBody"></textarea>
                             </div>
                         </div>
                     </div>
@@ -273,7 +273,7 @@
                 <div class="btn-group btn-group-raised">
                     <a href="javascript:void(0)" data-dismiss="modal" class="btn btn-default">Close</a>
                     <a href="javascript:void(0)" class="btn btn-primary"
-                       onclick="Controller.FormController.addEditFmmlxClass();">Continue</a>
+                       onclick="Controller.FormController.addEditFmmlxProperty();">Continue</a>
                 </div>
             </div>
         </div>

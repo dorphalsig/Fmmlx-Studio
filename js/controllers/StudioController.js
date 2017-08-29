@@ -3,7 +3,7 @@ if (typeof Controller === `undefined`) window.Controller = {};
 
 Controller.StudioController = class {
 
-// Instance
+    // Instance
     /**
      *  Constructor, receives the id of the div that's the parent for the GoJS canvas
      * @param {string} div
@@ -102,12 +102,11 @@ Controller.StudioController = class {
         return this._model.nodeDataArray.filter(function (nodeData) {
             let retVal = true;
             for (let filter in filters) {
-                if (!filters.hasOwnProperty(filter) || !nodeData.hasOwnProperty(filter))
-                    continue;
-                retVal = retVal && nodeData[filter] === filters[filter]
+                if (!filters.hasOwnProperty(filter) || !nodeData.hasOwnProperty(filter)) continue;
+                retVal = retVal && nodeData[filter] === filters[filter];
             }
-            return retVal
-        })
+            return retVal;
+        });
 
     }
 
@@ -196,29 +195,32 @@ Controller.StudioController = class {
 
     /**
      * Deletes the corresponding property from FmmlxClass and descendants, creates a new value and adds it
-     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxClass}  fmmlxClass
      * @param {Model.FmmlxProperty} property
+     * @param {string} value
+     * @return {Model.FmmlxValue}
      */
-    addValueToClass(fmmlxClass, property) {
+    addValueToClass(fmmlxClass, property, value = null) {
 
         if ((property.intrinsicness === "?" && fmmlxClass.level === "?") || property.intrinsicness !== fmmlxClass.level) {
             console.log(`Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the property's (${property.name}) intrinsicness (${property.intrinsicness}). Doing nothing`);
             return;
         }
 
-        value.class = fmmlxClass;
-        if (fmmlxClass.findIndexForValue(value) !== null) {
-            console.log(`A value of ${value.property.name} already exists ${fmmlxClass.name}. doing Nothing`);
+        let val = property.createValue(value);
+        val.class = fmmlxClass;
+
+        if (fmmlxClass.findIndexForValue(val) !== null) {
+            console.log(`A value of ${val.property.name} already exists ${fmmlxClass.name}. doing Nothing`);
             return;
         }
-
-        console.log(`Adding a value of ${value.property.name} to ${fmmlxClass.name}`);
+        console.log(`Adding a value of ${val.property.name} to ${fmmlxClass.name}`);
         let transId = this._beginTransaction();
         //the property gets deleted from here downwards
-        this.deletePropertyFromClass(fmmlxClass, value.property);
+        this.deletePropertyFromClass(fmmlxClass, val.property);
 
         try {
-            let array = fmmlxClass.findCorrespondingArray(value);
+            let array = fmmlxClass.findCorrespondingArray(val);
             this._model.addArrayItem(array, item);
         }
         catch (error) {
@@ -228,6 +230,7 @@ Controller.StudioController = class {
         this._commitTransaction(transId);
 
         if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
+        return val;
     }
 
     /**
@@ -287,8 +290,7 @@ Controller.StudioController = class {
                 this.addPropertyToClass(fmmlxClass, property);
             }
         }
-        catch
-            (error) {
+        catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -309,11 +311,18 @@ Controller.StudioController = class {
      * @param {String} value
      * @param {String} operationBody
      */
-    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, isObtainable, isDerivable, isSimulated, isValue, value, operationBody) {
+    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, isObtainable, isDerivable, isSimulation, isValue, value = null, operationBody = null) {
         let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
 
-        let property = new Model.FmmlxProperty(fmmlxClass, name, type, intrinsicness, isOperation, isObtainable, isDerivable, isSimulated, isValue, value, operationBody);
+        let behaviors = [];
+        if (isObtainable.length > 0) behaviors.push(isObtainable);
+        if (isDerivable.length > 0) behaviors.push(isDerivable);
+        if (isSimulation.length > 0) behaviors.push(isSimulation);
+
+        let property = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors, operationBody);
         this.addPropertyToClass(fmmlxClass, property);
+
+        if (Boolean(isValue)) this.addValueToClass(fmmlxClass, value);
     }
 
     /**
@@ -352,20 +361,18 @@ Controller.StudioController = class {
      * @param {Model.FmmlxClass} fmmlxClass
      */
     deleteMetaclass(fmmlxClass) {
-        if (fmmlxClass.metaclass === null)
-            return;
+        if (fmmlxClass.metaclass === null) return;
         console.log(`Removing old Metaclass from ${fmmlxClass.name}`);
         let transId = this._beginTransaction();
         try {
-            this._model.setDataProperty(fmmlxClass, 'metaclass', null);
+            this._model.setDataProperty(fmmlxClass, "metaclass", null);
             fmmlxClass.metaclass.removeInstance(fmmlxClass);
             let deletableProperties = fmmlxClass.metaclass.attributes.concat(fmmlxClass.operations);
             for (let property of deletableProperties) {
                 this.deletePropertyFromClass(fmmlxClass, property);
             }
         }
-        catch
-            (error) {
+        catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -465,8 +472,7 @@ Controller.StudioController = class {
         let fmmlxClass = this._model.findNodeDataForKey(id);
         metaclassId = (metaclassId === "") ? null : metaclassId;
 
-        if (isAbstract && fmmlxClass.instances.size > 0)
-            throw new Error("Can not make class abstract because it has instances.");
+        if (isAbstract && fmmlxClass.instances.size > 0) throw new Error("Can not make class abstract because it has instances.");
 
         console.log(`Editing class ${fmmlxClass.name}`);
         let transId = this._beginTransaction();
@@ -478,7 +484,7 @@ Controller.StudioController = class {
             if (externalMetaclass !== fmmlxClass.externalMetaclass) this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
             this.changeClassLevel(fmmlxClass, level);
             this.changeMetaclass(fmmlxClass, metaclassId);
-            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId)
+            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
         }
         catch (error) {
             this._rollbackTransaction();
@@ -495,7 +501,7 @@ Controller.StudioController = class {
     getClassesbyLevel(level) {
 
         let targetLevel = (level !== "?") ? Number.parseInt(level) + 1 : "?";
-        return this._filterClasses({level: targetLevel})
+        return this._filterClasses({level: targetLevel});
     }
 
     /**
@@ -519,10 +525,12 @@ Controller.StudioController = class {
 
         if (property.intrinsicness > fmmlxClass.level) { //if intrinsicness > level : the property + its value is deleted
             this.deletePropertyFromClass(fmmlxClass, property);
-        } else if (property.intrinsicness === fmmlxClass.level && property.intrinsicness !== "?") { // if intrinsicness = level: the property gets deleted +  a value is created
+        }
+        else if (property.intrinsicness === fmmlxClass.level && property.intrinsicness !== "?") { // if intrinsicness = level: the property gets deleted +  a value is created
             this.deletePropertyFromClass(fmmlxClass, property);
             this.addValueToClass(fmmlxClass, property);
-        } else { //if instrisicness < level: if there is a value its gets deleted and the property gets added
+        }
+        else { //if instrisicness < level: if there is a value its gets deleted and the property gets added
             let val = fmmlxClass.findValueFromProperty(property);
             if (val !== null) this.deleteValueFromClass(fmmlxClass, val);
             this.addPropertyToClass(fmmlxClass, property);
@@ -530,5 +538,4 @@ Controller.StudioController = class {
     }
 
 
-}
-;
+};

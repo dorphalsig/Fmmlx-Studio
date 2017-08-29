@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/js/controllers/StudioController.js" line="10" mnemonic="1" />
+    <bookmark url="file://$PROJECT_DIR$/js/controllers/StudioController.js" line="11" mnemonic="1" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2f774273-41f3-47c0-8b61-ff04b9d9198e" name="Default" comment="- Edit Fmmlx class UC Finished">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/js/models/FmmlxBehaviors.js" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/controllers/FormController.js" afterPath="$PROJECT_DIR$/js/controllers/FormController.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/controllers/StudioController.js" afterPath="$PROJECT_DIR$/js/controllers/StudioController.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/models/FmmlxProperty.js" afterPath="$PROJECT_DIR$/js/models/FmmlxProperty.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/models/FmmlxValue.js" afterPath="$PROJECT_DIR$/js/models/FmmlxValue.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -19,23 +25,106 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="StudioController.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="StudioController.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/js/controllers/StudioController.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="421" column="15" lean-forward="false" selection-start-line="421" selection-start-column="4" selection-end-line="421" selection-end-column="15" />
+            <state relative-caret-position="917">
+              <caret line="307" column="34" lean-forward="false" selection-start-line="307" selection-start-column="34" selection-end-line="307" selection-end-column="34" />
+              <folding>
+                <element signature="e#137#261#0" expanded="false" />
+                <element signature="e#283#1683#0" expanded="false" />
+                <element signature="e#1709#1898#0" expanded="false" />
+                <element signature="e#1904#2204#0" expanded="false" />
+                <element signature="e#2275#3591#0" expanded="false" />
+                <element signature="e#3620#3757#0" expanded="false" />
+                <element signature="e#3763#3908#0" expanded="false" />
+                <element signature="e#3942#4360#0" expanded="false" />
+                <element signature="e#4389#4593#0" expanded="false" />
+                <element signature="e#4599#4917#0" expanded="false" />
+                <element signature="e#5023#5923#0" expanded="false" />
+                <element signature="e#5929#6111#0" expanded="false" />
+                <element signature="e#6157#7433#0" expanded="false" />
+                <element signature="e#7439#7710#0" expanded="false" />
+                <element signature="e#7767#9047#0" expanded="false" />
+                <element signature="e#9053#9228#0" expanded="false" />
+                <element signature="e#9272#9932#0" expanded="false" />
+                <element signature="e#9938#10023#0" expanded="false" />
+                <element signature="e#10076#11488#0" expanded="false" />
+                <marker date="1504020340387" expanded="true" signature="114:21209" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="12098:12649" ph="{...}" />
+                <marker date="1504020340387" expanded="false" signature="12655:12792" ph="/** Deletes an Fmmlx Class and its references ...*/" />
+                <marker date="1504020340387" expanded="false" signature="12818:13606" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="12828:12890" ph="/** @type {Model.FmmlxClass} ...*/" />
+                <marker date="1504020340387" expanded="true" signature="13070:13458" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="13127:13196" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="13253:13299" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="13481:13558" ph="{...}" />
+                <marker date="1504020340387" expanded="false" signature="13612:13674" ph="/** @param {Model.FmmlxClass} fmmlxClass ...*/" />
+                <marker date="1504020340387" expanded="false" signature="13707:14422" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="13891:14274" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="14181:14264" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="14297:14374" ph="{...}" />
+                <marker date="1504020340387" expanded="false" signature="14479:14694" ph="{...}" />
+                <marker date="1504020340387" expanded="false" signature="14700:15009" ph="/** Deletes &lt;Property&gt; (and/or its corresponding &lt;Value&gt;) from &lt;fmmlxClass&gt;, its predecessors (`upstream`) and descendants (`downstream`) ...*/" />
+                <marker date="1504020340387" expanded="false" signature="15097:16975" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="15216:15353" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="15516:16856" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="16146:16504" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="16207:16318" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="16379:16490" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="16559:16846" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="16875:16927" ph="{...}" />
+                <marker date="1504020340387" expanded="false" signature="16981:17126" ph="/** Deletes (if exists) &lt;Value&gt; from FmmlxClass ...*/" />
+                <marker date="1504020340387" expanded="false" signature="17171:17947" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="17258:17358" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="17520:17699" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="17722:17806" ph="{...}" />
+                <marker date="1504020340387" expanded="false" signature="18068:19317" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="18078:18140" ph="/** @type {Model.FmmlxClass} ...*/" />
+                <marker date="1504020340387" expanded="true" signature="18517:19169" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="19192:19269" ph="{...}" />
+                <marker date="1504020340387" expanded="false" signature="19323:19439" ph="/** Finds all classes that are level +1 ...*/" />
+                <marker date="1504020340387" expanded="false" signature="19469:19613" ph="{...}" />
+                <marker date="1504020340387" expanded="false" signature="19619:20126" ph="/** Checks what to do with a property in a class: ...*/" />
+                <marker date="1504020340387" expanded="false" signature="20178:21205" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="20275:20380" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="20437:20577" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="20674:20882" ph="{...}" />
+                <marker date="1504020340387" expanded="true" signature="20896:21199" ph="{...}" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="FormController.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/js/controllers/FormController.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="617">
+              <caret line="98" column="4" lean-forward="false" selection-start-line="98" selection-start-column="4" selection-end-line="98" selection-end-column="4" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="FormController.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/js/controllers/FormController.js">
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6480">
-              <caret line="220" column="0" lean-forward="false" selection-start-line="220" selection-start-column="0" selection-end-line="220" selection-end-column="0" />
+            <state relative-caret-position="2001">
+              <caret line="265" column="51" lean-forward="false" selection-start-line="265" selection-start-column="51" selection-end-line="265" selection-end-column="51" />
               <folding>
-                <marker date="1503947987632" expanded="true" signature="8036:8062" ph="{...}" />
+                <element signature="n#div#2;n#div#0;n#div#0;n#div#2;n#body#0;n#html#0;n#!!top" expanded="false" />
+                <element signature="n#div#3;n#body#0;n#html#0;n#!!top" expanded="false" />
+                <marker date="1504023611181" expanded="false" signature="2509:3592" ph="..." />
+                <marker date="1504023611181" expanded="false" signature="3640:8773" ph="..." />
+                <marker date="1504023611181" expanded="false" signature="4291:4297" ph=" " />
+                <marker date="1504023611181" expanded="false" signature="7171:7184" ph="..." />
+                <marker date="1504023611181" expanded="false" signature="7769:7775" ph=" " />
+                <marker date="1504023611181" expanded="false" signature="7916:7929" ph="..." />
+                <marker date="1504023611181" expanded="false" signature="8937:9042" ph="..." />
+                <marker date="1504023611181" expanded="false" signature="9435:9441" ph=" " />
+                <marker date="1504023611181" expanded="false" signature="15752:15758" ph=" " />
+                <marker date="1504023611181" expanded="false" signature="17302:17308" ph=" " />
+                <marker date="1504023611181" expanded="false" signature="18718:18724" ph=" " />
               </folding>
             </state>
           </provider>
@@ -52,7 +141,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>trans</find>
       <find>this.__beginTransaction();</find>
       <find>&quot;</find>
       <find>parseint</find>
@@ -82,6 +170,7 @@
       <find>intrins</find>
       <find>.click</find>
       <find>c</find>
+      <find>formVals.</find>
     </findStrings>
     <replaceStrings>
       <replace>this</replace>
@@ -115,6 +204,7 @@
         <option value="Paavum &lt;dorphalsig@gmail.com&gt;" />
       </list>
     </option>
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
@@ -148,11 +238,9 @@
         <option value="$PROJECT_DIR$/js/loader.js" />
         <option value="$PROJECT_DIR$/js/helpers/Helper.js" />
         <option value="$PROJECT_DIR$/js/FmmlxShapes/FmmlxAssociation.js" />
-        <option value="$PROJECT_DIR$/js/models/FmmlxValue.js" />
         <option value="$PROJECT_DIR$/js/models/FmmlxRelationshipEndpoint.js" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_1.es6" />
         <option value="$PROJECT_DIR$/test.html" />
-        <option value="$PROJECT_DIR$/js/models/FmmlxProperty.js" />
         <option value="$PROJECT_DIR$/js/models/FmmlxAssociation.js" />
         <option value="$PROJECT_DIR$/js/loader.js" />
         <option value="$PROJECT_DIR$/css/FmmlxStudio.css" />
@@ -160,10 +248,13 @@
         <option value="$PROJECT_DIR$/js/helpers/Set.js" />
         <option value="$PROJECT_DIR$/js/FmmlxShapes/FmmlxProperty.js" />
         <option value="$PROJECT_DIR$/js/FmmlxShapes/FmmlxClass.js" />
-        <option value="$PROJECT_DIR$/index.html" />
-        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/js/models/FmmlxProperty.js" />
+        <option value="$PROJECT_DIR$/js/models/FmmlxValue.js" />
+        <option value="$PROJECT_DIR$/js/models/FmmlxBehaviors.js" />
         <option value="$PROJECT_DIR$/js/controllers/FormController.js" />
         <option value="$PROJECT_DIR$/js/controllers/StudioController.js" />
+        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/index.html" />
       </list>
     </option>
   </component>
@@ -293,6 +384,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -327,18 +420,16 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scratches" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
-    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.JavaScript" />
+    <property name="settings.editor.selected.configurable" value="vcs.Git" />
     <property name="JavaScriptPreferStrict" value="true" />
     <property name="JavaScriptWeakerCompletionTypeGuess" value="true" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$2/Languages" value="HTML&#10;EJS" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$USER_HOME$/Downloads/PortableGit/bin/git.exe" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
   </component>
   <component name="RecentsManager">
@@ -367,8 +458,18 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Chromium Remote.FmmlX Studio">
-    <configuration name="FmmlX Studio" type="ChromiumRemoteDebugType" factoryName="Chromium Remote" />
+  <component name="RunManager" selected="JavaScript Debug.index.html">
+    <configuration name="Unnamed" type="ChromiumRemoteDebugType" factoryName="Chromium Remote" />
+    <configuration name="index.html" type="JavascriptDebugType" factoryName="JavaScript Debug" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/Fmmlx-Studio/index.html" />
+    <list size="2">
+      <item index="0" class="java.lang.String" itemvalue="Chromium Remote.Unnamed" />
+      <item index="1" class="java.lang.String" itemvalue="JavaScript Debug.index.html" />
+    </list>
+    <recent_temporary>
+      <list size="1">
+        <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.index.html" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="ShelveChangesManager" show_recycled="false">
     <option name="remove_strategy" value="false" />
@@ -414,6 +515,8 @@
       <workItem from="1503941648858" duration="2140000" />
       <workItem from="1503943843760" duration="376000" />
       <workItem from="1503947958853" duration="58000" />
+      <workItem from="1504011486074" duration="5076000" />
+      <workItem from="1504016628708" duration="4356000" />
     </task>
     <task id="LOCAL-00001" summary="No more Set, everything with arrays.">
       <created>1503503360355</created>
@@ -440,7 +543,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="328019000" />
+    <option name="totallyTimeSpent" value="337451000" />
   </component>
   <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
@@ -454,24 +557,24 @@
   <component name="ToolWindowManager">
     <frame x="-11" y="-11" width="3862" height="2122" extended-state="6" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.29592642" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22549278" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32958034" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.15858112" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.15858112" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21576872" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32968178" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39918116" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.62296414" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="REST Client" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21891892" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="TypeScript" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="TypeScript" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection Results" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32981783" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection Results" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32981783" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32753327" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
@@ -500,13 +603,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/js/models/FmmlxClass.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/FmmlxShapes/FmmlxClass.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1620">
@@ -547,8 +643,19 @@
         <state relative-caret-position="1545">
           <caret line="103" column="70" lean-forward="false" selection-start-line="103" selection-start-column="70" selection-end-line="103" selection-end-column="70" />
           <folding>
-            <element signature="n#div#0;n#body#0;n#html#0;n#!!top" expanded="false" />
-            <element signature="n#div#1;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#div#2;n#div#0;n#div#0;n#div#2;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#div#3;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <marker date="1504023611181" expanded="false" signature="2509:3592" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="3640:8773" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="4291:4297" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="7171:7184" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="7769:7775" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="7916:7929" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="8937:9042" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="9435:9441" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="15752:15758" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="17302:17308" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="18718:18724" ph=" " />
           </folding>
         </state>
       </provider>
@@ -579,8 +686,19 @@
         <state relative-caret-position="1545">
           <caret line="103" column="70" lean-forward="false" selection-start-line="103" selection-start-column="70" selection-end-line="103" selection-end-column="70" />
           <folding>
-            <element signature="n#div#0;n#body#0;n#html#0;n#!!top" expanded="false" />
-            <element signature="n#div#1;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#div#2;n#div#0;n#div#0;n#div#2;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#div#3;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <marker date="1504023611181" expanded="false" signature="2509:3592" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="3640:8773" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="4291:4297" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="7171:7184" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="7769:7775" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="7916:7929" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="8937:9042" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="9435:9441" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="15752:15758" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="17302:17308" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="18718:18724" ph=" " />
           </folding>
         </state>
       </provider>
@@ -618,8 +736,19 @@
         <state relative-caret-position="780">
           <caret line="71" column="6" lean-forward="false" selection-start-line="71" selection-start-column="6" selection-end-line="71" selection-end-column="6" />
           <folding>
-            <element signature="n#div#0;n#body#0;n#html#0;n#!!top" expanded="false" />
-            <element signature="n#div#1;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#div#2;n#div#0;n#div#0;n#div#2;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#div#3;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <marker date="1504023611181" expanded="false" signature="2509:3592" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="3640:8773" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="4291:4297" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="7171:7184" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="7769:7775" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="7916:7929" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="8937:9042" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="9435:9441" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="15752:15758" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="17302:17308" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="18718:18724" ph=" " />
           </folding>
         </state>
       </provider>
@@ -657,13 +786,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/models/FmmlxValue.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="6" column="6" lean-forward="false" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.es6" />
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_1.es6" />
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_2.es6" />
@@ -675,13 +797,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="36" lean-forward="false" selection-start-line="15" selection-start-column="36" selection-end-line="15" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test.html" />
     <entry file="uml://JavaScript-modules-diagram//Users/paavum/Sites/FMMLxStudio">
       <provider selected="true" editor-type-id="UmlEditorProvider">
         <state>
@@ -728,13 +844,6 @@
       </provider>
     </entry>
     <entry file="file://$APPLICATION_CONFIG_DIR$/javascript/extLibs/http_cdnjs.cloudflare.com_ajax_libs_jquery_3.2.1_jquery.js" />
-    <entry file="file://$PROJECT_DIR$/js/models/FmmlxProperty.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="17" column="40" lean-forward="true" selection-start-line="17" selection-start-column="40" selection-end-line="17" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/models/FmmlxAssociation.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="285">
@@ -821,31 +930,125 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/js/models/FmmlxValue.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="9" column="0" lean-forward="false" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/models/FmmlxProperty.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="589">
+          <caret line="72" column="4" lean-forward="false" selection-start-line="72" selection-start-column="4" selection-end-line="72" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/models/FmmlxBehaviors.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="7" column="18" lean-forward="false" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/controllers/StudioController.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="917">
+          <caret line="307" column="34" lean-forward="false" selection-start-line="307" selection-start-column="34" selection-end-line="307" selection-end-column="34" />
+          <folding>
+            <element signature="e#137#261#0" expanded="false" />
+            <element signature="e#283#1683#0" expanded="false" />
+            <element signature="e#1709#1898#0" expanded="false" />
+            <element signature="e#1904#2204#0" expanded="false" />
+            <element signature="e#2275#3591#0" expanded="false" />
+            <element signature="e#3620#3757#0" expanded="false" />
+            <element signature="e#3763#3908#0" expanded="false" />
+            <element signature="e#3942#4360#0" expanded="false" />
+            <element signature="e#4389#4593#0" expanded="false" />
+            <element signature="e#4599#4917#0" expanded="false" />
+            <element signature="e#5023#5923#0" expanded="false" />
+            <element signature="e#5929#6111#0" expanded="false" />
+            <element signature="e#6157#7433#0" expanded="false" />
+            <element signature="e#7439#7710#0" expanded="false" />
+            <element signature="e#7767#9047#0" expanded="false" />
+            <element signature="e#9053#9228#0" expanded="false" />
+            <element signature="e#9272#9932#0" expanded="false" />
+            <element signature="e#9938#10023#0" expanded="false" />
+            <element signature="e#10076#11488#0" expanded="false" />
+            <marker date="1504020340387" expanded="true" signature="114:21209" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="12098:12649" ph="{...}" />
+            <marker date="1504020340387" expanded="false" signature="12655:12792" ph="/** Deletes an Fmmlx Class and its references ...*/" />
+            <marker date="1504020340387" expanded="false" signature="12818:13606" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="12828:12890" ph="/** @type {Model.FmmlxClass} ...*/" />
+            <marker date="1504020340387" expanded="true" signature="13070:13458" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="13127:13196" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="13253:13299" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="13481:13558" ph="{...}" />
+            <marker date="1504020340387" expanded="false" signature="13612:13674" ph="/** @param {Model.FmmlxClass} fmmlxClass ...*/" />
+            <marker date="1504020340387" expanded="false" signature="13707:14422" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="13891:14274" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="14181:14264" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="14297:14374" ph="{...}" />
+            <marker date="1504020340387" expanded="false" signature="14479:14694" ph="{...}" />
+            <marker date="1504020340387" expanded="false" signature="14700:15009" ph="/** Deletes &lt;Property&gt; (and/or its corresponding &lt;Value&gt;) from &lt;fmmlxClass&gt;, its predecessors (`upstream`) and descendants (`downstream`) ...*/" />
+            <marker date="1504020340387" expanded="false" signature="15097:16975" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="15216:15353" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="15516:16856" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="16146:16504" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="16207:16318" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="16379:16490" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="16559:16846" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="16875:16927" ph="{...}" />
+            <marker date="1504020340387" expanded="false" signature="16981:17126" ph="/** Deletes (if exists) &lt;Value&gt; from FmmlxClass ...*/" />
+            <marker date="1504020340387" expanded="false" signature="17171:17947" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="17258:17358" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="17520:17699" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="17722:17806" ph="{...}" />
+            <marker date="1504020340387" expanded="false" signature="18068:19317" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="18078:18140" ph="/** @type {Model.FmmlxClass} ...*/" />
+            <marker date="1504020340387" expanded="true" signature="18517:19169" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="19192:19269" ph="{...}" />
+            <marker date="1504020340387" expanded="false" signature="19323:19439" ph="/** Finds all classes that are level +1 ...*/" />
+            <marker date="1504020340387" expanded="false" signature="19469:19613" ph="{...}" />
+            <marker date="1504020340387" expanded="false" signature="19619:20126" ph="/** Checks what to do with a property in a class: ...*/" />
+            <marker date="1504020340387" expanded="false" signature="20178:21205" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="20275:20380" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="20437:20577" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="20674:20882" ph="{...}" />
+            <marker date="1504020340387" expanded="true" signature="20896:21199" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1516">
-          <caret line="254" column="118" lean-forward="false" selection-start-line="254" selection-start-column="118" selection-end-line="254" selection-end-column="118" />
+        <state relative-caret-position="2001">
+          <caret line="265" column="51" lean-forward="false" selection-start-line="265" selection-start-column="51" selection-end-line="265" selection-end-column="51" />
           <folding>
-            <element signature="n#div#0;n#body#0;n#html#0;n#!!top" expanded="false" />
-            <element signature="n#div#1;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#div#2;n#div#0;n#div#0;n#div#2;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#div#3;n#body#0;n#html#0;n#!!top" expanded="false" />
+            <marker date="1504023611181" expanded="false" signature="2509:3592" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="3640:8773" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="4291:4297" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="7171:7184" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="7769:7775" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="7916:7929" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="8937:9042" ph="..." />
+            <marker date="1504023611181" expanded="false" signature="9435:9441" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="15752:15758" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="17302:17308" ph=" " />
+            <marker date="1504023611181" expanded="false" signature="18718:18724" ph=" " />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/controllers/FormController.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6480">
-          <caret line="220" column="0" lean-forward="false" selection-start-line="220" selection-start-column="0" selection-end-line="220" selection-end-column="0" />
-          <folding>
-            <marker date="1503947987632" expanded="true" signature="8036:8062" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/controllers/StudioController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="421" column="15" lean-forward="false" selection-start-line="421" selection-start-column="4" selection-end-line="421" selection-end-column="15" />
+        <state relative-caret-position="617">
+          <caret line="98" column="4" lean-forward="false" selection-start-line="98" selection-start-column="4" selection-end-line="98" selection-end-column="4" />
           <folding />
         </state>
       </provider>
