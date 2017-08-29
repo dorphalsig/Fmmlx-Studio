@@ -7,17 +7,8 @@ if (typeof Helper === "undefined") window.Helper = {};
  */
 Helper.Set = class extends Array {
 
-    get size(){
+    get size() {
         return super.length;
-    }
-
-    push(value){
-        add(value);
-    }
-
-    delete(value) {
-        let pos = this.findIndex(value);
-        this._array.slice(pos,1);
     }
 
     /**
@@ -30,6 +21,11 @@ Helper.Set = class extends Array {
         return this;
     }
 
+    delete(value) {
+        let pos = this.findIndex(value);
+        this._array.slice(pos, 1);
+    }
+
     findIndex(value) {
         return super.findIndex(item => {
             return (typeof value.equals !== "undefined" && typeof value.equals === "function" && value.equals(item) ) || (value === item);
@@ -38,6 +34,10 @@ Helper.Set = class extends Array {
 
     has(value) {
         return this.findIndex(value) !== -1;
+    }
+
+    push(value) {
+        add(value);
     }
 
     toArray() {

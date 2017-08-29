@@ -9,6 +9,7 @@ if (typeof Model === "undefined") window.Model = {};
 Model.FmmlxAssociation = class {
 
 
+// Instance
     /**
      * @param {Model.FmmlxRelationEndpoint} source
      * @param {Model.FmmlxRelationEndpoint} target
@@ -25,13 +26,14 @@ Model.FmmlxAssociation = class {
         this.instances = new Helpers_Set();
     }
 
-
-    /**
-     *
-     * @returns {boolean}
-     */
-    get isRefinement() {
-        return this.primitive !== undefined;
+    get id() {
+        let id = JSON.stringify({
+            source: this.source,
+            target: this.target,
+            primitive: (this.isRefinement) ? this.primitive.id : "",
+            metaAssociation: (this.isInstance) ? this.metaAssociation.id : ""
+        });
+        return SparkMD5.hash(JSON.stringify(id), false);
     }
 
     /**
@@ -42,38 +44,44 @@ Model.FmmlxAssociation = class {
         return this.metaAssociation !== undefined;
     }
 
-    get sourceCardinality() {
-        return this.source.cardinality;
+    /**
+     *
+     * @returns {boolean}
+     */
+    get isRefinement() {
+        return this.primitive !== undefined;
     }
 
-    get targetCardinality() {
-        return this.target.cardinality;
+    get sourceCardinality() {
+        return this.source.cardinality;
     }
 
     get sourceIntrinsicness() {
         return this.source.intrinsicness;
     }
 
-    get targetIntrinsicness() {
-        return this.target.intrinsicness;
-    }
-
     get sourceRole() {
         return this.source.role;
+    }
+
+    get targetCardinality() {
+        return this.target.cardinality;
+    }
+
+    get targetIntrinsicness() {
+        return this.target.intrinsicness;
     }
 
     get targetRole() {
         return this.target.role;
     }
 
-    get id() {
-        let id = JSON.stringify({
-                                    source: this.source,
-                                    target: this.target,
-                                    primitive: (this.isRefinement) ? this.primitive.id : "",
-                                    metaAssociation: (this.isInstance) ? this.metaAssociation.id : ""
-                                });
-        return SparkMD5.hash(JSON.stringify(id), false);
+    /**
+     *
+     * @param {Model.FmmlxAssociation} instance
+     */
+    addInstance(instance) {
+        this.instances.add(instance);
     }
 
     /**
@@ -90,14 +98,6 @@ Model.FmmlxAssociation = class {
      */
     deleteRefinement(refinement) {
         this.refinements.remove(refinement);
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxAssociation} instance
-     */
-    addInstance(instance) {
-        this.instances.add(instance);
     }
 
     /**

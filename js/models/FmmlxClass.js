@@ -5,6 +5,7 @@ if (typeof Model === "undefined") window, Model = {};
  * @type {Model.FmmlxClass}
  */
 Model.FmmlxClass = class {
+// Instance
     /**
      * Constructor
      * @param {string} name
@@ -159,16 +160,20 @@ Model.FmmlxClass = class {
         this.id = Helper.Helper.uuid4();
     };
 
+    /**
+     *
+     * @param {Model.FmmlxRelationEndpoint} endpoint
+     */
+    addEndpoint(endpoint) {
+        this._endpoints.add(endpoint)
+    }
 
     /**
-     *  returns the appropriate array for a property or value. Ie. if its an attribute returns a ref to the attribute array.
-     * @param {Model.FmmlxProperty|Model.FmmlxValue} propOrValue
-     * @return
+     *
+     * @param {Model.FmmlxClass} instance
      */
-    findCorrespondingArray(propOrValue) {
-        if (propOrValue.constructor === Model.FmmlxProperty)
-            return (propOrValue.isOperation) ? this.operations : this.attributes;
-        return (propOrValue.property.isOperation) ? this.operationValues : this.slotValues;
+    addInstance(instance) {
+        this._instances.add(instance);
     }
 
     /**
@@ -188,60 +193,30 @@ Model.FmmlxClass = class {
     }
 
     /**
-     *
-     * @param {Model.FmmlxRelationEndpoint} endpoint
+     * For object comparison. Determines an unique identifier based on the content of the obj
+     * @returns {boolean}
      */
-    addEndpoint(endpoint) {
-        this._endpoints.add(endpoint)
+    equals(obj) {
+        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
+
+        if (this.isExternal)
+            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
+        else if (typeof this.metaclass !== "undefined")
+            val = val && this.metaclass.id === obj.metaclass.id;
+
+        return val;
     }
 
     /**
-     *
-     * @param {Model.FmmlxRelationEndpoint} endpoint
+     *  returns the appropriate array for a property or value. Ie. if its an attribute returns a ref to the attribute array.
+     * @param {Model.FmmlxProperty|Model.FmmlxValue} propOrValue
+     * @return
      */
-    removeEndpoint(endpoint) {
-        this._endpoints.remove(endpoint)
+    findCorrespondingArray(propOrValue) {
+        if (propOrValue.constructor === Model.FmmlxProperty)
+            return (propOrValue.isOperation) ? this.operations : this.attributes;
+        return (propOrValue.property.isOperation) ? this.operationValues : this.slotValues;
     }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} instance
-     */
-    addInstance(instance) {
-        this._instances.add(instance);
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} instance
-     */
-    removeInstance(instance) {
-        this._instances.remove(instance)
-    }
-
-
-    /**
-     * Finds the respective <Value> for <Property> if it exists. Returns null otherwise
-     * @param {Model.FmmlxProperty} property
-     * @return {null|Model.FmmlxValue}
-     */
-    findValueFromProperty(property) {
-        let values;
-
-        if (property.isOperation) {
-            values = this.operationValues;
-        }
-        else
-            values = this.slotValues;
-
-        let index = values.findIndex(item => {
-            return value.equals(item);
-        });
-
-        this.__foundValIndex = (index === -1) ? null : index;
-        return (index === -1) ? null : values[index];
-    }
-
 
     /**
      * returns the corresponding index of an Attribute or Operation, or null if not found
@@ -270,6 +245,28 @@ Model.FmmlxClass = class {
     }
 
     /**
+     * Finds the respective <Value> for <Property> if it exists. Returns null otherwise
+     * @param {Model.FmmlxProperty} property
+     * @return {null|Model.FmmlxValue}
+     */
+    findValueFromProperty(property) {
+        let values;
+
+        if (property.isOperation) {
+            values = this.operationValues;
+        }
+        else
+            values = this.slotValues;
+
+        let index = values.findIndex(item => {
+            return value.equals(item);
+        });
+
+        this.__foundValIndex = (index === -1) ? null : index;
+        return (index === -1) ? null : values[index];
+    }
+
+    /**
      * Determines if a Property or its corresponding value exist
      * @param {Model.FmmlxProperty} propOrValue
      * @returns {boolean}
@@ -290,18 +287,19 @@ Model.FmmlxClass = class {
     }
 
     /**
-     * For object comparison. Determines an unique identifier based on the content of the obj
-     * @returns {boolean}
+     *
+     * @param {Model.FmmlxRelationEndpoint} endpoint
      */
-    equals(obj) {
-        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
+    removeEndpoint(endpoint) {
+        this._endpoints.remove(endpoint)
+    }
 
-        if (this.isExternal)
-            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        else if (typeof this.metaclass !== "undefined")
-            val = val && this.metaclass.id === obj.metaclass.id;
-
-        return val;
+    /**
+     *
+     * @param {Model.FmmlxClass} instance
+     */
+    removeInstance(instance) {
+        this._instances.remove(instance)
     }
 
 };

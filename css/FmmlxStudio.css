@@ -5,16 +5,13 @@
 @import "vendor/bootstrap/bootstrap.min.css";
 @import "vendor/selectize/selectize.bootstrap3.min.css";
 /*@import "vendor/winstrap/winstrap.min.css";*/
-
 @import "vendor/bootstrap_material/bootstrap-material-design.min.css";
 @import "vendor/bootstrap_material/ripples.min.css";
-
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
 @import url('https://fonts.googleapis.com/css?family=Lato|Roboto:300,400,500,700|Cormorant:400,400i&subset=latin-ext');
 @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
-
-body{
+body {
     margin: 0;
 }
 
@@ -50,25 +47,25 @@ body{
     margin-left: 12px;
 }
 
-body{
+body {
     min-height: 100vh;
 }
 
-.body > div{
+.body > div {
     min-height: 100vh !important;
 }
 
-#file i{
+#file i {
     font-size: 18px !important;
-    margin-right:15px;
+    margin-right: 15px;
     display: inline-block;
 }
 
-#menu{
+#menu {
     text-align: center;
 }
 
-#menu img{
+#menu img {
     width: 100px;
     margin-bottom: 35px;
     margin-left: auto;
@@ -83,8 +80,7 @@ body{
     overflow: scroll;
 }
 
-.info:before
-{
+.info:before {
     content: '?';
     font-family: sans-serif;
     display: inline-block;
@@ -100,15 +96,9 @@ body{
     text-decoration: none;
 }
 
-.info:hover:before
-{
+.info:hover:before {
     color: white;
     background: black;
     border-color: white;
     text-decoration: none;
-}
-
-
-.extraInfo{
-    display: none; !important;
 }

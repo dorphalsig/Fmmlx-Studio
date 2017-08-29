@@ -44,13 +44,13 @@ $(function () {
 
         sideAffix.width(sideNav.parent().width());
 
-        sideBtn.on('click', function(){
+        sideBtn.on('click', function () {
             sideNav.css("display", "block");
             sideSection.css("display", "none");
             sideBtn.css("display", "none");
             $('body').css("overflow", "hidden");
         });
-        closeBtn.on('click', function(){
+        closeBtn.on('click', function () {
             sideNav.css("display", "");
             sideSection.css("display", "");
             sideBtn.css("display", "inline-block");
@@ -77,7 +77,7 @@ $(function () {
     // Back to top
     (function () {
         var backToTop = $('.back-to-top'),
-        threshold = 2 * $(window).height();
+            threshold = 2 * $(window).height();
 
         // Displayed when we've scrolled 2x the viewport height
         if (backToTop.length === 0 ||
@@ -93,7 +93,7 @@ $(function () {
 
         // Smooth scroll to top
         backToTop.on('click', function () {
-            $('html, body').animate({ scrollTop: 0 }, {
+            $('html, body').animate({scrollTop: 0}, {
                 duration: 750,
                 easing: 'swing'
             });
@@ -179,7 +179,7 @@ $(function () {
     }
 
     // Entity list item
-    $('.entity-list-expandable .entity-list-item').click(function() {
+    $('.entity-list-expandable .entity-list-item').click(function () {
         if ($(this).hasClass('active') === false) {
             var parent = $(this).parent();
             $('.entity-list-item', parent).removeClass('active');

@@ -35,7 +35,7 @@ FmmlxShapes.FmmlxClass.getFontColor = function (level) {
 FmmlxShapes.FmmlxClass.getBgColor = function (level) {
     let color = "";
     level = Number.parseInt(level);
-    switch (isNaN(level) || level ){
+    switch (isNaN(level) || level) {
         case 0:
             color = "#E6E6E6";
             break;
@@ -70,10 +70,10 @@ FmmlxShapes.FmmlxClass.getBgColor = function (level) {
  * @param {Model.FmmlxClass} fmmlxClass
  */
 FmmlxShapes.FmmlxClass.getName = function (fmmlxClass) {
-    return  `^${fmmlxClass.metaclassName.toUpperCase()}^ \n${fmmlxClass.name}`;
+    return `^${fmmlxClass.metaclassName.toUpperCase()}^ \n${fmmlxClass.name}`;
 };
 
-FmmlxShapes.FmmlxClass.getIsExternal= function(fmmlxClass){
+FmmlxShapes.FmmlxClass.getIsExternal = function (fmmlxClass) {
     return fmmlxClass.isExternal;
 };
 
@@ -82,7 +82,7 @@ FmmlxShapes.FmmlxClass._externalLanguageBlock = gMake(go.Panel, "Auto", {
         alignment: new go.Spot(1, 0),
         maxSize: new go.Size(54, Infinity)
     },
-    new go.Binding("visible", "",FmmlxShapes.FmmlxClass.getIsExternal),
+    new go.Binding("visible", "", FmmlxShapes.FmmlxClass.getIsExternal),
     gMake(go.Shape, "Rectangle", {
         fill: "orange"
     }),
@@ -198,26 +198,26 @@ FmmlxShapes.FmmlxClass._mainBlock = gMake(go.Panel, "Vertical", FmmlxShapes.Fmml
 
 
 FmmlxShapes.FmmlxClass._contextMenu = gMake(go.Adornment, "Vertical", gMake("ContextMenuButton", {alignment: go.Spot.Left},
-                                                                            gMake(go.TextBlock, "Abstract Class"), {
-            click: Controller.FormController.abstractClass
-        }
+    gMake(go.TextBlock, "Abstract Class"), {
+        click: Controller.FormController.abstractClass
+    }
     ), gMake("ContextMenuButton", {alignment: go.Spot.Left},
-             gMake(go.TextBlock, "Delete Class"), {
-            click: Controller.FormController.deleteClass
-        }),
+    gMake(go.TextBlock, "Delete Class"), {
+        click: Controller.FormController.deleteClass
+    }),
 
-                                            gMake("ContextMenuButton", {alignment: go.Spot.Left},
-                                                  gMake(go.TextBlock, "Add Property / Value"), {
+    gMake("ContextMenuButton", {alignment: go.Spot.Left},
+        gMake(go.TextBlock, "Add Property / Value"), {
             click: Controller.FormController.displayPropertyForm
         }),
 
-                                            gMake("ContextMenuButton", {alignment: go.Spot.Left},
-                                                  gMake(go.TextBlock, "Associate"), {
+    gMake("ContextMenuButton", {alignment: go.Spot.Left},
+        gMake(go.TextBlock, "Associate"), {
             click: Controller.FormController.displayAssociationForm
         }),
 
-                                            gMake("ContextMenuButton", {alignment: go.Spot.Left},
-                                                  gMake(go.TextBlock, "Set Superclass"), {
+    gMake("ContextMenuButton", {alignment: go.Spot.Left},
+        gMake(go.TextBlock, "Set Superclass"), {
             click: Controller.FormController.displayInheritanceForm
         })
 );

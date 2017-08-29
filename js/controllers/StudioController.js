@@ -3,6 +3,7 @@ if (typeof Controller === `undefined`) window.Controller = {};
 
 Controller.StudioController = class {
 
+// Instance
     /**
      *  Constructor, receives the id of the div that's the parent for the GoJS canvas
      * @param {string} div
@@ -37,7 +38,7 @@ Controller.StudioController = class {
         this._model.nodeKeyProperty = `id`;
     }
 
-    __beginTransaction() {
+    _beginTransaction() {
         let id = Helper.Helper.uuid4();
         this._diagram.startTransaction(id);
         console.log(`👉 ${id} :: Begin Transaction`);
@@ -45,13 +46,72 @@ Controller.StudioController = class {
         return id;
     }
 
-    __commitTransaction(id) {
+    /**
+     *  Changes the level of an FMMLx Class by delta, reevaluates its properties and propagates the changes downstream, and optionally upstream.
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {number|NaN} delta: NaN => change to "?"
+     * @param upstream
+     * @param transId
+     */
+    _calculateClassLevel(fmmlxClass, delta, upstream, transId = null) {
+        if (fmmlxClass.lastChangeId === transId) return;
+
+        if (upstream) {
+            if (fmmlxClass.metaclass !== null) this._calculateClassLevel(fmmlxClass.metaclass, delta, upstream, transId);
+            if (fmmlxClass.superclass !== null) this._calculateClassLevel(fmmlxClass.superclass, delta, upstream, transId);
+        }
+
+        let lvl = (delta === 0) ? "?" : (fmmlxClass.level === "?") ? fmmlxClass.distanceFromRoot + delta : fmmlxClass.level + delta;
+        this._model.setDataProperty(fmmlxClass, "level", lvl);
+        for (let property of fmmlxClass.attributes.concat(fmmlxClass.operations)) {
+            let transId2 = this._beginTransaction();
+            try {
+                this.processProperty(fmmlxClass, property, transId2);
+                this._model.setDataProperty(fmmlxClass, "lastChangeId", transId2);
+            }
+            catch (error) {
+                this._rollbackTransaction();
+                throw error;
+            }
+            this._commitTransaction(transId2);
+        }
+
+        for (let instance of fmmlxClass.instances) {
+            this._calculateClassLevel(instance, delta, upstream, transId);
+        }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            this._calculateClassLevel(subclass, delta, upstream, transId);
+        }
+    }
+
+    _commitTransaction(id) {
         this._diagram.commitTransaction(id);
         console.groupEnd();
         console.log(`✅ ${id} :: Transaction committed`);
     }
 
-    __rollbackTransaction() {
+    /**
+     * returns a list of fmmlx classes that meets each of filters
+     * @param {Object} filters
+     * @returns {Model.FmmlxClass[]}
+     */
+    _filterClasses(filters = {}) {
+        filters.category = "fmmlxClass";
+
+        return this._model.nodeDataArray.filter(function (nodeData) {
+            let retVal = true;
+            for (let filter in filters) {
+                if (!filters.hasOwnProperty(filter) || !nodeData.hasOwnProperty(filter))
+                    continue;
+                retVal = retVal && nodeData[filter] === filters[filter]
+            }
+            return retVal
+        })
+
+    }
+
+    _rollbackTransaction() {
         let id = this._diagram.undoManager.currentTransaction;
         this._diagram.rollbackTransaction();
         console.groupEnd();
@@ -79,7 +139,7 @@ Controller.StudioController = class {
         if (dupe !== null) throw  new Error(`An equivalent class definition already exists.`);
 
         console.log(`Add Class ${name}`);
-        let transId = this.__beginTransaction();
+        let transId = this._beginTransaction();
         //Step 2 Add basic info to the model
         fmmlxClass.category = "fmmlxClass";
         fmmlxClass.location = point;
@@ -90,97 +150,106 @@ Controller.StudioController = class {
             if (metaclassId !== "") this.changeMetaclass(fmmlxClass, metaclassId);
         }
         catch (e) {
-            this.__rollbackTransaction();
+            this._rollbackTransaction();
             throw e;
         }
-        this.__commitTransaction(transId);
-    }
-
-
-    editFmmlxClass(id, name, level, isAbstract, metaclassId = null, externalLanguage = null, externalMetaclass = null) {
-        /**
-         *
-         * @type {Model.FmmlxClass}
-         */
-        let fmmlxClass = this._model.findNodeDataForKey(id);
-        metaclassId = (metaclassId === "") ? null : metaclassId;
-
-        if (isAbstract && fmmlxClass.instances.size > 0)
-            throw new Error("Can not make class abstract because it has instances.");
-
-        console.log(`Editing class ${fmmlxClass.name}`);
-        let transId = this.__beginTransaction();
-        try {
-            this._model.setDataProperty(fmmlxClass, "isAbstract", Boolean(isAbstract));
-            this._model.setDataProperty(fmmlxClass, "name", name);
-
-            if (externalLanguage !== fmmlxClass.externalLanguage) this._model.setDataProperty(fmmlxClass, "externalLanguage", externalLanguage);
-            if (externalMetaclass !== fmmlxClass.externalMetaclass) this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
-            this.changeClassLevel(fmmlxClass, level);
-            this.changeMetaclass(fmmlxClass, metaclassId);
-            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId)
-        }
-        catch (error) {
-            this.__rollbackTransaction();
-            throw error;
-        }
-        this.__commitTransaction(transId);
+        this._commitTransaction(transId);
     }
 
     /**
-     * Deletes an Fmmlx Class and its references
-     * @todo set parent class = null on subclasses
-     * @param {String} id
-     */
-    deleteFmmlxClass(id) {
-        /**
-         *
-         * @type {Model.FmmlxClass}
-         */
-        let fmmlxClass = this._model.findNodeDataForKey(id);
-        console.log(`Deleting class ${fmmlxClass.name}`);
-        let transId = this.__beginTransaction();
-        try {
-            for (let instance in fmmlxClass.instances) {
-                this.changeMetaclass(instance, null);
-            }
-            for (let subclass in fmmlxClass.subclasses) {
-                //do something
-            }
-            let node = this._diagram.findNodeForKey(id);
-            this._diagram.remove(node);
-            this._model.removeNodeData(fmmlxClass);
-        }
-        catch (error) {
-            this.__rollbackTransaction();
-            throw error;
-        }
-        this.__commitTransaction(transId);
-    }
-
-    /**
-     *
+     * Adds <Property> to <fmmlxClass> and its descendants (if it does not exist)
      * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} property
      */
-    deleteMetaclass(fmmlxClass) {
-        if (fmmlxClass.metaclass === null)
+    addPropertyToClass(fmmlxClass, property) {
+        //Do nothing if it already exists of if property.intrinsicness >= fmmlxClass.level
+        if (fmmlxClass.level <= property.intrinsicness || fmmlxClass.hasPropertyOrValue(property)) {
+            console.log(`Property already exists OR intrinsicness >= level. doing nothing`);
             return;
-        console.log(`Removing old Metaclass from ${fmmlxClass.name}`);
-        let transId = this.__beginTransaction();
-        try {
-            this._model.setDataProperty(fmmlxClass, 'metaclass', null);
-            fmmlxClass.metaclass.removeInstance(fmmlxClass);
-            let deletableProperties = fmmlxClass.metaclass.attributes.concat(fmmlxClass.operations);
-            for (let property of deletableProperties) {
-                this.deletePropertyFromClass(fmmlxClass, property);
-            }
         }
-        catch
-            (error) {
-            this.__rollbackTransaction();
+
+        console.log(`Adding ${property.name} to ${fmmlxClass.name}`);
+        let transId = this._beginTransaction();
+        try {
+            let array = fmmlxClass.findCorrespondingArray(property);
+            this._model.addArrayItem(array, property);
+            property.addClass(fmmlxClass);
+            if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
+        }
+        catch (error) {
+            this._rollbackTransaction();
+            throw  error;
+        }
+        //Replicate downstream
+        for (let instance of fmmlxClass.instances) {
+            this.addPropertyToClass(instance, property);
+            this.processProperty(fmmlxClass, property, transId);
+        }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            this.addPropertyToClass(subclass, property);
+            this.processProperty(fmmlxClass, property, transId);
+        }
+
+        this._commitTransaction(transId);
+    }
+
+    /**
+     * Deletes the corresponding property from FmmlxClass and descendants, creates a new value and adds it
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} property
+     */
+    addValueToClass(fmmlxClass, property) {
+
+        if ((property.intrinsicness === "?" && fmmlxClass.level === "?") || property.intrinsicness !== fmmlxClass.level) {
+            console.log(`Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the property's (${property.name}) intrinsicness (${property.intrinsicness}). Doing nothing`);
+            return;
+        }
+
+        value.class = fmmlxClass;
+        if (fmmlxClass.findIndexForValue(value) !== null) {
+            console.log(`A value of ${value.property.name} already exists ${fmmlxClass.name}. doing Nothing`);
+            return;
+        }
+
+        console.log(`Adding a value of ${value.property.name} to ${fmmlxClass.name}`);
+        let transId = this._beginTransaction();
+        //the property gets deleted from here downwards
+        this.deletePropertyFromClass(fmmlxClass, value.property);
+
+        try {
+            let array = fmmlxClass.findCorrespondingArray(value);
+            this._model.addArrayItem(array, item);
+        }
+        catch (error) {
+            this._rollbackTransaction();
             throw error;
         }
-        this.__commitTransaction(transId);
+        this._commitTransaction(transId);
+
+        if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
+    }
+
+    /**
+     * Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes up and downstream
+     * @param fmmlxClass
+     * @param newLevel
+     */
+    changeClassLevel(fmmlxClass, newLevel) {
+        newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
+        if (newLevel === fmmlxClass.level) return;
+
+        let delta = isNaN(newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
+        console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
+        let transId = this._beginTransaction();
+        try {
+            this._calculateClassLevel(fmmlxClass, delta, true, transId);
+        }
+        catch (error) {
+            this._rollbackTransaction();
+            throw error;
+        }
+        this._commitTransaction(transId);
     }
 
     /**
@@ -208,7 +277,7 @@ Controller.StudioController = class {
 
         console.log(`Change ${fmmlxClass.name}'s metaclass from  ${fmmlxClass.metaclass.name} to ${metaclass.name}`);
 
-        let transId = this.__beginTransaction();
+        let transId = this._beginTransaction();
         try {
             this.deleteMetaclass(fmmlxClass);
             this._model.setDataProperty(fmmlxClass, "metaclass", metaclass);
@@ -220,72 +289,93 @@ Controller.StudioController = class {
         }
         catch
             (error) {
-            this.__rollbackTransaction();
+            this._rollbackTransaction();
             throw error;
         }
-        this.__commitTransaction(transId);
+        this._commitTransaction(transId);
     }
 
     /**
-     * Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes up and downstream
-     * @param fmmlxClass
-     * @param newLevel
+     * Creates an FMMLx class member and associates it to an fmmlx class
+     * @param {String} fmmlxClassId
+     * @param {String} name
+     * @param {String} type
+     * @param {String} intrinsicness
+     * @param {String} isOperation
+     * @param {String} isObtainable
+     * @param {String} isDerivable
+     * @Param {String} isSimulated
+     * @Param {String} isValue
+     * @param {String} value
+     * @param {String} operationBody
      */
-    changeClassLevel(fmmlxClass, newLevel) {
-        newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
-        if (newLevel === fmmlxClass.level) return;
+    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, isObtainable, isDerivable, isSimulated, isValue, value, operationBody) {
+        let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
 
-        let delta = isNaN(newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
-        console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
-        let transId = this.__beginTransaction();
+        let property = new Model.FmmlxProperty(fmmlxClass, name, type, intrinsicness, isOperation, isObtainable, isDerivable, isSimulated, isValue, value, operationBody);
+        this.addPropertyToClass(fmmlxClass, property);
+    }
+
+    /**
+     * Deletes an Fmmlx Class and its references
+     * @todo set parent class = null on subclasses
+     * @param {String} id
+     */
+    deleteFmmlxClass(id) {
+        /**
+         *
+         * @type {Model.FmmlxClass}
+         */
+        let fmmlxClass = this._model.findNodeDataForKey(id);
+        console.log(`Deleting class ${fmmlxClass.name}`);
+        let transId = this._beginTransaction();
         try {
-            this._calculateClassLevel(fmmlxClass, delta, true, transId);
+            for (let instance in fmmlxClass.instances) {
+                this.changeMetaclass(instance, null);
+            }
+            for (let subclass in fmmlxClass.subclasses) {
+                //do something
+            }
+            let node = this._diagram.findNodeForKey(id);
+            this._diagram.remove(node);
+            this._model.removeNodeData(fmmlxClass);
         }
         catch (error) {
-            this.__rollbackTransaction();
+            this._rollbackTransaction();
             throw error;
         }
-        this.__commitTransaction(transId);
+        this._commitTransaction(transId);
     }
 
-
     /**
-     *  Changes the level of an FMMLx Class by delta, reevaluates its properties and propagates the changes downstream, and optionally upstream.
+     *
      * @param {Model.FmmlxClass} fmmlxClass
-     * @param {number|NaN} delta: NaN => change to "?"
-     * @param upstream
-     * @param transId
      */
-    _calculateClassLevel(fmmlxClass, delta, upstream, transId = null) {
-        if (fmmlxClass.lastChangeId === transId) return;
-
-        if (upstream) {
-            if (fmmlxClass.metaclass !== null) this._calculateClassLevel(fmmlxClass.metaclass, delta, upstream, transId);
-            if (fmmlxClass.superclass !== null) this._calculateClassLevel(fmmlxClass.superclass, delta, upstream, transId);
-        }
-
-        let lvl = (delta === 0) ? "?" : (fmmlxClass.level === "?") ? fmmlxClass.distanceFromRoot + delta : fmmlxClass.level + delta;
-        this._model.setDataProperty(fmmlxClass, "level", lvl);
-        for (let property of fmmlxClass.attributes.concat(fmmlxClass.operations)) {
-            let transId2 = this.__beginTransaction();
-            try {
-                this.processProperty(fmmlxClass, property, transId2);
-                this._model.setDataProperty(fmmlxClass, "lastChangeId", transId2);
+    deleteMetaclass(fmmlxClass) {
+        if (fmmlxClass.metaclass === null)
+            return;
+        console.log(`Removing old Metaclass from ${fmmlxClass.name}`);
+        let transId = this._beginTransaction();
+        try {
+            this._model.setDataProperty(fmmlxClass, 'metaclass', null);
+            fmmlxClass.metaclass.removeInstance(fmmlxClass);
+            let deletableProperties = fmmlxClass.metaclass.attributes.concat(fmmlxClass.operations);
+            for (let property of deletableProperties) {
+                this.deletePropertyFromClass(fmmlxClass, property);
             }
-            catch (error) {
-                this.__rollbackTransaction();
-                throw error;
-            }
-            this.__commitTransaction(transId2);
         }
+        catch
+            (error) {
+            this._rollbackTransaction();
+            throw error;
+        }
+        this._commitTransaction(transId);
+    }
 
-        for (let instance of fmmlxClass.instances) {
-            this._calculateClassLevel(instance, delta, upstream, transId);
-        }
-
-        for (let subclass of fmmlxClass.subclasses) {
-            this._calculateClassLevel(subclass, delta, upstream, transId);
-        }
+    deleteProperty(fmmlxClassId, propertyId, upstream) {
+        let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
+        let property = this._model.findNodeDataForKey(propertyId);
+        this.deletePropertyFromClass(fmmlxClass, property, upstream);
     }
 
     /**
@@ -302,7 +392,7 @@ Controller.StudioController = class {
             return;
         }
 
-        let transId = this.__beginTransaction();
+        let transId = this._beginTransaction();
         console.log(`Delete Property ${property.name} (and/or its value) from ${fmmlxClass.name}`);
 
         try {
@@ -335,9 +425,9 @@ Controller.StudioController = class {
             }
         }
         catch (e) {
-            this.__rollbackTransaction();
+            this._rollbackTransaction();
         }
-        this.__commitTransaction(transId);
+        this._commitTransaction(transId);
     }
 
     /**
@@ -351,7 +441,7 @@ Controller.StudioController = class {
             console.log(`Value not found in class. Doing nothing.`);
             return;
         }
-        let transId = this.__beginTransaction();
+        let transId = this._beginTransaction();
 
         console.log(`${transId} :: Delete Value for ${value.property.name} in ${fmmlxClass.name}`);
         try {
@@ -360,11 +450,41 @@ Controller.StudioController = class {
             this._model.removeArrayItem(array, index);
         }
         catch (error) {
-            this.__rollbackTransaction(transId);
+            this._rollbackTransaction(transId);
             throw error;
         }
-        this.__commitTransaction(transId);
+        this._commitTransaction(transId);
         if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
+    }
+
+    editFmmlxClass(id, name, level, isAbstract, metaclassId = null, externalLanguage = null, externalMetaclass = null) {
+        /**
+         *
+         * @type {Model.FmmlxClass}
+         */
+        let fmmlxClass = this._model.findNodeDataForKey(id);
+        metaclassId = (metaclassId === "") ? null : metaclassId;
+
+        if (isAbstract && fmmlxClass.instances.size > 0)
+            throw new Error("Can not make class abstract because it has instances.");
+
+        console.log(`Editing class ${fmmlxClass.name}`);
+        let transId = this._beginTransaction();
+        try {
+            this._model.setDataProperty(fmmlxClass, "isAbstract", Boolean(isAbstract));
+            this._model.setDataProperty(fmmlxClass, "name", name);
+
+            if (externalLanguage !== fmmlxClass.externalLanguage) this._model.setDataProperty(fmmlxClass, "externalLanguage", externalLanguage);
+            if (externalMetaclass !== fmmlxClass.externalMetaclass) this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
+            this.changeClassLevel(fmmlxClass, level);
+            this.changeMetaclass(fmmlxClass, metaclassId);
+            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId)
+        }
+        catch (error) {
+            this._rollbackTransaction();
+            throw error;
+        }
+        this._commitTransaction(transId);
     }
 
     /**
@@ -376,125 +496,6 @@ Controller.StudioController = class {
 
         let targetLevel = (level !== "?") ? Number.parseInt(level) + 1 : "?";
         return this._filterClasses({level: targetLevel})
-    }
-
-    /**
-     * returns a list of fmmlx classes that meets each of filters
-     * @param {Object} filters
-     * @returns {Model.FmmlxClass[]}
-     */
-    _filterClasses(filters = {}) {
-        filters.category = "fmmlxClass";
-
-        return this._model.nodeDataArray.filter(function (nodeData) {
-            let retVal = true;
-            for (let filter in filters) {
-                if (!filters.hasOwnProperty(filter) || !nodeData.hasOwnProperty(filter))
-                    continue;
-                retVal = retVal && nodeData[filter] === filters[filter]
-            }
-            return retVal
-        })
-
-    }
-
-    /**
-     * Creates an FMMLx Property and associates it to an fmmlx class
-     * @param {String} fmmlxClassId
-     * @param {String} name
-     * @param {String} type
-     * @param {String} intrinsicness
-     * @param {String} isOperation
-     * @param {String} operationBody
-     */
-    createProperty(fmmlxClassId, name, type, intrinsicness, isOperation, operationBody) {
-        let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
-        let property = new Model.FmmlxProperty(name, type, intrinsicness, isOperation, operationBody);
-        this.addPropertyToClass(fmmlxClass, property);
-    }
-
-    deleteProperty(fmmlxClassId, propertyId, upstream) {
-        let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
-        let property = this._model.findNodeDataForKey(propertyId);
-        this.deletePropertyFromClass(fmmlxClass, property, upstream);
-    }
-
-    addProperty(fmmlxClassId, name, type, intrinsicness, isOperation, isObtainable, isDerivable, isSimulated, isValue, value) {
-
-    }
-
-    /**
-     * Adds <Property> to <fmmlxClass> and its descendants (if it does not exist)
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Model.FmmlxProperty} property
-     */
-    addPropertyToClass(fmmlxClass, property) {
-        //Do nothing if it already exists of if property.intrinsicness >= fmmlxClass.level
-        if (fmmlxClass.level <= property.intrinsicness || fmmlxClass.hasPropertyOrValue(property)) {
-            console.log(`Property already exists OR intrinsicness >= level. doing nothing`);
-            return;
-        }
-
-        console.log(`Adding ${property.name} to ${fmmlxClass.name}`);
-        let transId = this.__beginTransaction();
-        try {
-            let array = fmmlxClass.findCorrespondingArray(property);
-            this._model.addArrayItem(array, property);
-            property.addClass(fmmlxClass);
-            if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
-        }
-        catch (error) {
-            this.__rollbackTransaction();
-            throw  error;
-        }
-        //Replicate downstream
-        for (let instance of fmmlxClass.instances) {
-            this.addPropertyToClass(instance, property);
-            this.processProperty(fmmlxClass, property, transId);
-        }
-
-        for (let subclass of fmmlxClass.subclasses) {
-            this.addPropertyToClass(subclass, property);
-            this.processProperty(fmmlxClass, property, transId);
-        }
-
-        this.__commitTransaction(transId);
-    }
-
-    /**
-     * Deletes the corresponding property from FmmlxClass and descendants, creates a new value and adds it
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Model.FmmlxProperty} property
-     */
-    addValueToClass(fmmlxClass, property) {
-
-        if ((property.intrinsicness === "?" && fmmlxClass.level === "?") || property.intrinsicness !== fmmlxClass.level) {
-            console.log(`Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the property's (${property.name}) intrinsicness (${property.intrinsicness}). Doing nothing`);
-            return;
-        }
-
-        value.class = fmmlxClass;
-        if (fmmlxClass.findIndexForValue(value) !== null) {
-            console.log(`A value of ${value.property.name} already exists ${fmmlxClass.name}. doing Nothing`);
-            return;
-        }
-
-        console.log(`Adding a value of ${value.property.name} to ${fmmlxClass.name}`);
-        let transId = this.__beginTransaction();
-        //the property gets deleted from here downwards
-        this.deletePropertyFromClass(fmmlxClass, value.property);
-
-        try {
-            let array = fmmlxClass.findCorrespondingArray(value);
-            this._model.addArrayItem(array, item);
-        }
-        catch (error) {
-            this.__rollbackTransaction();
-            throw error;
-        }
-        this.__commitTransaction(transId);
-
-        if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
     }
 
     /**

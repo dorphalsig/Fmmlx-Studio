@@ -22,12 +22,6 @@ Controller.FormController = {
         alert.hide();
     },
 
-    __reset: function (modal) {
-        Controller.FormController.__error(modal); // hiddes error messages
-        modal.find("form").trigger("reset");
-        modal.find(".remove").click();
-    },
-
     /**
      * Generic form filler
      * @param {JQuery} modal window
@@ -51,12 +45,23 @@ Controller.FormController = {
 
     /**
      * generic filler for a Select field. Removes all the options not marked with data-keep
-     * @param {{id:,value:}[]} options
-     * @param {HTMLSelectElement} select
+     * @param {HTMLOptionElement[]} options
+     * @param {JQuery} select
      * @private
      */
-    __fillSelect(options, select) {
-
+    __fillSelect(select, options) {
+        /**
+         *
+         * @type {HTMLSelectElement}
+         */
+        select = select[0];
+        for (let opt of select) {
+            if (typeof $(opt).data("keep") === "undefined")
+                select.remove(opt)
+        }
+        for (let option of options) {
+            select.add(option);
+        }
     },
 
     /**
@@ -76,22 +81,32 @@ Controller.FormController = {
         return fieldData;
     },
 
+    /**
+     * Shows and enables field and its form-group
+     * @param {JQuery} field
+     * @private
+     */
     __showField: function (field) {
         field.prop("disabled", false);
         field.closest(".form-group").show();
     },
 
+    /**
+     * Hides and disables field and its form-group
+     * @param {JQuery} field
+     * @private
+     */
     __hideField: function (field) {
         field.prop("disabled", true);
         field.closest(".form-group").hide();
     },
 
-    setupExtraDataFields: function (modal) {
+    __setupExtraDataFields: function (modal) {
         modal.find(".needsExtraInfo").change(function (event) {
             let self = Controller.FormController;
             let target = $(event.target);
-            let show = target.data("show").split(",");
-            let hide = target.data("hide").split(",");
+            let show = typeof target.data("show") === "undefined" ? [] : target.data("show").split(",");
+            let hide = typeof target.data("hide") === "undefined" ? [] : target.data("hide").split(",");
             for (let fieldName of show) {
                 let field = modal.find(`[name=${fieldName}]`);
                 target.prop("checked") ? self.__showField(field) : self.__hideField(field);
@@ -106,33 +121,27 @@ Controller.FormController = {
     displayClassForm: function (event, obj) {
         let self = Controller.FormController;
         let modal = $("#fmmlxClassModal");
+        //let form= modal.find("form");
         let point = go.Point.stringify(event.documentPoint);
         let entityId = obj.data !== null ? obj.data.id : "";
+
+        typeof window._classFormData === "undefined" ? window._classFormData = modal.clone() : modal.replaceWith(window._classFormData);
+
+        self.__setupExtraDataFields(modal);
+
+        //Populates select with metaclasses according to level
         let metaClassSelect = modal.find("[name=metaclass]");
-        typeof window._classFormData === "undefined" ? window._classFormData = modal.find("form")
-                                                                                    .clone() : modal.find("form")
-                                                                                                    .replaceWith(self._classFormData);
-        self.setupExtraDataFields(modal);
-        modal.find("[name=coords]").val(point);
-        if (entityId !== "") self.__fillForm(modal, obj.data);
-
-
-        //Adds new metaclasses based on level
-
         modal.find("[name=level]").change(function (event) {
             if (!metaClassSelect.prop("disabled")) {
                 let level = event.target.value;
-                let classes = studio.getClassesbyLevel(level);
-                for (let i = 0; i < metaClassSelect[0].options; i++) {
-                    metaClassSelect[0].remove(i);
-                }
-                for (let fmmlxClass in classes) {
-                    metaClassSelect[0].add(new HTMLOptionElement(fmmlxClass.name, fmmlxClass.id));
-                }
+                let options = studio.getClassesbyLevel(level).map(fmmlxClass => new Option(fmmlxClass.name, fmmlxClass.id));
+                self.__fillSelect(metaClassSelect, options)
             }
         });
+        (entityId !== "") ? self.__fillForm(modal, obj.data) : modal.find("[name=coords]").val(point);
 
         modal.modal();
+
     },
 
     raiseProperty: function (event, obj) {
@@ -142,10 +151,17 @@ Controller.FormController = {
     displayPropertyForm: function (event, obj) {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
-        typeof window._attributeFormData === "undefined" ? window._attributeFormData = modal.find("form")
-                                                                                            .clone() : modal.find("form")
-                                                                                                            .replaceWith(self._attributeFormData);
-        self.setupExtraDataFields(modal);
+        //const form = modal.find("form");
+        window._attributeFormData === "undefined" ? window._attributeFormData = modal.clone() : modal.replaceWith(window._attributeFormData);
+        self.__setupExtraDataFields(modal);
+
+        let opBodyManager = function (event) {
+            let opBody = modal.find("[name=operationBody]");
+            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]").prop("checked")) ? self.__showField(opBody) : self.__hideField(opBody);
+        };
+
+        modal.find("[name=isOperation]").change(opBodyManager);
+        modal.find("[name=isValue]").change(opBodyManager);
 
         if (obj.part.constructor === go.Adornment) { //new property, the click was on the adorned property
             let fmmlxClass = obj.part.adornedObject.data;
@@ -212,7 +228,7 @@ Controller.FormController = {
             return false;
         }
         let formVals = self.__readForm(form);
-        if (formVals.id === "") studio.addProperty(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.isObtainable, formVals.isDerivable, formVals.isSimulated, formVals.isValue, formVals.value); else alert("ToDo xD");
+        if (formVals.id === "") studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.isObtainable, formVals.isDerivable, formVals.isSimulated, formVals.isValue, formVals.value); else alert("ToDo xD");
 
         debugger;
 

@@ -38,15 +38,15 @@ Model.FmmlxRelationEndpoint = class {
         this.relation = relation;
     }
 
+    equals(obj) {
+        return obj.constructor === Model.FmmlxRelationEndpoint && this.intrinsicness === obj.intrinsicness && this.maxCardinality === obj.maxCardinality && obj.minCardinality === this.minCardinality && obj.role === this.role && this.class === obj.class && this.relation === obj.relation;
+    }
+
     isMoreRestrictive(obj) {
         if (obj.constructor !== Model.FmmlxRelationEndpoint)
             throw new Error("Compared object is not a Rel Endpoint");
 
         retun(obj.minCardinality >= this.minCardinality && obj.maxCardinality <= this.minCardinality);
-    }
-
-    equals(obj) {
-        return obj.constructor === Model.FmmlxRelationEndpoint && this.intrinsicness === obj.intrinsicness && this.maxCardinality === obj.maxCardinality && obj.minCardinality === this.minCardinality && obj.role === this.role && this.class === obj.class && this.relation === obj.relation;
     }
 
 

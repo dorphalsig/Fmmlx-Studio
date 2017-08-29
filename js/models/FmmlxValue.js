@@ -3,9 +3,13 @@ if (typeof Model === "undefined") window.Model = {};
 /**
  *
  * @type {Model.FmmlxValue}
+ * @param {Model.FmmlxProperty} property
+ * @param {*} value
+ * @param {Model.FmmlxClass} fmmlxClass
  */
 Model.FmmlxValue = class {
 
+// Instance
     /**
      *
      * @param {Model.FmmlxProperty} property
