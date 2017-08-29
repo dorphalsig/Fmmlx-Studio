@@ -36,18 +36,27 @@ Controller.FormController = {
      */
     __fillForm: function (modal, data) {
         for (let fieldName in data) {
-            if (!data.hasOwnProperty(fieldName))
-                continue;
+            if (!data.hasOwnProperty(fieldName)) continue;
 
             let field = modal.find(`[name=${fieldName}]`);
 
-            if (field.prop("type") === "checkbox" && Boolean(field.val()) === data[fieldName])
-                field.click();
+            if (field.prop("type") === "checkbox" && Boolean(field.val()) === data[fieldName]) field.click();
             else if (field.prop("type") !== "checkbox") {
                 field.val(data[fieldName]);
                 field.click();
+                field.change();
             }
         }
+    },
+
+    /**
+     * generic filler for a Select field. Removes all the options not marked with data-keep
+     * @param {{id:,value:}[]} options
+     * @param {HTMLSelectElement} select
+     * @private
+     */
+    __fillSelect(options, select) {
+
     },
 
     /**
@@ -62,30 +71,34 @@ Controller.FormController = {
         for (let field of fields) {
             //field = $(field)
             let name = field.name;
-            if (name !== "")
-                fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
-            else
-                fieldData[`${name}`] = field.value;
+            if (name !== "") fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : ""; else fieldData[`${name}`] = field.value;
         }
         return fieldData;
     },
 
-    setupExtraDataFields: function (modal) {
-        let field = modal.find(".needsExtraInfo");
-        field.change(function (event) {
-            let target = $(event.target);
-            let relNames = target.data("related").split(",");
-            for (let name of relNames) {
-                let related = target.closest("form").find(`[name=${name.trim()}]`);
-                if (target.prop("checked")) {
-                    related.prop("disabled", false);
-                    related.closest(".form-group").show();
-                }
-                else {
-                    related.prop("disabled", true);
-                    related.closest(".form-group").hide();
-                }
+    __showField: function (field) {
+        field.prop("disabled", false);
+        field.closest(".form-group").show();
+    },
 
+    __hideField: function (field) {
+        field.prop("disabled", true);
+        field.closest(".form-group").hide();
+    },
+
+    setupExtraDataFields: function (modal) {
+        modal.find(".needsExtraInfo").change(function (event) {
+            let self = Controller.FormController;
+            let target = $(event.target);
+            let show = target.data("show").split(",");
+            let hide = target.data("hide").split(",");
+            for (let fieldName of show) {
+                let field = modal.find(`[name=${fieldName}]`);
+                target.prop("checked") ? self.__showField(field) : self.__hideField(field);
+            }
+            for (let fieldName of hide) {
+                let field = modal.find(`[name=${fieldName}]`);
+                target.prop("checked") ? self.__hideField(field) : self.__showField(field);
             }
         });
     },
@@ -93,59 +106,55 @@ Controller.FormController = {
     displayClassForm: function (event, obj) {
         let self = Controller.FormController;
         let modal = $("#fmmlxClassModal");
-        if(typeof self._classFormData !== "undefined") modal.find("form").replaceWith(self._classFormData);
         let point = go.Point.stringify(event.documentPoint);
         let entityId = obj.data !== null ? obj.data.id : "";
-        let externalField = modal.find("[name=isExternal]");
         let metaClassSelect = modal.find("[name=metaclass]");
-        if(typeof self._classFormData === "undefined") modal.find("form").clone();
-
-        modal.modal();
+        typeof window._classFormData === "undefined" ? window._classFormData = modal.find("form")
+                                                                                    .clone() : modal.find("form")
+                                                                                                    .replaceWith(self._classFormData);
         self.setupExtraDataFields(modal);
-        externalField.change(function (event) {
-            let formGroup = metaClassSelect.closest(".form-group");
-            if (event.target.checked) {
-                formGroup.hide();
-                metaClassSelect[0].disabled = true;
-            }
-            else {
-                formGroup.show();
-                metaClassSelect[0].disabled = false
-            }
-        });
-        self.__reset(modal);
+        modal.find("[name=coords]").val(point);
+        if (entityId !== "") self.__fillForm(modal, obj.data);
+
 
         //Adds new metaclasses based on level
 
         modal.find("[name=level]").change(function (event) {
-                if (externalField.prop("checked")) {
-                    let level = event.target.value;
-                    let classes = studio.getClassesbyLevel(level);
-                    for (let i = 0; i < metaClassSelect[0].options; i++) {
-                        metaClassSelect[0].remove(i);
-                    }
-                    for (let fmmlxClass in classes) {
-                        metaClassSelect[0].add(new HTMLOptionElement(fmmlxClass.name, fmmlxClass.id));
-                    }
+            if (!metaClassSelect.prop("disabled")) {
+                let level = event.target.value;
+                let classes = studio.getClassesbyLevel(level);
+                for (let i = 0; i < metaClassSelect[0].options; i++) {
+                    metaClassSelect[0].remove(i);
+                }
+                for (let fmmlxClass in classes) {
+                    metaClassSelect[0].add(new HTMLOptionElement(fmmlxClass.name, fmmlxClass.id));
                 }
             }
-        );
+        });
 
-
-        modal.find("[name=coords]").val(point);
-        if (entityId !== "") {
-            self.__fillForm(modal, obj.data);
-        }
-
+        modal.modal();
     },
 
     raiseProperty: function (event, obj) {
         alert(JSON.stringify(obj.part.data));
     },
 
-
     displayPropertyForm: function (event, obj) {
-        alert(JSON.stringify(obj.part.data));
+        const self = Controller.FormController;
+        const modal = $("#fmmlxAttributeModal");
+        typeof window._attributeFormData === "undefined" ? window._attributeFormData = modal.find("form")
+                                                                                            .clone() : modal.find("form")
+                                                                                                            .replaceWith(self._attributeFormData);
+        self.setupExtraDataFields(modal);
+
+        if (obj.part.constructor === go.Adornment) { //new property, the click was on the adorned property
+            let fmmlxClass = obj.part.adornedObject.data;
+            modal.find("[name=fmmlxClassId]").val(fmmlxClass.id); // id of the Fmmlx Class that will hold the property+
+        } else {
+            alert(" Todo xD");
+        }
+
+        modal.modal();
     },
 
     displayAssociationForm: function (event, obj) {
@@ -170,11 +179,9 @@ Controller.FormController = {
 
 
     addEditFmmlxClass: function () {
-
         const self = Controller.FormController;
-        const form = $("#classForm");
-        const modal = form.closest("modal");
-
+        const modal = $("#fmmlxClassModal");
+        const form = modal.find("form");
 
         if (!form[0].checkValidity()) {
             form.find(":invalid").closest(".form-group").addClass("has-error");
@@ -184,10 +191,7 @@ Controller.FormController = {
 
         try {
             let formVals = self.__readForm(form);
-            if (formVals.id === "")
-                studio.addFmmlxClass(formVals.coords, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
-            else
-                studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass)
+            if (formVals.id === "") studio.addFmmlxClass(formVals.coords, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass); else studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
 
         }
         catch (error) {
@@ -195,7 +199,24 @@ Controller.FormController = {
         }
         modal.modal("hide");
         return false;
+    },
+
+    addEditFmmlxProperty() {
+        const self = Controller.FormController;
+        const modal = $("#fmmlxAttributeModal");
+        const form = modal.find("form");
+
+        if (!form[0].checkValidity()) {
+            form.find(":invalid").closest(".form-group").addClass("has-error");
+            self.__error(form, new Error("Invalid input. Check the highlighted fields and try again."));
+            return false;
+        }
+        let formVals = self.__readForm(form);
+        if (formVals.id === "") studio.addProperty(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.isObtainable, formVals.isDerivable, formVals.isSimulated, formVals.isValue, formVals.value); else alert("ToDo xD");
+
+        debugger;
+
+
     }
 
-}
-;
+};

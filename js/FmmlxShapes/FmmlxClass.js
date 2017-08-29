@@ -197,29 +197,27 @@ FmmlxShapes.FmmlxClass._mainBlock = gMake(go.Panel, "Vertical", FmmlxShapes.Fmml
 );
 
 
-FmmlxShapes.FmmlxClass._contextMenu = gMake(go.Adornment, "Vertical",
-    gMake("ContextMenuButton",
-        gMake(go.TextBlock, "Abstract Class"), {
+FmmlxShapes.FmmlxClass._contextMenu = gMake(go.Adornment, "Vertical", gMake("ContextMenuButton", {alignment: go.Spot.Left},
+                                                                            gMake(go.TextBlock, "Abstract Class"), {
             click: Controller.FormController.abstractClass
         }
-    ),
-    gMake("ContextMenuButton",
-        gMake(go.TextBlock, "Delete Class"), {
+    ), gMake("ContextMenuButton", {alignment: go.Spot.Left},
+             gMake(go.TextBlock, "Delete Class"), {
             click: Controller.FormController.deleteClass
         }),
 
-    gMake("ContextMenuButton",
-        gMake(go.TextBlock, "Add Property / Value"), {
+                                            gMake("ContextMenuButton", {alignment: go.Spot.Left},
+                                                  gMake(go.TextBlock, "Add Property / Value"), {
             click: Controller.FormController.displayPropertyForm
         }),
 
-    gMake("ContextMenuButton",
-        gMake(go.TextBlock, "Associate"), {
+                                            gMake("ContextMenuButton", {alignment: go.Spot.Left},
+                                                  gMake(go.TextBlock, "Associate"), {
             click: Controller.FormController.displayAssociationForm
         }),
 
-    gMake("ContextMenuButton",
-        gMake(go.TextBlock, "Set Superclass"), {
+                                            gMake("ContextMenuButton", {alignment: go.Spot.Left},
+                                                  gMake(go.TextBlock, "Set Superclass"), {
             click: Controller.FormController.displayInheritanceForm
         })
 );

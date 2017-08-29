@@ -49,8 +49,8 @@
         ///
         $.material.init();
         window.studio = new Controller.StudioController();
-        console.log("Take the long way home..")
-    })</script>
+        console.log("Take the long way home..");
+    });</script>
 
     <!-- -->
 
@@ -69,7 +69,7 @@
             </div>
 
             <div class="well">
-                <button onclick="Controller.FormController.displayClassForm(10,20)">Modal</button>
+                <button onclick="Controller.FormController.displayClassForm(10,20);">Modal</button>
                 <img src="images/class.png" class="menu" id="entity" draggable="true"/>
                 <img src="images/relation.png" class="menu" id="relationship" draggable="true"/><br/>
                 <img src="images/inheritance.png" class="menu" id="inheritance" draggable="true"/>
@@ -129,7 +129,8 @@
                                     <label class="checkbox-inline">
                                         <small>External?</small>
                                         <input class="needsExtraInfo" name="isExternal" type="checkbox" value="true"
-                                               data-related="externalLanguage, externalMetaclass"></label>
+                                               data-show="externalLanguage, externalMetaclass"
+                                               data-hide="metaclass"></label>
                                 </div>
                             </div>
                         </div>
@@ -168,7 +169,7 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="Controller.FormController.addEditFmmlxClass()">
+                <button type="button" class="btn btn-primary" onclick="Controller.FormController.addEditFmmlxClass();">
                     Continue
                 </button>
             </div>
@@ -188,72 +189,76 @@
             <div class="modal-body">
                 <form id="property">
                     <input type="hidden" name="id">
-                    <input type="hidden" name="coords">
-
-
+                    <input type="hidden" name="fmmlxClassId">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="alert alert-warning collapse">
+                                <strong>Error!&nbsp;</strong> <span class="message">Invalid Field data</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-5">
-                            <div class="form-group has-feedback label-static">
+                            <div class="form-group has-feedback label-floating">
                                 <label class="control-label">Attribute Name</label>
-                                <input class="form-control name" pattern="^\w\.,$" required/>
-                                <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
-                                <div class="help-block with-errors">Hey look, this one has feedback icons!</div>
+                                <input class="form-control" name="name" pattern="^[\w\.,]+$" required/>
+                                <div class="help-block">
+                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <div class="form-group has-feedback label-floating">
                                 <label class="control-label">Type</label>
-                                <input class="form-control type" pattern="^\w\.,$" required/>
+                                <input class="form-control" name="type" pattern="^[\w\.,]+$" required/>
+                                <div class="help-block">
+                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label">Intrins.</label>
-                                <input class="form-control intrinsicness" pattern="^\d|\?$" required/>
+                            <div class="form-group has-feedback label-floating collapse">
+                                <label class="control-label">Value</label>
+                                <input class="form-control" name="value" disabled/>
                             </div>
+
                         </div>
                         <div class="col-md-3">
-                            <div class="form-group has-feedback label-static">
-                                <div class="checkbox">
-                                    <label>
-                                        <small>Operation?</small>
-                                        <br/>
-                                        <input class="isOperation" value="true" type="checkbox"/>
-                                    </label>
+                            <div class="form-group has-feedback label-floating">
+                                <label class="control-label">Intrinsicness</label>
+                                <input class="form-control" name="intrinsicness" pattern="^(\d+|\?)$" required/>
+                                <div class="help-block">
+                                    <span class="label label-info">REQUIRED</span> Allowed: 0-9 ? _
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-12 text-center">
                             <div class="form-group has-feedback label-static">
                                 <span class="checkbox">
                                     <label class="checkbox-inline">
-                                        <small>Obtainable</small>
-                                        <input id="isObtainable" value="true" type="checkbox"/>
+                                        <small>Operation?</small>
+                                        <input name="isOperation" value="true" type="checkbox"/>
                                     </label>
                                     <label class="checkbox-inline">
-                                        <small>Derivable</small>
-                                        <input id="isDerivable" value="true" type="checkbox"/>
+                                        <small>Obtainable?</small>
+                                        <input name="isObtainable" value="true" type="checkbox"/>
                                     </label>
                                     <label class="checkbox-inline">
-                                        <small>Simulated</small>
-                                        <input id="isSimulation" value="true" type="checkbox"/>
+                                        <small>Derivable?</small>
+                                        <input name="isDerivable" value="true" type="checkbox"/>
                                     </label>
                                     <label class="checkbox-inline">
-                                        <small>Value</small>
-                                        <input id="isValue" class="needsExtraInfo" value="true" type="checkbox"/>
+                                        <small>Simulated?</small>
+                                        <input name="isSimulation" value="true" type="checkbox"/>
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <small>Value?</small>
+                                        <input name="isValue" class="needsExtraInfo" data-show="value" data-hide="type"
+                                               value="true"
+                                               type="checkbox"/>
                                     </label>
                                 </span>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <span class="extraInfo">
-                            <span class="form-group has-feedback label-floating">
-                                <label class="control-label" for="value">Value</label>
-                                <input class="form-control" id="value"/>
-                            </span>
-                            </span>
                         </div>
                     </div>
                 </form>
@@ -261,7 +266,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Continue</button>
+                <button type="button" class="btn btn-primary"
+                        onclick="Controller.FormController.addEditFmmlxProperty();">Continue
+                </button>
             </div>
         </div>
     </div>
