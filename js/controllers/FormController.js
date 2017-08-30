@@ -120,7 +120,6 @@ Controller.FormController = {
     displayClassForm: function (event, obj) {
         let self = Controller.FormController;
         let modal = $("#fmmlxClassModal");
-        //let form= modal.find("form");
         let point = go.Point.stringify(event.documentPoint);
         let entityId = obj.data !== null ? obj.data.id : "";
 
@@ -138,8 +137,10 @@ Controller.FormController = {
                 self.__fillSelect(metaClassSelect, options);
             }
         });
+
         (entityId !== "") ? self.__fillForm(modal, obj.data) : modal.find("[name=coords]").val(point);
 
+        modal.find(".btn-primary").one('click', self.addEditFmmlxClass);
         modal.modal();
 
     },
@@ -155,6 +156,15 @@ Controller.FormController = {
         switch (eventObject.data.constructor) {
             case Model.FmmlxClass:
                 menu = $("#classMenu");
+                $("inherit").one('click', self.displayInheritanceForm);
+                $("associate").one('click', function () {
+                    alert("This is not  bug, its a feature!")
+                });
+                $("deleteClass").one('click', function () {
+                    studio.deleteFmmlxClass(eventObject.data.id);
+                });
+                $("abstractClass").one('click',);
+                $("addMember").one('click',);
                 break;
 
             case Model.FmmlxProperty:
@@ -177,7 +187,6 @@ Controller.FormController = {
                 $(this).off(e);
             }
         });
-
 
 
     },
@@ -204,7 +213,7 @@ Controller.FormController = {
         } else {
             alert(" Todo xD");
         }
-
+        modal.find(".btn-primary").one('click', self.addEditFmmlxProperty);
         modal.modal();
     },
 

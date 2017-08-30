@@ -79,22 +79,22 @@
         </div>
         <div class="contextMenu" id="classMenu">
             <ul class="nav nav-pills nav-stacked">
-                <li><a href="#">Add Member</a></li>
-                <li><a href="#">Abstract Class</a></li>
-                <li><a href="#">Delete Class</a></li>
+                <li><a href="#" id="addMember">Add Member</a></li>
+                <li><a href="#" id="abstractClass">Abstract Class</a></li>
+                <li><a href="#" id="deleteClass">Delete Class</a></li>
                 <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Relations
                     <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="#">Associate</a></li>
-                        <li><a href="#">Inherit</a></li>
+                        <li><a href="#" id="associate">Associate</a></li>
+                        <li><a href="#" id="inherit">Inherit</a></li>
                     </ul>
                 </li>
             </ul>
         </div>
         <div class="contextMenu" id="propertyMenu">
             <ul class="nav nav-pills nav-stacked">
-                <li><a href="#">Delete Class</a></li>
-                <li><a href="#">Raise Class</a></li>
+                <li><a href="#" id="deleteProperty">Delete Member</a></li>
+                <li><a href="#" id="raiseProperty">Raise Member</a></li>
             </ul>
         </div>
 
@@ -293,8 +293,7 @@
             <div class="panel-footer text-right">
                 <div class="btn-group btn-group-raised">
                     <a href="javascript:void(0)" data-dismiss="modal" class="btn btn-default">Close</a>
-                    <a href="javascript:void(0)" class="btn btn-primary"
-                       onclick="Controller.FormController.addEditFmmlxProperty();">Continue</a>
+                    <a href="javascript:void(0)" class="btn btn-primary">Continue</a>
                 </div>
             </div>
         </div>
@@ -408,6 +407,10 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="modal fade" id="confirm">
+
 </div>
 
 
