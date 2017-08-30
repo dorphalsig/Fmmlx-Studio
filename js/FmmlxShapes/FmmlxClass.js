@@ -160,10 +160,13 @@ FmmlxShapes.FmmlxClass._operationValuesBlock = gMake(go.Panel, "Auto", {
     itemTemplate: FmmlxShapes.FmmlxProperty.shape,
 }));
 
-FmmlxShapes.FmmlxClass._mainBlock = gMake(go.Panel, "Vertical", FmmlxShapes.FmmlxClass._nameBlock,
+FmmlxShapes.FmmlxClass._mainBlock = gMake(go.Panel,
+    "Vertical",
+    FmmlxShapes.FmmlxClass._nameBlock,
     FmmlxShapes.FmmlxClass._attributesBlock,
     FmmlxShapes.FmmlxClass._operationsBlock,
-    FmmlxShapes.FmmlxClass._slotValuesBlock, FmmlxShapes.FmmlxClass._operationValuesBlock);
+    FmmlxShapes.FmmlxClass._slotValuesBlock,
+    FmmlxShapes.FmmlxClass._operationValuesBlock);
 
 
 FmmlxShapes.FmmlxClass._contextMenu = gMake(go.Adornment,

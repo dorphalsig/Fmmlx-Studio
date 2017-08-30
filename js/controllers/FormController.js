@@ -140,7 +140,7 @@ Controller.FormController = {
 
         (entityId !== "") ? self.__fillForm(modal, obj.data) : modal.find("[name=coords]").val(point);
 
-        modal.find(".btn-primary").one('click', self.addEditFmmlxClass);
+        modal.find(".btn-primary").one("click", self.addEditFmmlxClass);
         modal.modal();
 
     },
@@ -149,22 +149,23 @@ Controller.FormController = {
         alert(JSON.stringify(obj.part.data));
     },
 
-
-    showHideContextMenu: function (inputEvent, eventObject) {
+    /**
+     *
+     * @param {go.InputEvent|go.GraphObject} inputEvent
+     * @param {go.GraphObject|go.Diagram} target
+     */
+    showHideContextMenu: function (inputEvent, target/*target, diagram, tool*/) {
         let menu = "";
+        let self = Controller.FormController;
 
-        switch (eventObject.data.constructor) {
+        switch (target.data.constructor) {
             case Model.FmmlxClass:
                 menu = $("#classMenu");
-                $("inherit").one('click', self.displayInheritanceForm);
-                $("associate").one('click', function () {
-                    alert("This is not  bug, its a feature!")
-                });
-                $("deleteClass").one('click', function () {
-                    studio.deleteFmmlxClass(eventObject.data.id);
-                });
-                $("abstractClass").one('click',);
-                $("addMember").one('click',);
+                $("#inherit").one("click", () => self.displayInheritanceForm(inputEvent, target));
+                $("#associate").one("click", () => self.displayAssociationForm(inputEvent, target));
+                $("#deleteClass").one("click", () => self.deleteProperty(target));
+                $("#abstractClass").one("click", () => self.abstractClass(target));
+                $("#addMember").one("click", () => self.displayPropertyForm(inputEvent, target));
                 break;
 
             case Model.FmmlxProperty:
@@ -172,22 +173,26 @@ Controller.FormController = {
                 break;
         }
 
-        let canvasOffset = menu.prev().offset();
-        let clickOffset = inputEvent.event;
 
-        menu.show().offset({top: clickOffset.pageY, left: clickOffset.pageX});
-        inputEvent.event.stopImmediatePropagation();
+        //let canvasOffset = menu.prev().offset();
+        //let clickOffset =  tool.mouseDownPoint;
+        //let offset = {top: clickOffset.y+canvasOffset.top, left: clickOffset.x+canvasOffset.left+20}
+        menu.show().offset({
+            top: inputEvent.event.pageY,
+            left: inputEvent.event.pageX + 5,
+        });
+        //menu.on("contextMenu",()=>{debugger; return false});
 
-        $(document).mouseup(function (e) {
+        $(document).one("click", function (event) {
             let container = menu.find(".dropdown-toggle");
-
-            // if the target of the click isn't the container nor a descendant of the container
-            if (!container.is(e.target) && container.has(e.target).length === 0) {
+            if (!container.is(event.target) && container.has(event.target).length === 0) {
                 menu.hide();
-                $(this).off(e);
+                $(this).off(event);//.off("contextMenu");
+
             }
         });
 
+        inputEvent.event.stopImmediatePropagation();
 
     },
 
@@ -195,10 +200,11 @@ Controller.FormController = {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
         //const form = modal.find("form");
-        window._attributeFormData === "undefined" ? window._attributeFormData = modal.clone() : modal.replaceWith(window._attributeFormData);
+        typeof window._attributeFormData === "undefined" ? window._attributeFormData = modal.clone() : modal.replaceWith(
+            window._attributeFormData);
         self.__setupExtraDataFields(modal);
 
-        let opBodyManager = function (event) {
+        let opBodyManager = function () {
             let opBody = modal.find("[name=operationBody]");
             (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]").prop("checked")) ? self.__showField(
                 opBody) : self.__hideField(opBody);
@@ -207,30 +213,30 @@ Controller.FormController = {
         modal.find("[name=isOperation]").change(opBodyManager);
         modal.find("[name=isValue]").change(opBodyManager);
 
-        if (obj.part.constructor === go.Adornment) { //new property, the click was on the adorned property
-            let fmmlxClass = obj.part.adornedObject.data;
-            modal.find("[name=fmmlxClassId]").val(fmmlxClass.id); // id of the Fmmlx Class that will hold the property+
+        if (obj.data.constructor === Model.FmmlxProperty) { //new property,it was righht click on  the Class
+            modal.find("[name=fmmlxClassId]").val(obj.data.id); // id of the Fmmlx Class that will hold the property+
         } else {
             alert(" Todo xD");
         }
-        modal.find(".btn-primary").one('click', self.addEditFmmlxProperty);
+        modal.find(".btn-primary").one("click", self.addEditFmmlxProperty);
         modal.modal();
     },
 
     displayAssociationForm: function (event, obj) {
-        alert(JSON.stringify(obj.part.data));
+        alert("This is not a bug, its a feature!");
     },
 
     displayInheritanceForm: function (event, obj) {
-        alert(JSON.stringify(obj.part.data));
+        alert("You want me to do WHAT?");
     },
 
-    deleteProperty: function (event, obj) {
-        alert("Just did it");
+    deleteProperty: function (obj) {
+        //alert("Just did it");
+        studio.deleteFmmlxClass(obj.data.id);
     },
 
-    abstractClass: function (event, obj) {
-        alert(JSON.stringify(obj.part.data));
+    abstractClass: function (obj) {
+        alert("This is not a feature, its a bug!");
     },
 
     deleteClass: function (event, obj) {

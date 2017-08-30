@@ -59,12 +59,10 @@ FmmlxShapes.FmmlxProperty.shape = gMake(go.Panel, "Auto", {
 }),*/ gMake(go.Panel,
     "Horizontal",
     {
+        name: "FMMLxProperty",
         minSize: new go.Size(100, 20),
-        contextMenu: gMake(go.HTMLInfo, {
-            show: Controller.FormController.showHideContextMenu,
-            hide: Controller.FormController.showHideContextMenu,
-        }),
-        doubleClick: Controller.FormController.displayClassForm,
+        contextClick: Controller.FormController.showHideContextMenu,
+        doubleClick: Controller.FormController.displayPropertyForm,
         padding: new go.Margin(0, 2, 2, 2),
 
     },
@@ -72,10 +70,5 @@ FmmlxShapes.FmmlxProperty.shape = gMake(go.Panel, "Auto", {
     FmmlxShapes.FmmlxProperty._nameBlock,
     FmmlxShapes.FmmlxProperty._assignmentBlock,
     FmmlxShapes.FmmlxProperty._typeBlock));
-
-FmmlxShapes.FmmlxProperty.parseBehaviorBlock = function (property) {
-
-
-};
 
 console.log("FMMLxProperties loaded");
