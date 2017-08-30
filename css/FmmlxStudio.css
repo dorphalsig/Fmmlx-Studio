@@ -31,9 +31,9 @@ body {
     cursor: pointer;
 }
 
-.modal-content .modal-body {
+/*.modal-content .modal-body {
     padding-top: 15px;
-}
+}*/
 
 .remove {
     cursor: pointer;
@@ -51,7 +51,7 @@ body {
     min-height: 100vh;
 }
 
-.body > div {
+#menu, #canvas {
     min-height: 100vh !important;
 }
 
@@ -73,7 +73,7 @@ body {
     display: block;
 }
 
-#moodler {
+#canvas {
     height: 100vh;
     display: block;
     resize: both;

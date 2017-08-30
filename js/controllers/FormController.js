@@ -149,19 +149,37 @@ Controller.FormController = {
     },
 
 
-    showHideContextMenu: function (obj, diagram, tool) {
+    showHideContextMenu: function (inputEvent, eventObject) {
+        let menu = "";
 
-        if (typeof obj.data !== "undefined" && typeof obj.data.constructor !== "undefined!") {
-            if (obj.data.constructor === Model.FmmlxClass) {
-                console.log("Class");
-                debugger;
-                $("#classMenu").show();
-            } else if (obj.data.constructor === Model.FmmlxProperty) {
-                console.log("prop");
-                $("#propertyMenu").show();
-            } else $(".contextMenu").hide();
+        switch (eventObject.data.constructor) {
+            case Model.FmmlxClass:
+                menu = $("#classMenu");
+                break;
 
+            case Model.FmmlxProperty:
+                menu = $("#propertyMenu");
+                break;
         }
+
+        let canvasOffset = menu.prev().offset();
+        let clickOffset = inputEvent.event;
+
+        menu.show().offset({top: clickOffset.pageY, left: clickOffset.pageX});
+        inputEvent.event.stopImmediatePropagation();
+
+        $(document).mouseup(function (e) {
+            let container = menu.find(".dropdown-toggle");
+
+            // if the target of the click isn't the container nor a descendant of the container
+            if (!container.is(e.target) && container.has(e.target).length === 0) {
+                menu.hide();
+                $(this).off(e);
+            }
+        });
+
+
+
     },
 
     displayPropertyForm: function (event, obj) {

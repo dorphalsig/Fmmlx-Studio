@@ -192,10 +192,7 @@ FmmlxShapes.FmmlxClass._contextMenu = gMake(go.Adornment,
 FmmlxShapes.FmmlxClass.shape = gMake(go.Node,
     "Spot",
     {
-        contextMenu: gMake(go.HTMLInfo, {
-            show: Controller.FormController.showHideContextMenu,
-            hide: Controller.FormController.showHideContextMenu,
-        }),
+        contextClick: Controller.FormController.showHideContextMenu,
         doubleClick: Controller.FormController.displayClassForm,
     },
     new go.Binding("location", "location", go.Point.parse),
