@@ -4,6 +4,10 @@ if (typeof Controller === "undefined") window.Controller = {};
 
 Controller.FormController = {
 
+    init() {
+        window._classForm = $("#fmmlxClassModal").find("form").clone();
+        window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
+    },
     /**
      *
      * @param {JQuery} form
@@ -29,16 +33,21 @@ Controller.FormController = {
      * @private
      */
     __fillForm: function (modal, data) {
+
         for (let fieldName in data) {
             if (!data.hasOwnProperty(fieldName)) continue;
 
             let field = modal.find(`[name=${fieldName}]`);
 
-            if (field.prop("type") === "checkbox" && Boolean(field.val()) === data[fieldName]) field.click(); else if (field.prop(
-                    "type") !== "checkbox") {
+            if (field.prop("type") === "checkbox" && field.val() == data[fieldName]) {
+                field.click();
+                field.change();
+            }
+            else if (field.prop("type") !== "checkbox") {
                 field.val(data[fieldName]);
                 field.click();
                 field.change();
+
             }
         }
     },
@@ -75,7 +84,8 @@ Controller.FormController = {
         for (let field of fields) {
             //field = $(field)
             let name = field.name;
-            if (name !== "") fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : ""; else fieldData[`${name}`] = field.value;
+            if (name !== "") fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
+            else fieldData[`${name}`] = field.value;
         }
         return fieldData;
     },
@@ -121,10 +131,7 @@ Controller.FormController = {
         let self = Controller.FormController;
         let modal = $("#fmmlxClassModal");
         let point = go.Point.stringify(event.documentPoint);
-        let entityId = obj.data !== null ? obj.data.id : "";
-
-        typeof window._classFormData === "undefined" ? window._classFormData = modal.clone() : modal.replaceWith(window._classFormData);
-
+        modal.find("form").replaceWith(window._classForm.clone());
         self.__setupExtraDataFields(modal);
 
         //Populates select with metaclasses according to level
@@ -132,13 +139,13 @@ Controller.FormController = {
         modal.find("[name=level]").change(function (event) {
             if (!metaClassSelect.prop("disabled")) {
                 let level = event.target.value;
-                let options = studio.getClassesbyLevel(level).map(fmmlxClass => new Option(fmmlxClass.name,
-                    fmmlxClass.id));
+                let options = studio.getClassesbyLevel(level).map(
+                    fmmlxClass => new Option(fmmlxClass.name, fmmlxClass.id));
                 self.__fillSelect(metaClassSelect, options);
             }
         });
 
-        (entityId !== "") ? self.__fillForm(modal, obj.data) : modal.find("[name=coords]").val(point);
+        (obj.data !== null) ? self.__fillForm(modal, obj.data) : modal.find("[name=coords]").val(point);
 
         modal.find(".btn-primary").one("click", self.addEditFmmlxClass);
         modal.modal();
@@ -151,10 +158,10 @@ Controller.FormController = {
 
     /**
      *
-     * @param {go.InputEvent|go.GraphObject} inputEvent
-     * @param {go.GraphObject|go.Diagram} target
+     * @param {go.InputEvent} inputEvent
+     * @param {go.GraphObject} target
      */
-    showHideContextMenu: function (inputEvent, target/*target, diagram, tool*/) {
+    showHideContextMenu: function (inputEvent, target) {
         let menu = "";
         let self = Controller.FormController;
 
@@ -178,9 +185,9 @@ Controller.FormController = {
         //let clickOffset =  tool.mouseDownPoint;
         //let offset = {top: clickOffset.y+canvasOffset.top, left: clickOffset.x+canvasOffset.left+20}
         menu.show().offset({
-            top: inputEvent.event.pageY,
-            left: inputEvent.event.pageX + 5,
-        });
+                               top: inputEvent.event.pageY,
+                               left: inputEvent.event.pageX + 5,
+                           });
         //menu.on("contextMenu",()=>{debugger; return false});
 
         $(document).one("click", function (event) {
@@ -198,16 +205,14 @@ Controller.FormController = {
 
     displayPropertyForm: function (event, obj) {
         const self = Controller.FormController;
-        const modal = $("#fmmlxAttributeModal");
-        //const form = modal.find("form");
-        typeof window._attributeFormData === "undefined" ? window._attributeFormData = modal.clone() : modal.replaceWith(
-            window._attributeFormData);
+        let modal = $("#fmmlxAttributeModal");
+        modal.find("form").replaceWith(window._propertyForm.clone());
         self.__setupExtraDataFields(modal);
 
         let opBodyManager = function () {
             let opBody = modal.find("[name=operationBody]");
-            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]").prop("checked")) ? self.__showField(
-                opBody) : self.__hideField(opBody);
+            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]").prop(
+                "checked")) ? self.__showField(opBody) : self.__hideField(opBody);
         };
 
         modal.find("[name=isOperation]").change(opBodyManager);
@@ -215,11 +220,30 @@ Controller.FormController = {
 
         if (obj.data.constructor === Model.FmmlxClass) { //new property,it was righht click on  the Class
             modal.find("[name=fmmlxClassId]").val(obj.data.id); // id of the Fmmlx Class that will hold the property+
-        } else {
-            alert(" Todo xD");
+        }
+        else {
+            obj.data.behaviors.forEach((behavior) => {
+                switch (behavior) {
+                    case "O":
+                        obj.data.isObtainable = "O";
+                        break;
+                    case "D":
+                        obj.data.isDerivable = "D";
+                        break;
+                    case "S":
+                        obj.data.isSimulation = "S";
+                        break;
+                }
+            });
+            //delete obj.data.behaviors;
+            self.__fillForm(modal, obj.data);
+            delete obj.data.isObtainable;
+            delete obj.data.isDerivable;
+            delete obj.data.isSimulation;
         }
         modal.find(".btn-primary").one("click", self.addEditFmmlxProperty);
         modal.modal();
+        event.handled = true;
     },
 
     displayAssociationForm: function (event, obj) {
@@ -257,19 +281,11 @@ Controller.FormController = {
 
         try {
             let formVals = self.__readForm(form);
-            if (formVals.id === "") studio.addFmmlxClass(formVals.coords,
-                formVals.name,
-                formVals.level,
-                formVals.isAbstract,
-                formVals.metaclass,
-                formVals.externalLanguage,
-                formVals.externalMetaclass); else studio.editFmmlxClass(formVals.id,
-                formVals.name,
-                formVals.level,
-                formVals.isAbstract,
-                formVals.metaclass,
-                formVals.externalLanguage,
-                formVals.externalMetaclass);
+            if (formVals.id === "") studio.addFmmlxClass(formVals.coords, formVals.name, formVals.level,
+                                                         formVals.isAbstract, formVals.metaclass,
+                                                         formVals.externalLanguage, formVals.externalMetaclass);
+            else studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract,
+                                       formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
 
         }
         catch (error) {
@@ -289,18 +305,17 @@ Controller.FormController = {
             self.__error(form, new Error("Invalid input. Check the highlighted fields and try again."));
             return false;
         }
+
         let formVals = self.__readForm(form);
-        if (formVals.id === "") studio.createMember(formVals.fmmlxClassId,
-            formVals.name,
-            formVals.type,
-            formVals.intrinsicness,
-            formVals.isOperation,
-            formVals.isObtainable,
-            formVals.isDerivable,
-            formVals.isSimulation,
-            formVals.isValue,
-            formVals.value,
-            formVals.operationBody); else alert("ToDo xD");
+        formVals.behaviors = [];
+        if (formVals.isObtainable.length > 0) formVals.behaviors.push(formVals.isObtainable);
+        if (formVals.isDerivable.length > 0) formVals.behaviors.push(formVals.isDerivable);
+        if (formVals.isSimulation.length > 0) formVals.behaviors.push(formVals.isSimulation);
+        if (formVals.id === "") studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type,
+                                                    formVals.intrinsicness, formVals.isOperation, formVals.behaviors,
+                                                    formVals.isValue, formVals.value, formVals.operationBody);
+        else alert("ToDo xD");
+        modal.modal("hide");
     },
 
 };

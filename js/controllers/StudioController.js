@@ -3,41 +3,6 @@ if (typeof Controller === `undefined`) window.Controller = {};
 
 Controller.StudioController = class {
 
-    // Instance
-    /**
-     *  Constructor, receives the id of the div that's the parent for the GoJS canvas
-     * @param {string} div
-     */
-    constructor(div) {
-        if (typeof div === `undefined`) {
-            div = `canvas`;
-        }
-        go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
-        this._$ = go.GraphObject.make;
-
-        /**
-         *
-         * @type {go.Diagram | *}
-         * @private
-         */
-        this._diagram = this._$(go.Diagram, div, {
-            padding: new go.Margin(75, 5, 5, 5), "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
-            model: new go.GraphLinksModel(),
-            contextMenu: this._$(go.Adornment, `Vertical`, this._$(`ContextMenuButton`, this._$(go.TextBlock, `Add Fmmlx Class`), {
-                click: Controller.FormController.displayClassForm
-            }))
-        });
-
-        this._model = this._diagram.model;
-
-        window.PIXELRATIO = this._diagram.computePixelRatio();
-
-        this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
-        this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
-        //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
-        this._model.nodeKeyProperty = `id`;
-    }
-
     _beginTransaction() {
         let id = Helper.Helper.uuid4();
         this._diagram.startTransaction(id);
@@ -57,8 +22,10 @@ Controller.StudioController = class {
         if (fmmlxClass.lastChangeId === transId) return;
 
         if (upstream) {
-            if (fmmlxClass.metaclass !== null) this._calculateClassLevel(fmmlxClass.metaclass, delta, upstream, transId);
-            if (fmmlxClass.superclass !== null) this._calculateClassLevel(fmmlxClass.superclass, delta, upstream, transId);
+            if (fmmlxClass.metaclass !== null) this._calculateClassLevel(fmmlxClass.metaclass, delta, upstream,
+                                                                         transId);
+            if (fmmlxClass.superclass !== null) this._calculateClassLevel(fmmlxClass.superclass, delta, upstream,
+                                                                          transId);
         }
 
         let lvl = (delta === 0) ? "?" : (fmmlxClass.level === "?") ? fmmlxClass.distanceFromRoot + delta : fmmlxClass.level + delta;
@@ -203,7 +170,8 @@ Controller.StudioController = class {
     addValueToClass(fmmlxClass, property, value = null) {
 
         if ((property.intrinsicness === "?" && fmmlxClass.level === "?") || property.intrinsicness !== fmmlxClass.level) {
-            console.log(`Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the property's (${property.name}) intrinsicness (${property.intrinsicness}). Doing nothing`);
+            console.log(
+                `Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the property's (${property.name}) intrinsicness (${property.intrinsicness}). Doing nothing`);
             return;
         }
 
@@ -242,7 +210,8 @@ Controller.StudioController = class {
         newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
         if (newLevel === fmmlxClass.level) return;
 
-        let delta = isNaN(newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
+        let delta = isNaN(
+            newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
         console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
         let transId = this._beginTransaction();
         try {
@@ -278,8 +247,9 @@ Controller.StudioController = class {
             console.log(`Old and new metaclasses are the same. Doing nothing.`);
         }
 
-        //let className = 
-        console.log(`Change ${fmmlxClass.name}'s metaclass from  ${(fmmlxClass.metaclass === null) ? "Metaclass" : fmmlxClass.metaclass.name} to ${metaclass.name}`);
+        //let className =
+        console.log(
+            `Change ${fmmlxClass.name}'s metaclass from  ${(fmmlxClass.metaclass === null) ? "Metaclass" : fmmlxClass.metaclass.name} to ${metaclass.name}`);
 
         let transId = this._beginTransaction();
         try {
@@ -298,31 +268,24 @@ Controller.StudioController = class {
         this._commitTransaction(transId);
     }
 
+    //Creates an FMMLx class member and associates it to an fmmlx class
     /**
-     * Creates an FMMLx class member and associates it to an fmmlx class
+     *
      * @param {String} fmmlxClassId
      * @param {String} name
      * @param {String} type
      * @param {String} intrinsicness
      * @param {String} isOperation
-     * @param {String} isObtainable
-     * @param {String} isDerivable
-     * @Param {String} isSimulated
-     * @Param {String} isValue
+     * @param {String} behaviors
+     * @param {String} isValue
      * @param {String} value
      * @param {String} operationBody
      */
-    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, isObtainable, isDerivable, isSimulation, isValue, value = null, operationBody = null) {
+    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, behaviors, isValue, value = null, operationBody = null) {
         let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
-
-        let behaviors = [];
-        if (isObtainable.length > 0) behaviors.push(isObtainable);
-        if (isDerivable.length > 0) behaviors.push(isDerivable);
-        if (isSimulation.length > 0) behaviors.push(isSimulation);
-
-        let property = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors, operationBody);
+        let property = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors,
+                                               operationBody);
         this.addPropertyToClass(fmmlxClass, property);
-
         if (Boolean(isValue)) this.addValueToClass(fmmlxClass, value);
     }
 
@@ -428,8 +391,10 @@ Controller.StudioController = class {
 
             //del upstream
             if (upstream) {
-                if (fmmlxClass.superclass !== null) this.deletePropertyFromClass(fmmlxClass.superclass, property, upstream, downstream);
-                if (fmmlxClass.metaclass !== null) this.deletePropertyFromClass(fmmlxClass.metaclass, property, upstream, downstream);
+                if (fmmlxClass.superclass !== null) this.deletePropertyFromClass(fmmlxClass.superclass, property,
+                                                                                 upstream, downstream);
+                if (fmmlxClass.metaclass !== null) this.deletePropertyFromClass(fmmlxClass.metaclass, property,
+                                                                                upstream, downstream);
             }
         }
         catch (e) {
@@ -473,7 +438,8 @@ Controller.StudioController = class {
         let fmmlxClass = this._model.findNodeDataForKey(id);
         metaclassId = (metaclassId === "") ? null : metaclassId;
 
-        if (isAbstract && fmmlxClass.instances.size > 0) throw new Error("Can not make class abstract because it has instances.");
+        if (isAbstract && fmmlxClass.instances.size > 0) throw new Error(
+            "Can not make class abstract because it has instances.");
 
         console.log(`Editing class ${fmmlxClass.name}`);
         let transId = this._beginTransaction();
@@ -481,8 +447,12 @@ Controller.StudioController = class {
             this._model.setDataProperty(fmmlxClass, "isAbstract", Boolean(isAbstract));
             this._model.setDataProperty(fmmlxClass, "name", name);
 
-            if (externalLanguage !== fmmlxClass.externalLanguage) this._model.setDataProperty(fmmlxClass, "externalLanguage", externalLanguage);
-            if (externalMetaclass !== fmmlxClass.externalMetaclass) this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
+            if (externalLanguage !== fmmlxClass.externalLanguage) this._model.setDataProperty(fmmlxClass,
+                                                                                              "externalLanguage",
+                                                                                              externalLanguage);
+            if (externalMetaclass !== fmmlxClass.externalMetaclass) this._model.setDataProperty(fmmlxClass,
+                                                                                                "externalMetaclass",
+                                                                                                externalMetaclass);
             this.changeClassLevel(fmmlxClass, level);
             this.changeMetaclass(fmmlxClass, metaclassId);
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
@@ -536,6 +506,43 @@ Controller.StudioController = class {
             if (val !== null) this.deleteValueFromClass(fmmlxClass, val);
             this.addPropertyToClass(fmmlxClass, property);
         }
+    }
+
+    // Instance
+    /**
+     *  Constructor, receives the id of the div that's the parent for the GoJS canvas
+     * @param {string} div
+     */
+    constructor(div) {
+        if (typeof div === `undefined`) {
+            div = `canvas`;
+        }
+        go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
+        this._$ = go.GraphObject.make;
+
+        /**
+         *
+         * @type {go.Diagram | *}
+         * @private
+         */
+        this._diagram = this._$(go.Diagram, div, {
+            padding: new go.Margin(75, 5, 5, 5),
+            "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
+            model: new go.GraphLinksModel(),
+            contextMenu: this._$(go.Adornment, `Vertical`,
+                                 this._$(`ContextMenuButton`, this._$(go.TextBlock, `Add Fmmlx Class`), {
+                                     click: Controller.FormController.displayClassForm,
+                                 })),
+        });
+
+        this._model = this._diagram.model;
+
+        window.PIXELRATIO = this._diagram.computePixelRatio();
+
+        this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
+        this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
+        //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
+        this._model.nodeKeyProperty = `id`;
     }
 
 

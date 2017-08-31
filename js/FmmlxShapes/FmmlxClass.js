@@ -77,7 +77,9 @@ FmmlxShapes.FmmlxClass.getIsExternal = function (fmmlxClass) {
 };
 
 FmmlxShapes.FmmlxClass._externalLanguageBlock = gMake(go.Panel, "Auto", {
-    stretch: go.GraphObject.Fill, alignment: new go.Spot(1, 0), maxSize: new go.Size(54, Infinity),
+    stretch: go.GraphObject.Fill,
+    alignment: new go.Spot(1, 0),
+    maxSize: new go.Size(54, Infinity),
 }, new go.Binding("visible", "", FmmlxShapes.FmmlxClass.getIsExternal), gMake(go.Shape, "Rectangle", {
     fill: "orange",
 }), gMake(go.TextBlock, new go.Binding("text", "w"), {
@@ -93,30 +95,38 @@ FmmlxShapes.FmmlxClass._externalLanguageBlock = gMake(go.Panel, "Auto", {
 
 
 FmmlxShapes.FmmlxClass._nameBlock = gMake(go.Panel, "Auto", {
-        stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20),
-    },
-    gMake(go.Shape, "Rectangle", new go.Binding("fill", "level", FmmlxShapes.FmmlxClass.getBgColor)),
-    gMake(go.TextBlock,
-        new go.Binding("text", "", FmmlxShapes.FmmlxClass.getName),
-        new go.Binding("font", "isAbstract", FmmlxShapes.FmmlxClass.getFontStyle),
-        new go.Binding("stroke", "level", FmmlxShapes.FmmlxClass.getFontColor),
-        {
-            textAlign: "center", margin: 7,
-        }
-    )
-);
+    stretch: go.GraphObject.Fill,
+    minSize: new go.Size(100, 20),
+}, gMake(go.Shape, "Rectangle", new go.Binding("fill", "level", FmmlxShapes.FmmlxClass.getBgColor)), gMake(go.TextBlock,
+                                                                                                           new go.Binding(
+                                                                                                               "text",
+                                                                                                               "",
+                                                                                                               FmmlxShapes.FmmlxClass.getName),
+                                                                                                           new go.Binding(
+                                                                                                               "font",
+                                                                                                               "isAbstract",
+                                                                                                               FmmlxShapes.FmmlxClass.getFontStyle),
+                                                                                                           new go.Binding(
+                                                                                                               "stroke",
+                                                                                                               "level",
+                                                                                                               FmmlxShapes.FmmlxClass.getFontColor),
+                                                                                                           {
+                                                                                                               textAlign: "center",
+                                                                                                               margin: 7,
+                                                                                                           }));
 
 
 FmmlxShapes.FmmlxClass._attributesBlock = gMake(go.Panel, "Auto", {
-    stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20),
+    stretch: go.GraphObject.Fill,
+    minSize: new go.Size(100, 20),
 }, gMake(go.Shape, "Rectangle", {
     fill: "white",
-}), gMake(go.Panel, "Table", {
-    margin: 0, defaultAlignment: go.Spot.Left,
+}), gMake(go.Panel, "Vertical", {
+    margin: 4,
+    defaultAlignment: go.Spot.Left,
 }, new go.Binding("itemArray", "attributes"), {
-    itemTemplate: FmmlxShapes.FmmlxProperty.shape,
-}));
-
+              itemTemplate: FmmlxShapes.FmmlxProperty.shape,
+          }));
 
 /* FmmlxShapes.FmmlxClass._attributesBlock = gMake(go.Panel, "Auto", {
  stretch: go.GraphObject.Fill,
@@ -131,79 +141,67 @@ FmmlxShapes.FmmlxClass._attributesBlock = gMake(go.Panel, "Auto", {
  }));*/
 
 
+FmmlxShapes.FmmlxClass._attributesBlock = gMake(go.Panel, "Auto", {
+    stretch: go.GraphObject.Fill,
+    minSize: new go.Size(100, 20),
+}, gMake(go.Shape, "Rectangle", {
+    fill: "white",
+}), gMake(go.Panel, "Vertical", {
+    margin: 4,
+    defaultAlignment: go.Spot.Left,
+}, new go.Binding("itemArray", "attributes"), {
+              itemTemplate: FmmlxShapes.FmmlxProperty.shape,
+          }));
+
+
 FmmlxShapes.FmmlxClass._operationsBlock = gMake(go.Panel, "Auto", {
-    stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20),
+    stretch: go.GraphObject.Fill,
+    minSize: new go.Size(100, 20),
 }, gMake(go.Shape, "Rectangle", {
     fill: "white",
 }), gMake(go.Panel, "Table", {
-    margin: 0, defaultAlignment: go.Spot.Left,
+    margin: 0,
+    defaultAlignment: go.Spot.Left,
 }, new go.Binding("itemArray", "operations"), {
-    itemTemplate: FmmlxShapes.FmmlxProperty.shape,
-}));
+              itemTemplate: FmmlxShapes.FmmlxProperty.shape,
+          }));
 
 
-FmmlxShapes.FmmlxClass._operationsBlock = gMake(go.Panel, "Auto", {
-    stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20),
+FmmlxShapes.FmmlxClass._slotValuesBlock = gMake(go.Panel, "Auto", {
+    stretch: go.GraphObject.Fill,
+    minSize: new go.Size(100, 20),
 }, gMake(go.Shape, "Rectangle", {
     fill: "white",
 }), gMake(go.Panel, "Table", {
-    margin: 0, defaultAlignment: go.Spot.Left,
+    margin: 0,
+    defaultAlignment: go.Spot.Left,
 }, new go.Binding("itemArray", "slotValues"), {
-    itemTemplate: FmmlxShapes.FmmlxProperty.shape,
-}));
+              itemTemplate: FmmlxShapes.FmmlxProperty.shape,
+          }));
 
-
-FmmlxShapes.FmmlxClass._operationsBlock = gMake(go.Panel, "Auto", {
-    stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20),
+FmmlxShapes.FmmlxClass._operationValuesBlock = gMake(go.Panel, "Auto", {
+    stretch: go.GraphObject.Fill,
+    minSize: new go.Size(100, 20),
 }, gMake(go.Shape, "Rectangle", {
     fill: "white",
 }), gMake(go.Panel, "Table", {
-    margin: 0, defaultAlignment: go.Spot.Left,
+    margin: 0,
+    defaultAlignment: go.Spot.Left,
 }, new go.Binding("itemArray", "operationValues"), {
-    itemTemplate: FmmlxShapes.FmmlxProperty.shape,
-}));
-
-FmmlxShapes.FmmlxClass._mainBlock = gMake(go.Panel,
-    "Vertical",
-    FmmlxShapes.FmmlxClass._nameBlock,
-    FmmlxShapes.FmmlxClass._attributesBlock,
-    FmmlxShapes.FmmlxClass._operationsBlock,
-    FmmlxShapes.FmmlxClass._slotValuesBlock, FmmlxShapes.FmmlxClass._operationValuesBlock
-);
+              itemTemplate: FmmlxShapes.FmmlxProperty.shape,
+          }));
 
 
-FmmlxShapes.FmmlxClass._contextMenu = gMake(go.Adornment,
-    "Vertical",
-    {alignment: go.Spot.Left},
-    gMake("ContextMenuButton", gMake(go.TextBlock, "Abstract Class"), {
-        click: Controller.FormController.abstractClass,
-    }),
-    gMake("ContextMenuButton", gMake(go.TextBlock, "Delete Class"), {
-        click: Controller.FormController.deleteClass,
-    }),
+FmmlxShapes.FmmlxClass._mainBlock = gMake(go.Panel, "Vertical", FmmlxShapes.FmmlxClass._nameBlock,
+                                          FmmlxShapes.FmmlxClass._attributesBlock,
+                                          FmmlxShapes.FmmlxClass._operationsBlock,
+                                          FmmlxShapes.FmmlxClass._slotValuesBlock,
+                                          FmmlxShapes.FmmlxClass._operationValuesBlock);
 
-    gMake("ContextMenuButton", gMake(go.TextBlock, "Add Property / Value"), {
-        click: Controller.FormController.displayPropertyForm,
-    }),
-
-    gMake("ContextMenuButton", gMake(go.TextBlock, "Associate"), {
-        click: Controller.FormController.displayAssociationForm,
-    }),
-
-    gMake("ContextMenuButton", gMake(go.TextBlock, "Set Superclass"), {
-        click: Controller.FormController.displayInheritanceForm,
-    })
-);
-
-
-FmmlxShapes.FmmlxClass.shape = gMake(go.Node,
-    "Spot",
-    {
-        contextClick: Controller.FormController.showHideContextMenu,
-        doubleClick: Controller.FormController.displayClassForm,
-    },
-    new go.Binding("location", "location", go.Point.parse),
-    FmmlxShapes.FmmlxClass._mainBlock, FmmlxShapes.FmmlxClass._externalLanguageBlock
-);
+FmmlxShapes.FmmlxClass.shape = gMake(go.Node, "Spot", {
+                                         contextClick: Controller.FormController.showHideContextMenu,
+                                         doubleClick: Controller.FormController.displayClassForm,
+                                     }, new go.Binding("location", "location", go.Point.parse), FmmlxShapes.FmmlxClass._mainBlock,
+                                     FmmlxShapes.FmmlxClass._externalLanguageBlock);
     
 

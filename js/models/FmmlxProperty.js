@@ -16,43 +16,6 @@ if (typeof Model === "undefined") window.Model = {};
 
 Model.FmmlxProperty = class {
 
-// Instance
-    /**
-     * @param {String} name
-     * @param {String} type
-     * @param {Number|NaN} intrinsicness
-     * @param {Boolean} isOperation
-     * @param {Model.FmmlxBehaviors[]} behaviors
-     * @param {String} operationBody
-     */
-    constructor(name, type, intrinsicness, isOperation, behaviors = [], operationBody = null) {
-        this.values = new Helper.Set();
-        this.classes = new Helper.Set();
-
-        this.maxIntrinsicness = -1;
-        this.name = name;
-        this.type = type;
-        this._intrinsicness = (intrinsicness === "?") ? "?" : Number.parseInt(intrinsicness);
-        this.isOperation = isOperation;
-        this.behaviors = behaviors;
-        this.operationBody = operationBody;
-    }
-
-    get id() {
-        let id = {name: this.name, intrinsicness: this.intrinsicness, isOperation: this.isOperation, type: this.type};
-        return SparkMD5.hash(JSON.stringify(id), false);
-    }
-
-    get intrinsicness() {
-        return this._intrinsicness;
-    }
-
-    set intrinsicness(val) {
-        let numberVal = Number.parseInt(val);
-        if (val === "?" && this.maxIntrinsicness !== "?" || isNaN(numberVal) || numberVal > Number.parseInt(this.maxIntrinsicness)) throw new Error(`Invalid intrinsicness ${val} for class ${this.fmmlxClass.name}`);
-        this._intrinsicness = (val === "?") ? "?" : numberVal;
-    }
-
     /**
      * Adds an FMMLx Class to the set. Recalculates max intrinsicness
      * @param {Model.FmmlxClass} fmmlxClass
@@ -96,5 +59,53 @@ Model.FmmlxProperty = class {
     equals(obj) {
 
         return this.constructor === Model.FmmlxProperty && this.name === obj.name && this.intrinsicness === obj.intrinsicness;
+    }
+
+    get id() {
+        let id = {
+            name: this.name,
+            intrinsicness: this.intrinsicness,
+            isOperation: this.isOperation,
+            type: this.type,
+        };
+        return SparkMD5.hash(JSON.stringify(id), false);
+    }
+
+    // Instance
+    /**
+     * @param {String} name
+     * @param {String} type
+     * @param {Number|NaN} intrinsicness
+     * @param {Boolean} isOperation
+     * @param {Model.FmmlxBehaviors[]} behaviors
+     * @param {String} operationBody
+     */
+    constructor(name, type, intrinsicness, isOperation, behaviors = [], operationBody = null) {
+        this.values = new Helper.Set();
+        this.classes = new Helper.Set();
+
+        Object.defineProperty(this, "intrinsicness", {
+            configurable: true,
+            enumerable: true,
+            get: function () {
+                return this._intrinsicness;
+            },
+
+            set: function (val) {
+                let numberVal = Number.parseInt(val);
+                if (val === "?" && this.maxIntrinsicness !== "?" || isNaN(numberVal) || numberVal > Number.parseInt(
+                        this.maxIntrinsicness)) throw new Error(
+                    `Invalid intrinsicness ${val} for class ${this.fmmlxClass.name}`);
+                this._intrinsicness = (val === "?") ? "?" : numberVal;
+            },
+        });
+
+        this.maxIntrinsicness = -1;
+        this.name = name;
+        this.type = type;
+        this._intrinsicness = (intrinsicness === "?") ? "?" : Number.parseInt(intrinsicness);
+        this.isOperation = isOperation;
+        this.behaviors = behaviors;
+        this.operationBody = operationBody;
     }
 };

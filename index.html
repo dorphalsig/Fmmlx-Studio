@@ -13,25 +13,12 @@
 
     <!-- delete before production> -->
     <script src="js/vendor/bootstrap/bootstrap_3.3.7.js"></script>
-
     <script src="js/vendor/bootstrap_material/bootstrap_material_0.5.10.js"></script>
     <script src="js/vendor/bootstrap_material/ripples_0.5.10.js"></script>
-    <!--
-    <script src="js/vendor/winstrap/winstrap.js"></script> -->
     <script src="js/vendor/selectize/selectize_0.8.5.js"></script>
     <script src="js/vendor/filesaver/FileSaver_1.3.3.js"></script>
     <script src="js/vendor/spark-md5/spark-md5_3.0.0.js"></script>
-    <!--
-    <script src="js/vendor/validator/validator_0.11.9.js"></script>
-    -->
     <script src="js/vendor/gojs/go-debug_1.7.19.js"></script>
-
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/js/ripples.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.8.5/js/standalone/selectize.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gojs/1.7.19/go-debug.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js"></script>
     <script src="js/helpers/Set.js"></script>
     <script src="js/helpers/Helper.js"></script>
     <script src="js/controllers/StudioController.js"></script>
@@ -48,6 +35,7 @@
     <script>$(function () {
         ///
         $.material.init();
+        Controller.FormController.init();
         window.studio = new Controller.StudioController();
         console.log("Take the long way home..");
     });</script>
@@ -407,11 +395,5 @@
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="confirm">
-
-</div>
-
-
 </body>
 </html>

@@ -8,11 +8,13 @@ FmmlxShapes.FmmlxProperty = {};
 
 FmmlxShapes.FmmlxProperty._behaviourBlock = gMake(go.Panel, "Horizontal", {
     minSize: new go.Size(48, 20),
-    alignment: go.Spot.Left, margin: 0
+    alignment: go.Spot.Left,
+    margin: 0,
 }, new go.Binding("itemArray", "", prop => [prop.intrinsicness].concat(prop.behaviors)), {
     itemTemplate: gMake(go.Panel, "Auto", {
         stretch: go.GraphObject.Fill,
-        minSize: new go.Size(10, 20), margin: new go.Margin(0, 2, 0, 0)
+        minSize: new go.Size(10, 20),
+        margin: new go.Margin(0, 2, 0, 0),
     }, gMake(go.Shape, "Rectangle", {
         fill: "black",
     }), gMake(go.TextBlock, {
@@ -39,19 +41,15 @@ FmmlxShapes.FmmlxProperty._typeBlock = gMake(go.TextBlock, new go.Binding("text"
 FmmlxShapes.FmmlxProperty.shape = gMake(go.Panel, "Auto", {
     stretch: go.GraphObject.Fill,
     minSize: new go.Size(100, 20),
-    contextMenu: FmmlxShapes.FmmlxProperty._contextMenu,
     name: "member",
     alignment: go.Spot.Left,
-
-}, /*gMake(go.Shape, "Rectangle", {
-    fill: "white",
-}),*/ gMake(go.Panel,
+    contextClick: Controller.FormController.showHideContextMenu,
+    doubleClick: Controller.FormController.displayPropertyForm,
+}, gMake(go.Panel,
     "Horizontal",
     {
         name: "FMMLxProperty",
         minSize: new go.Size(100, 20),
-        contextClick: Controller.FormController.showHideContextMenu,
-        doubleClick: Controller.FormController.displayPropertyForm,
         padding: new go.Margin(0, 2, 2, 2),
 
     },
