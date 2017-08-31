@@ -213,7 +213,7 @@ Controller.FormController = {
         modal.find("[name=isOperation]").change(opBodyManager);
         modal.find("[name=isValue]").change(opBodyManager);
 
-        if (obj.data.constructor === Model.FmmlxProperty) { //new property,it was righht click on  the Class
+        if (obj.data.constructor === Model.FmmlxClass) { //new property,it was righht click on  the Class
             modal.find("[name=fmmlxClassId]").val(obj.data.id); // id of the Fmmlx Class that will hold the property+
         } else {
             alert(" Todo xD");

@@ -6,24 +6,13 @@ gMake = go.GraphObject.make;
 
 FmmlxShapes.FmmlxProperty = {};
 
-
-FmmlxShapes.FmmlxProperty._contextMenu = gMake(go.Adornment,
-    "Vertical",
-    gMake("ContextMenuButton", gMake(go.TextBlock, "Raise Property"), {
-        click: Controller.FormController.raiseProperty,
-    }),
-    gMake("ContextMenuButton", gMake(go.TextBlock, "Delete Property"), {
-        click: Controller.FormController.deleteProperty,
-    }));
-
 FmmlxShapes.FmmlxProperty._behaviourBlock = gMake(go.Panel, "Horizontal", {
     minSize: new go.Size(48, 20),
-    alignment: go.Spot.Left,
+    alignment: go.Spot.Left, margin: 0
 }, new go.Binding("itemArray", "", prop => [prop.intrinsicness].concat(prop.behaviors)), {
     itemTemplate: gMake(go.Panel, "Auto", {
         stretch: go.GraphObject.Fill,
-        minSize: new go.Size(10, 20),
-        margin: new go.Margin(0, 2, 0, 0),
+        minSize: new go.Size(10, 20), margin: new go.Margin(0, 2, 0, 0)
     }, gMake(go.Shape, "Rectangle", {
         fill: "black",
     }), gMake(go.TextBlock, {
@@ -34,7 +23,7 @@ FmmlxShapes.FmmlxProperty._behaviourBlock = gMake(go.Panel, "Horizontal", {
 });
 
 FmmlxShapes.FmmlxProperty._nameBlock = gMake(go.TextBlock, new go.Binding("text", "name"), {
-    margin: new go.Margin(0, 0, 0, 5),
+    margin: new go.Margin(0, 0, 0, 2),
 });
 
 FmmlxShapes.FmmlxProperty._assignmentBlock = gMake(go.TextBlock, {
