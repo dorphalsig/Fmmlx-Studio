@@ -64,7 +64,7 @@
         //Modal Init
         $(function () {
             //Set up Modals
-            $("#fmmlxClassModal").modal();
+            $(".modal").modal();
             $("select").material_select();
         });
     </script>
@@ -104,7 +104,7 @@
 </div>
 
 <!-- Add / Edit Class Modal -->
-<div id="fmmlxClassModal" class="modal modal-fixed-footer">
+<div id="fmmlxClassModal" class="modal bottom-sheet">
     <div class="modal-content">
         <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup> Class</h4>
         <form id="classForm" data-toggle="validator">
@@ -119,39 +119,93 @@
                     <input type="text" id="class_level" class="validate" name="level" pattern="^(\d+|\?)$" required/>
                     <label for="class_level" data-error="Only Numbers or &quot;?&quot;">Level</label>
                 </div>
-                <div class="col s5">
-                    <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
-                    <label for="class_isAbstract">Abstract?</label> &nbsp;
-                    <input id="class_isExternal" value="true" type="checkbox" name="isExternal" data-show="externalLanguage, externalMetaclass" data-hide="metaclass"/>
-                    <label for="class_isExternal">External?</label>
-                </div>
-            </div>
-            <div class="row">
                 <div class="input-field col s5">
                     <label for="class_metaclass">Metaclass</label>
-                    <select id="class_metaclass" class="form-control" name="metaclass">
+                    <select id="class_metaclass" class="validate" name="metaclass">
                         <option value="" data-keep="true" selected>Metaclass</option>
                     </select>
                 </div>
-
                 <div class="input-field col s5 hide">
                     <label for="class_externalMetaclass">Ext. Metaclass</label>
-                    <input type="text" id="class_externalMetaclass" data-wrong="Only Alphanumeric or &quot;. , _&quot;" class="externalMetaclass" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
+                    <input type="text" id="class_externalMetaclass" data-wrong="Only Alphanumeric or &quot;. , _&quot;" class="validate" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4 offset-s4 center-align">
+                    <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
+                    <label for="class_isAbstract">Mark as Abstract</label> &nbsp;
+                    <input id="class_isExternal" value="true" type="checkbox" name="isExternal" data-show="externalLanguage, externalMetaclass" data-hide="metaclass"/>
+                    <label for="class_isExternal">From External Language</label>
                 </div>
             </div>
             <div class="input-field col s5 offset-s2 hide">
-                <label for="class_externalLanguage">External Language</label>
-                <input type="text" id="class_externalLanguage" name="externalLanguage" disabled pattern="^[\w\.,]+$" required/>
+                <label for="class_externalLanguage" data-wrong="Only Alphanumeric or &quot;. , _&quot;">External Language</label>
+                <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled pattern="^[\w\.,]+$" required/>
             </div>
         </form>
     </div>
-
     <div class="modal-footer">
         <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
     </div>
 </div>
 <!-- End Add / Edit Class Modal -->
 
+<!-- Add / Edit Class Member Modal -->
+
+<div id="fmmlxAttributeModal" class="modal bottom-sheet">
+    <div class="modal-content">
+        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup> Class Member
+        </h4>
+        <form id="propertyForm">
+            <input type="hidden" name="id">
+            <input type="hidden" name="fmmlxClassId">
+            <div class="row">
+                <div class="col s5 input-field">
+                    <label for="attribute_name" data-wrong="Only Alphanumeric or &quot;. , _&quot;">Attribute Name</label>
+                    <input id="attribute_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
+                </div>
+                <div class="col s4 input-field">
+                    <label for="attribute_type" data-wrong="Only Alphanumeric or &quot;. , _&quot;">Type</label>
+                    <input id="attribute_type" class="validate" name="type" pattern="^[\w\.,]+$" required/>
+                </div>
+                <div class="col s4 input-field hide">
+                    <div class="form-group has-feedback label-floating collapse">
+                        <label for="attribute_value">Value</label>
+                        <input id="attribute_value" class="validate" name="value" disabled/>
+                    </div>
+                </div>
+                <div class="col s3 input-field">
+                    <label for="attribute_intrinsicness" data-error="Only Numbers or &quot;?&quot;">Intrinsicness</label>
+                    <input id="attribute_intrinsicness" class="validate" name="intrinsicness" pattern="^(\d+|\?)$" required/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s6 offset-s3 center-align">
+                    <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo" data-show="operationBody" value="true" type="checkbox"/>
+                    <label for="attribute_isOperation">Is Operation?</label>&nbsp;
+                    <input id="attribute_isValue" name="isValue" class="needsExtraInfo" data-show="value" data-hide="type" value="true" type="checkbox"/>
+                    <label for="attribute_isValue">Is Value?</label> &nbsp;
+                    <input id="attribute_isObtainable" name="isObtainable" value="O" type="checkbox"/>
+                    <label for="attribute_isObtainable">Is Obtainable?</label> &nbsp;
+                    <input id="attribute_isDerivable" name="isDerivable" value="D" type="checkbox"/>
+                    <label for="attribute_isDerivable">Is Derivable?</label>&nbsp;
+                    <input id="attribute_isSimulation" name="isSimulation" value="S" type="checkbox"/>
+                    <label for="attribute_isSimulation">Is Simulation?</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s8 offset-s2 input-field hide">
+                    <label for="attribute_operationBody">Operation Body</label>
+                    <textarea id="attribute_operationBody" disabled name="operationBody"></textarea>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+    </div>
+</div>
+<!-- End Add / Edit Class Member Modal -->
 
 </body>
 </html>
