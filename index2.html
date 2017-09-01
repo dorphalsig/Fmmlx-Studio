@@ -47,22 +47,25 @@
             margin-right: 5px;
         }
 
-        .modal-header {
+        .modal h1, .modal h2, .modal h3, .modal h4 {
+            font-size: 24px;
+            margin: 0 0 0 5px;
             padding: 10px 15px;
         }
 
-        .modal-header h3 {
-            font-size: 24px;
-            font-weight: 300;
+        .modal form {
+            margin-top: 20px;
         }
+
+
     </style>
 
     <script>
         //Modal Init
-        $(document).ready(function () {
+        $(function () {
             //Set up Modals
-            $('#fmmlxClassModal').modal();
-
+            $("#fmmlxClassModal").modal();
+            $("select").material_select();
         });
     </script>
 </head>
@@ -76,18 +79,18 @@
     </a>
     <ul>
         <li>
-            <div class="valign-wrapper btn light-blue darken-4 white-text btn-large"><i class="fa fa-floppy-o fa-3x"
-            ></i>&nbsp; Save
+            <div class="valign-wrapper btn light-blue darken-4 white-text btn-large">
+                <i class="fa fa-floppy-o fa-3x"></i>&nbsp; Save
             </div>
         </li>
         <li>
-            <div class="valign-wrapper btn light-blue darken-4 white-text btn-large"><i class="fa fa-folder-open fa-2x"
-                                                                                        id="load"></i>&nbsp;Load
+            <div class="valign-wrapper btn light-blue darken-4 white-text btn-large">
+                <i class="fa fa-folder-open fa-2x" id="load"></i>&nbsp;Load
             </div>
         </li>
         <li>
-            <div class="valign-wrapper btn light-blue darken-4 white-text btn-large"><i
-                    class="fa fa-picture-o fa-2x"></i>&nbsp;Export
+            <div class="valign-wrapper btn light-blue darken-4 white-text btn-large">
+                <i class="fa fa-picture-o fa-2x"></i>&nbsp;Export
             </div>
         </li>
     </ul>
@@ -96,97 +99,55 @@
 
 <!-- Floating + button to add Class -->
 <div class="fixed-action-btn" id="addClass">
-    <button class="btn-floating btn-large waves-effect waves-light red modal-trigger" data-target="fmmlxClassModal"><i
-            class="fa fa-plus"></i></button>
+    <button class="btn-floating btn-large waves-effect waves-light red modal-trigger" data-target="fmmlxClassModal">
+        <i class="fa fa-plus"></i></button>
 </div>
 
 <!-- Add / Edit Class Modal -->
 <div id="fmmlxClassModal" class="modal modal-fixed-footer">
-    <div data-role="title" class="light-blue darken-4 white-text modal-header">
-        <h4 class="grey-text text-lighten-3">Add / Edit FMML<sup>X</sup> Class</h4>
-    </div>
-    <div class="alert"><i class="fa fa-exclamation-triangle yellow-text"></i> <span class="errorText">Error! Check
-        yourself before you break yourself</span>
-    </div>
     <div class="modal-content">
-
+        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup> Class</h4>
         <form id="classForm" data-toggle="validator">
-            <input class="hidden" title="id" name="id">
-            <input class="hidden" title="coords" name="coords">
+            <input type="hidden" name="id">
+            <input type="hidden" name="coords">
             <div class="row">
-                <div class="col-md-12">
-                    <div class="alert alert-warning collapse">
-                        <strong>Error!&nbsp;</strong> <span class="message">Invalid Field data</span>
-                    </div>
+                <div class="input-field col s5">
+                    <input type="text" id="class_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
+                    <label for="class_name" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Class Name</label>
+                </div>
+                <div class="input-field col s2">
+                    <input type="text" id="class_level" class="validate" name="level" pattern="^(\d+|\?)$" required/>
+                    <label for="class_level" data-error="Only Numbers or &quot;?&quot;">Level</label>
+                </div>
+                <div class="col s5">
+                    <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
+                    <label for="class_isAbstract">Abstract?</label> &nbsp;
+                    <input id="class_isExternal" value="true" type="checkbox" name="isExternal" data-show="externalLanguage, externalMetaclass" data-hide="metaclass"/>
+                    <label for="class_isExternal">External?</label>
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-5">
-                    <div class="form-group has-feedback label-floating">
-                        <label class="control-label">Class Name</label>
-                        <input class="form-control" name="name" pattern="^[\w\.,]+$" required/>
+                <div class="input-field col s5">
+                    <label for="class_metaclass">Metaclass</label>
+                    <select id="class_metaclass" class="form-control" name="metaclass">
+                        <option value="" data-keep="true" selected>Metaclass</option>
+                    </select>
+                </div>
 
-                        <div class="help-block">
-                            <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group has-feedback label-floating">
-                        <label class="control-label">Level</label>
-                        <input class="form-control" name="level" pattern="^(\d+|\?)$" required/>
-                        <p class="help-block">
-                            <span class="label label-info">REQUIRED</span> Allowed: 0-9 ?
-                        </p>
-                    </div>
-                </div>
-                <div class="col-md-5">
-                    <div class="form-group has-feedback label-static">
-                        <div class="checkbox">
-                            <label class="checkbox-inline">
-                                <small>Abstract?</small>
-                                <input value="true" type="checkbox" name="isAbstract"> </label>
-                            <label class="checkbox-inline">
-                                <small>External?</small>
-                                <input class="needsExtraInfo" name="isExternal" type="checkbox" value="true"
-                                       data-show="externalLanguage, externalMetaclass"
-                                       data-hide="metaclass"></label>
-                        </div>
-                    </div>
+                <div class="input-field col s5 hide">
+                    <label for="class_externalMetaclass">Ext. Metaclass</label>
+                    <input type="text" id="class_externalMetaclass" data-wrong="Only Alphanumeric or &quot;. , _&quot;" class="externalMetaclass" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-5">
-                    <div class="form-group has-feedback label-static">
-                        <label class="control-label">Metaclass</label>
-                        <select class="form-control" name="metaclass">
-                            <option value="" data-keep="true" selected>Metaclass</option>
-                        </select>
-                    </div>
-                    <div class="form-group has-feedback label-floating" style="display: none">
-                        <label class="control-label">Ext. Metaclass</label>
-                        <input class="form-control externalMetaclass" name="externalMetaclass"
-                               pattern="^[\w\.,]+$" disabled required/>
-
-                        <div class="help-block">
-                            <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-2">&nbsp;</div>
-                <div class="col-md-5">
-                    <div class="form-group has-feedback label-floating" style="display: none">
-                        <label class="control-label">External Language</label>
-                        <input class="form-control" name="externalLanguage" disabled pattern="^[\w\.,]+$"
-                               required/>
-                    </div>
-                </div>
+            <div class="input-field col s5 offset-s2 hide">
+                <label for="class_externalLanguage">External Language</label>
+                <input type="text" id="class_externalLanguage" name="externalLanguage" disabled pattern="^[\w\.,]+$" required/>
             </div>
         </form>
-
     </div>
+
     <div class="modal-footer">
-        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Agree</a>
+        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
     </div>
 </div>
 <!-- End Add / Edit Class Modal -->
