@@ -9,27 +9,13 @@ if (typeof Model === "undefined") window.Model = {};
  */
 Model.FmmlxValue = class {
 
-    // Instance
-    /**
-     * Returns a Proxy object that handles the value, the class and the property transparently
-     * @param {Model.FmmlxProperty} property
-     * @param {*} value
-     * @param {Model.FmmlxClass} fmmlxClass
-     */
-    constructor(property, value, fmmlxClass = null) {
-        this.value = value;
-        this.class = fmmlxClass;
-        this.id = Helper.Helper.uuid4();
-        return new Proxy(property, this);
-    }
-
     /**
      *
      * @param {Model.FmmlxValue} obj
      * @param property {Model.FmmlxProperty}
      */
-    equals(obj, property) {
-        return this.class.equals(obj.class) && property.equals(obj.property);
+    equals(obj) {
+        return this.class === obj.class && this.property.equals(obj.property);
 
     }
 
@@ -77,16 +63,28 @@ Model.FmmlxValue = class {
                 if (this.class === null) this.class = val;
                 else throw new Error("Cannot replace the class for a value");
                 break;
-
             case "value":
                 this.value = val;
                 break;
-
             default:
                 target[name] = val;
                 break;
-
         }
+        return true;
+    }
+
+    // Instance
+    /**
+     * Returns a Proxy object that handles the value, the class and the property transparently
+     * @param {Model.FmmlxProperty} property
+     * @param {*} value
+     * @param {Model.FmmlxClass} fmmlxClass
+     */
+    constructor(property, value, fmmlxClass = null) {
+        this.value = value;
+        this.class = fmmlxClass;
+        this.id = Helper.Helper.uuid4();
+        return new Proxy(property, this);
     }
 };
 

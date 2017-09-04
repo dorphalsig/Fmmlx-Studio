@@ -24,9 +24,9 @@ FmmlxShapes.FmmlxProperty._nameBlock = gMake(go.TextBlock, new go.Binding("text"
     margin: new go.Margin(0, 0, 0, 2),
 });
 
-FmmlxShapes.FmmlxProperty._assignmentBlock = gMake(go.TextBlock, new go.Binding("text", "isValue", (prop) => (prop.isValue) ? prop.isOperation ? "→" : "=" : ":"), {
-    margin: new go.Margin(0, 2, 0, 2), font: "bold 14px monospace",
-});
+FmmlxShapes.FmmlxProperty._assignmentBlock = gMake(go.TextBlock, new go.Binding("text", "", (prop) => {
+    return (Boolean(prop.isValue)) ? (prop.isOperation ? "→" : "=" ) : ":";
+}), {margin: new go.Margin(0, 2, 0, 2), font: "bold 14px monospace",});
 
 FmmlxShapes.FmmlxProperty._typeBlock = gMake(go.TextBlock, new go.Binding("text", "", (prop) => (prop.isValue) ? prop.value : prop.type), {
     margin: new go.Margin(0, 5, 0, 0),

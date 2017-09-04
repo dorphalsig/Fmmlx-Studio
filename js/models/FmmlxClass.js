@@ -5,149 +5,12 @@ if (typeof Model === "undefined") window, Model = {};
  * @type {Model.FmmlxClass}
  */
 Model.FmmlxClass = class {
-    // Instance
-    /**
-     * Constructor
-     * @param {string} name
-     * @param {string} level
-     * @param {boolean} isAbstract
-     * @param {*} externalLanguage
-     * @param {*} externalMetaclass
-     */
-    constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null) {
-
-        /**
-         * @type Number|String
-         */
-        Object.defineProperty(this, 'level', {
-            configurable: false, enumerable: true, get: function () {
-                return this._level;
-            }, set: function (level) {
-                if (level !== "?") {
-                    let parsedLevel = Number.parseInt(level);
-                    if (isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`);
-                    this._level = parsedLevel;
-                }
-                else this._level = "?"
-            }
-        });
-
-        /**
-         * @type Helper.Set
-         */
-
-        Object.defineProperty(this, 'instances', {
-            configurable: true, enumerable: true, get: function () {
-                return this._instances
-            }, set: function (val) {
-                this._instances = val;
-            }
-        });
-
-
-        /**
-         * @type Helper.Set
-         */
-        Object.defineProperty(this, 'endpoints', {
-            configurable: true, enumerable: true, get: function () {
-                return this._endpoints
-            }
-        });
-
-
-        /**
-         * @type Number
-         */
-        Object.defineProperty(this, 'distanceFromRoot', {
-            configurable: true, enumerable: true, get: function () {
-                return this._distanceFromRoot
-            }
-        });
-
-        /**
-         * @type String
-         */
-        /* Object.defineProperty(this, 'id', {
-             configurable: true, enumerable: true, get: function () {
-                 let id = {
-                     name: this.name,
-                     level: this.level,
-                     externalLanguage: (this.isExternal) ? this.externalLanguage : "",
-                     metaclass: (this.isExternal) ? this.externalMetaclass : this.metaclass
-                 };
-                 return SparkMD5.hash(JSON.stringify(id), false);
-
-             }
-         });*/
-
-
-        /**
-         * @type Helper.Set
-         */
-        Object.defineProperty(this, 'subclasses', {
-            configurable: true, enumerable: true, get: () => this._subclasses
-        });
-
-        /**
-         * @type boolean
-         */
-        Object.defineProperty(this, 'hasUnknownLevel', {
-            configurable: true, enumerable: true, get: () => this.level === "?"
-        });
-
-        /**
-         * @type Model.FmmlxClass
-         */
-        Object.defineProperty(this, 'metaclass', {
-            configurable: true, enumerable: true, get: () => this._metaclass, set: (val) => {
-                this._distanceFromRoot = (val === null) ? 0 : val.distanceFromRoot + 1;
-                this._metaclass = val;
-            }
-        });
-
-        /**
-         * @type String
-         */
-        Object.defineProperty(this, 'metaclassName', {
-            configurable: true, enumerable: true, get: () => this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name
-        });
-
-        /**
-         * @type boolean
-         */
-        Object.defineProperty(this, 'isExternal', {
-            configurable: true, enumerable: true, get: () => this.externalLanguage !== null
-        });
-
-        this.__foundPropIndex = null;
-        this.__foundValIndex = null;
-        this.metaclass = null;
-        this._distanceFromRoot = 0;
-        this._instances = new Helper.Set();
-        this._subclasses = new Helper.Set();
-        this.superclass = null;
-        this.name = name;
-        this.attributes = [];
-        this.lastChangeId = "";
-        this.operations = [];
-        this.slotValues = [];
-        this.operationValues = [];
-        this._endpoints = new Helper.Set();
-        this.tags = [];
-        this.externalLanguage = externalLanguage;
-        this.externalMetaclass = externalMetaclass;
-        this.level = level;
-        this.isAbstract = isAbstract;
-        this.id = Helper.Helper.uuid4();
-
-    };
-
     /**
      *
      * @param {Model.FmmlxRelationEndpoint} endpoint
      */
     addEndpoint(endpoint) {
-        this._endpoints.add(endpoint)
+        this._endpoints.add(endpoint);
     }
 
     /**
@@ -229,19 +92,17 @@ Model.FmmlxClass = class {
      * @return {null|Model.FmmlxValue}
      */
     findValueFromProperty(property) {
-        let values;
+        let propertyCollection;
 
         if (property.isOperation) {
-            values = this.operationValues;
+            propertyCollection = this.operationValues;
         }
-        else values = this.slotValues;
+        else propertyCollection = this.slotValues;
 
-        let index = values.findIndex(item => {
-            return value.equals(item);
-        });
+        let index = propertyCollection.findIndex(value => value.property.equals(property));
 
         this.__foundValIndex = (index === -1) ? null : index;
-        return (index === -1) ? null : values[index];
+        return (index === -1) ? null : propertyCollection[index];
     }
 
     /**
@@ -268,7 +129,7 @@ Model.FmmlxClass = class {
      * @param {Model.FmmlxRelationEndpoint} endpoint
      */
     removeEndpoint(endpoint) {
-        this._endpoints.remove(endpoint)
+        this._endpoints.remove(endpoint);
     }
 
     /**
@@ -276,7 +137,144 @@ Model.FmmlxClass = class {
      * @param {Model.FmmlxClass} instance
      */
     removeInstance(instance) {
-        this._instances.remove(instance)
+        this._instances.remove(instance);
     }
+
+    // Instance
+    /**
+     * Constructor
+     * @param {string} name
+     * @param {string} level
+     * @param {boolean} isAbstract
+     * @param {*} externalLanguage
+     * @param {*} externalMetaclass
+     */
+    constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null) {
+
+        /**
+         * @type Number|String
+         */
+        Object.defineProperty(this, "level", {
+            configurable: false, enumerable: true, get: function () {
+                return this._level;
+            }, set: function (level) {
+                if (level !== "?") {
+                    let parsedLevel = Number.parseInt(level);
+                    if (isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`);
+                    this._level = parsedLevel;
+                }
+                else this._level = "?";
+            },
+        });
+
+        /**
+         * @type Helper.Set
+         */
+
+        Object.defineProperty(this, "instances", {
+            configurable: true, enumerable: true, get: function () {
+                return this._instances;
+            }, set: function (val) {
+                this._instances = val;
+            },
+        });
+
+
+        /**
+         * @type Helper.Set
+         */
+        Object.defineProperty(this, "endpoints", {
+            configurable: true, enumerable: true, get: function () {
+                return this._endpoints;
+            },
+        });
+
+
+        /**
+         * @type Number
+         */
+        Object.defineProperty(this, "distanceFromRoot", {
+            configurable: true, enumerable: true, get: function () {
+                return this._distanceFromRoot;
+            },
+        });
+
+        /**
+         * @type String
+         */
+        /* Object.defineProperty(this, 'id', {
+             configurable: true, enumerable: true, get: function () {
+                 let id = {
+                     name: this.name,
+                     level: this.level,
+                     externalLanguage: (this.isExternal) ? this.externalLanguage : "",
+                     metaclass: (this.isExternal) ? this.externalMetaclass : this.metaclass
+                 };
+                 return SparkMD5.hash(JSON.stringify(id), false);
+
+             }
+         });*/
+
+
+        /**
+         * @type Helper.Set
+         */
+        Object.defineProperty(this, "subclasses", {
+            configurable: true, enumerable: true, get: () => this._subclasses,
+        });
+
+        /**
+         * @type boolean
+         */
+        Object.defineProperty(this, "hasUnknownLevel", {
+            configurable: true, enumerable: true, get: () => this.level === "?",
+        });
+
+        /**
+         * @type Model.FmmlxClass
+         */
+        Object.defineProperty(this, "metaclass", {
+            configurable: true, enumerable: true, get: () => this._metaclass, set: (val) => {
+                this._distanceFromRoot = (val === null) ? 0 : val.distanceFromRoot + 1;
+                this._metaclass = val;
+            },
+        });
+
+        /**
+         * @type String
+         */
+        Object.defineProperty(this, "metaclassName", {
+            configurable: true, enumerable: true, get: () => this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name,
+        });
+
+        /**
+         * @type boolean
+         */
+        Object.defineProperty(this, "isExternal", {
+            configurable: true, enumerable: true, get: () => this.externalLanguage !== null,
+        });
+
+        this.__foundPropIndex = null;
+        this.__foundValIndex = null;
+        this.metaclass = null;
+        this._distanceFromRoot = 0;
+        this._instances = new Helper.Set();
+        this._subclasses = new Helper.Set();
+        this.superclass = null;
+        this.name = name;
+        this.attributes = [];
+        this.lastChangeId = "";
+        this.operations = [];
+        this.slotValues = [];
+        this.operationValues = [];
+        this._endpoints = new Helper.Set();
+        this.tags = [];
+        this.externalLanguage = externalLanguage;
+        this.externalMetaclass = externalMetaclass;
+        this.level = level;
+        this.isAbstract = isAbstract;
+        this.id = Helper.Helper.uuid4();
+
+    };
 
 };

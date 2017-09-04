@@ -16,46 +16,6 @@ if (typeof Model === "undefined") window.Model = {};
 
 Model.FmmlxProperty = class {
 
-    // Instance
-    /**
-     * @param {String} name
-     * @param {String} type
-     * @param {Number|NaN} intrinsicness
-     * @param {Boolean} isOperation
-     * @param {Model.FmmlxBehaviors[]} behaviors
-     * @param {String} operationBody
-     */
-    constructor(name, type, intrinsicness, isOperation, behaviors = [], operationBody = null) {
-        this.values = new Helper.Set();
-        this.classes = new Helper.Set();
-        this.id = Helper.Helper.uuid4();
-        Object.defineProperty(this, "intrinsicness", {
-            configurable: true, enumerable: true, get: function () {
-                return this._intrinsicness;
-            },
-
-            set: function (val) {
-                let numberVal = Number.parseInt(val);
-                if (val === "?" && this.maxIntrinsicness !== "?" || isNaN(numberVal) || numberVal > Number.parseInt(this.maxIntrinsicness)) throw new Error(`Invalid intrinsicness ${val} for class ${this.fmmlxClass.name}`);
-                this._intrinsicness = (val === "?") ? "?" : numberVal;
-            },
-        });
-
-
-        Object.defineProperty(this, 'isValue', {
-            configurable: true, enumerable: true, get: () => false
-        });
-
-
-        this.maxIntrinsicness = -1;
-        this.name = name;
-        this.type = type;
-        this._intrinsicness = (intrinsicness === "?") ? "?" : Number.parseInt(intrinsicness);
-        this.isOperation = isOperation;
-        this.behaviors = behaviors === null ? [] : behaviors;
-        this.operationBody = operationBody;
-    }
-
     /**
      * Adds an FMMLx Class to the set. Recalculates max intrinsicness
      * @param {Model.FmmlxClass} fmmlxClass
@@ -98,5 +58,45 @@ Model.FmmlxProperty = class {
     equals(obj) {
 
         return this.constructor === Model.FmmlxProperty && this.name === obj.name && this.intrinsicness === obj.intrinsicness;
+    }
+
+    // Instance
+    /**
+     * @param {String} name
+     * @param {String} type
+     * @param {Number|NaN} intrinsicness
+     * @param {Boolean} isOperation
+     * @param {Model.FmmlxBehaviors[]} behaviors
+     * @param {String} operationBody
+     */
+    constructor(name, type, intrinsicness, isOperation, behaviors = [], operationBody = null) {
+        this.values = new Helper.Set();
+        this.classes = new Helper.Set();
+        this.id = Helper.Helper.uuid4();
+        Object.defineProperty(this, "intrinsicness", {
+            configurable: true, enumerable: true, get: function () {
+                return this._intrinsicness;
+            },
+
+            set: function (val) {
+                let numberVal = Number.parseInt(val);
+                if (val === "?" && this.maxIntrinsicness !== "?" || isNaN(numberVal) || numberVal > Number.parseInt(this.maxIntrinsicness)) throw new Error(`Invalid intrinsicness ${val} for class ${this.fmmlxClass.name}`);
+                this._intrinsicness = (val === "?") ? "?" : numberVal;
+            },
+        });
+
+
+        Object.defineProperty(this, "isValue", {
+            configurable: true, enumerable: true, get: () => false,
+        });
+
+
+        this.maxIntrinsicness = -1;
+        this.name = name;
+        this.type = type;
+        this._intrinsicness = (intrinsicness === "?") ? "?" : Number.parseInt(intrinsicness);
+        this.isOperation = isOperation;
+        this.behaviors = behaviors === null ? [] : behaviors;
+        this.operationBody = operationBody;
     }
 };

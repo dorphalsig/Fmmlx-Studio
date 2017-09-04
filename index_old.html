@@ -63,8 +63,7 @@
                 <img src="images/inheritance.png" class="menu" id="inheritance" draggable="true"/>
             </div>
         </div>
-        <div class="col-lg-10 well" id="canvas">
-        </div>
+        <div class="col-lg-10 well" id="canvas"></div>
         <div class="contextMenu" id="classMenu">
             <ul class="nav nav-pills nav-stacked">
                 <li><a href="#" id="addMember">Add Member</a></li>
@@ -123,8 +122,7 @@
                                 <label class="control-label">Level</label>
                                 <input class="form-control" name="level" pattern="^(\d+|\?)$" required/>
                                 <p class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: 0-9 ?
-                                </p>
+                                    <span class="label label-info">REQUIRED</span> Allowed: 0-9 ? </p>
                             </div>
                         </div>
                         <div class="col-md-5">
@@ -135,9 +133,7 @@
                                         <input value="true" type="checkbox" name="isAbstract"> </label>
                                     <label class="checkbox-inline">
                                         <small>External?</small>
-                                        <input class="needsExtraInfo" name="isExternal" type="checkbox" value="true"
-                                               data-show="externalLanguage, externalMetaclass"
-                                               data-hide="metaclass"></label>
+                                        <input class="needsExtraInfo" name="isExternal" type="checkbox" value="true" data-show="externalLanguage, externalMetaclass" data-hide="metaclass"></label>
                                 </div>
                             </div>
                         </div>
@@ -152,8 +148,7 @@
                             </div>
                             <div class="form-group has-feedback label-floating" style="display: none">
                                 <label class="control-label">Ext. Metaclass</label>
-                                <input class="form-control externalMetaclass" name="externalMetaclass"
-                                       pattern="^[\w\.,]+$" disabled required/>
+                                <input class="form-control externalMetaclass" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
 
                                 <div class="help-block">
                                     <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
@@ -164,8 +159,7 @@
                         <div class="col-md-5">
                             <div class="form-group has-feedback label-floating" style="display: none">
                                 <label class="control-label">External Language</label>
-                                <input class="form-control" name="externalLanguage" disabled pattern="^[\w\.,]+$"
-                                       required/>
+                                <input class="form-control" name="externalLanguage" disabled pattern="^[\w\.,]+$" required/>
                             </div>
                         </div>
                     </div>
@@ -242,8 +236,7 @@
                                 <span class="checkbox">
                                     <label class="checkbox-inline">
                                         <small>Operation?</small>
-                                        <input name="isOperation" class="needsExtraInfo" data-show="operationBody"
-                                               value="true" type="checkbox"/>
+                                        <input name="isOperation" class="needsExtraInfo" data-show="operationBody" value="true" type="checkbox"/>
                                     </label>
                                     <label class="checkbox-inline">
                                         <small>Obtainable?</small>
@@ -259,9 +252,7 @@
                                     </label>
                                     <label class="checkbox-inline">
                                         <small>Value?</small>
-                                        <input name="isValue" class="needsExtraInfo" data-show="value" data-hide="type"
-                                               value="true"
-                                               type="checkbox"/>
+                                        <input name="isValue" class="needsExtraInfo" data-show="value" data-hide="type" value="true" type="checkbox"/>
                                     </label>
                                 </span>
                             </div>
@@ -304,8 +295,7 @@
                                 <label class="control-label" for="name">Association Name</label>
                                 <input class="form-control" id="name" pattern="^\w\.,$" required/>
                                 <p class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
-                                </p>
+                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _ </p>
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -320,8 +310,7 @@
                                     </label>
                                     <label class="checkbox-inline">
                                         <small>Refinment?</small>
-                                        <input id="isRefinement" class="needsExtraInfo" value="true"
-                                               type="checkbox"/>
+                                        <input id="isRefinement" class="needsExtraInfo" value="true" type="checkbox"/>
                                     </label>
                                 </div>
                             </div>
@@ -388,8 +377,7 @@
             <div class="panel-footer text-right">
                 <div class="btn-group btn-group-raised">
                     <a href="javascript:void(0)" data-dismiss="modal" class="btn btn-default">Close</a>
-                    <a href="javascript:void(0)" class="btn btn-primary"
-                       onclick="Controller.FormController.addEditFmmlxClass();">Continue</a>
+                    <a href="javascript:void(0)" class="btn btn-primary" onclick="Controller.FormController.addEditFmmlxClass();">Continue</a>
                 </div>
             </div>
         </div>

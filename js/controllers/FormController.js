@@ -157,14 +157,14 @@ Controller.FormController = {
                 let self = Controller.FormController;
                 let level = event.target.value;
                 let options = studio.getClassesbyLevel(level)
-                    .map(fmmlxClass => new Option(fmmlxClass.name, fmmlxClass.id));
+                                    .map(fmmlxClass => new Option(fmmlxClass.name, fmmlxClass.id));
                 self.__fillSelect(metaClassSelect, options);
             }
         });
 
         if (obj !== null && obj.data !== null) self.__fillForm(modal, obj.data);
 
-        modal.modal('open');
+        modal.modal("open");
     },
 
     raiseProperty: function (event, obj) {
@@ -193,14 +193,9 @@ Controller.FormController = {
                 menu = $("#propertyMenu");
                 break;
         }
-
-
-        //let canvasOffset = menu.prev().offset();
-        //let clickOffset =  tool.mouseDownPoint;
-        //let offset = {top: clickOffset.y+canvasOffset.top, left: clickOffset.x+canvasOffset.left+20}
-        let width = menu.css('width');
+        let width = menu.css("width");
         menu.css({
-            top: inputEvent.event.pageY, left: inputEvent.event.pageX + 5, display: "block", width: 0
+            top: inputEvent.event.pageY, left: inputEvent.event.pageX + 5, display: "block", width: 0,
         }).animate({width: width}, 300, "swing");
 
         $("body,canvas").one("click", function (event) {
@@ -221,7 +216,7 @@ Controller.FormController = {
         let opBodyManager = function () {
             let opBody = modal.find("[name=operationBody]");
             (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]")
-                .prop("checked")) ? self.__showField(opBody) : self.__hideField(opBody);
+                                                                       .prop("checked")) ? self.__showField(opBody) : self.__hideField(opBody);
         };
 
         $("[name=isOperation]").change(opBodyManager);
@@ -251,7 +246,7 @@ Controller.FormController = {
             delete obj.data.isSimulation;
         }
         modal.find(".btn-primary").one("click", self.addEditFmmlxProperty);
-        modal.modal('open');
+        modal.modal("open");
         event.handled = true;
     },
 
@@ -296,7 +291,9 @@ Controller.FormController = {
             }
             else studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
 
-        } catch (error) {
+        }
+        catch (error) {
+            modal.find(".btn-flat").one("click", Controller.FormController.addEditFmmlxClass);
             self.__error(form, error);
             return;
         }
@@ -307,7 +304,6 @@ Controller.FormController = {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
         const form = modal.find("form");
-        modal.find(".btn-flat").one("click", self.addEditFmmlxClass);
         if (!form[0].checkValidity()) {
             form.find(":invalid").closest(".form-group").addClass("has-error");
             self.__error(form, new Error("Invalid input. Check the highlighted fields and try again."));
@@ -321,7 +317,9 @@ Controller.FormController = {
             if (formVals.isSimulation.length > 0) formVals.behaviors.push(formVals.isSimulation);
             if (formVals.id === "") studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.behaviors, formVals.isValue, formVals.value, formVals.operationBody);
             else alert("ToDo xD");
-        } catch (error) {
+        }
+        catch (error) {
+            modal.find(".btn-flat").one("click", Controller.FormController.addEditFmmlxProperty);
             self.__error(form, error);
             return;
         }

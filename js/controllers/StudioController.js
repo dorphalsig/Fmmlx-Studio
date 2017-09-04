@@ -3,45 +3,6 @@ if (typeof Controller === `undefined`) window.Controller = {};
 
 Controller.StudioController = class {
 
-    // Instance
-    /**
-     *  Constructor, receives the id of the div that's the parent for the GoJS canvas
-     * @param {string} div
-     */
-    constructor(div) {
-        if (typeof div === `undefined`) {
-            div = `canvas`;
-        }
-        go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
-        this._$ = go.GraphObject.make;
-
-        /**
-         *
-         * @type {go.Diagram | *}
-         * @private
-         */
-        this._diagram = this._$(go.Diagram, div, {
-            "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
-            model: new go.GraphLinksModel(),
-        });
-
-        this._model = this._diagram.model;
-
-        window.PIXELRATIO = this._diagram.computePixelRatio();
-
-        this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
-        this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
-        //This prevents stuff being created randomly when ppl click on the diagram
-        //This is only required because the add class sets the archetype to something else
-        this._diagram.addDiagramListener(`PartCreated`, (diagramEvent) => {
-            let tool = diagramEvent.diagram.toolManager.clickCreatingTool;
-            tool.archetypeNodeData = null;
-            tool.isDoubleClick = false;
-        });
-        //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
-        this._model.nodeKeyProperty = `id`;
-    }
-
     _beginTransaction() {
         let id = Helper.Helper.uuid4();
         this._diagram.startTransaction(id);
@@ -72,7 +33,8 @@ Controller.StudioController = class {
             try {
                 this.processProperty(fmmlxClass, property, transId2);
                 this._model.setDataProperty(fmmlxClass, "lastChangeId", transId2);
-            } catch (error) {
+            }
+            catch (error) {
                 this._rollbackTransaction();
                 throw error;
             }
@@ -169,7 +131,8 @@ Controller.StudioController = class {
             this._model.addArrayItem(array, property);
             property.addClass(fmmlxClass);
             if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
-        } catch (error) {
+        }
+        catch (error) {
             this._rollbackTransaction();
             throw  error;
         }
@@ -216,7 +179,8 @@ Controller.StudioController = class {
         try {
             let array = fmmlxClass.findCorrespondingArray(val);
             this._model.addArrayItem(array, val);
-        } catch (error) {
+        }
+        catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -240,7 +204,8 @@ Controller.StudioController = class {
         let transId = this._beginTransaction();
         try {
             this._calculateClassLevel(fmmlxClass, delta, true, transId);
-        } catch (error) {
+        }
+        catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -282,7 +247,8 @@ Controller.StudioController = class {
             for (let property of newProperties) {
                 this.addPropertyToClass(fmmlxClass, property);
             }
-        } catch (error) {
+        }
+        catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -333,7 +299,8 @@ Controller.StudioController = class {
             let node = this._diagram.findNodeForKey(id);
             this._diagram.remove(node);
             this._model.removeNodeData(fmmlxClass);
-        } catch (error) {
+        }
+        catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -355,7 +322,8 @@ Controller.StudioController = class {
             for (let property of deletableProperties) {
                 this.deletePropertyFromClass(fmmlxClass, property);
             }
-        } catch (error) {
+        }
+        catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -413,7 +381,8 @@ Controller.StudioController = class {
                 if (fmmlxClass.superclass !== null) this.deletePropertyFromClass(fmmlxClass.superclass, property, upstream, downstream);
                 if (fmmlxClass.metaclass !== null) this.deletePropertyFromClass(fmmlxClass.metaclass, property, upstream, downstream);
             }
-        } catch (e) {
+        }
+        catch (e) {
             this._rollbackTransaction();
         }
         this._commitTransaction(transId);
@@ -437,7 +406,8 @@ Controller.StudioController = class {
             let array = fmmlxClass.findCorrespondingArray(value);
             value.property.deleteValue(value);
             this._model.removeArrayItem(array, index);
-        } catch (error) {
+        }
+        catch (error) {
             this._rollbackTransaction(transId);
             throw error;
         }
@@ -466,7 +436,8 @@ Controller.StudioController = class {
             this.changeClassLevel(fmmlxClass, level);
             this.changeMetaclass(fmmlxClass, metaclassId);
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-        } catch (error) {
+        }
+        catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -515,6 +486,45 @@ Controller.StudioController = class {
             if (val !== null) this.deleteValueFromClass(fmmlxClass, val);
             this.addPropertyToClass(fmmlxClass, property);
         }
+    }
+
+    // Instance
+    /**
+     *  Constructor, receives the id of the div that's the parent for the GoJS canvas
+     * @param {string} div
+     */
+    constructor(div) {
+        if (typeof div === `undefined`) {
+            div = `canvas`;
+        }
+        go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
+        this._$ = go.GraphObject.make;
+
+        /**
+         *
+         * @type {go.Diagram | *}
+         * @private
+         */
+        this._diagram = this._$(go.Diagram, div, {
+            "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
+            model: new go.GraphLinksModel(),
+        });
+
+        this._model = this._diagram.model;
+
+        window.PIXELRATIO = this._diagram.computePixelRatio();
+
+        this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
+        this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
+        //This prevents stuff being created randomly when ppl click on the diagram
+        //This is only required because the add class sets the archetype to something else
+        this._diagram.addDiagramListener(`PartCreated`, (diagramEvent) => {
+            let tool = diagramEvent.diagram.toolManager.clickCreatingTool;
+            tool.archetypeNodeData = null;
+            tool.isDoubleClick = false;
+        });
+        //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
+        this._model.nodeKeyProperty = `id`;
     }
 
 
