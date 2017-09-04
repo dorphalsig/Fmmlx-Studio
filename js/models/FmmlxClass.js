@@ -5,7 +5,7 @@ if (typeof Model === "undefined") window, Model = {};
  * @type {Model.FmmlxClass}
  */
 Model.FmmlxClass = class {
-// Instance
+    // Instance
     /**
      * Constructor
      * @param {string} name
@@ -20,19 +20,15 @@ Model.FmmlxClass = class {
          * @type Number|String
          */
         Object.defineProperty(this, 'level', {
-            configurable: false,
-            enumerable: true,
-            get: function () {
+            configurable: false, enumerable: true, get: function () {
                 return this._level;
-            },
-            set: function (level) {
+            }, set: function (level) {
                 if (level !== "?") {
                     let parsedLevel = Number.parseInt(level);
                     if (isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`);
                     this._level = parsedLevel;
                 }
-                else
-                    this._level = "?"
+                else this._level = "?"
             }
         });
 
@@ -41,8 +37,7 @@ Model.FmmlxClass = class {
          */
 
         Object.defineProperty(this, 'instances', {
-            configurable: true,
-            enumerable: true, get: function () {
+            configurable: true, enumerable: true, get: function () {
                 return this._instances
             }, set: function (val) {
                 this._instances = val;
@@ -90,29 +85,21 @@ Model.FmmlxClass = class {
          * @type Helper.Set
          */
         Object.defineProperty(this, 'subclasses', {
-            configurable: true, enumerable: true,
-            get: function () {
-                return this._subclasses;
-            }
+            configurable: true, enumerable: true, get: () => this._subclasses
         });
 
         /**
          * @type boolean
          */
         Object.defineProperty(this, 'hasUnknownLevel', {
-            configurable: true, enumerable: true, get: function () {
-                return this.level === "?";
-            }
+            configurable: true, enumerable: true, get: () => this.level === "?"
         });
-
 
         /**
          * @type Model.FmmlxClass
          */
         Object.defineProperty(this, 'metaclass', {
-            configurable: true, enumerable: true, get: function () {
-                return this._metaclass
-            }, set: function (val) {
+            configurable: true, enumerable: true, get: () => this._metaclass, set: (val) => {
                 this._distanceFromRoot = (val === null) ? 0 : val.distanceFromRoot + 1;
                 this._metaclass = val;
             }
@@ -122,21 +109,15 @@ Model.FmmlxClass = class {
          * @type String
          */
         Object.defineProperty(this, 'metaclassName', {
-            configurable: true, enumerable: true, get: function () {
-                return this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name;
-            }
+            configurable: true, enumerable: true, get: () => this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name
         });
-
 
         /**
          * @type boolean
          */
         Object.defineProperty(this, 'isExternal', {
-            configurable: true, enumerable: true, get: function () {
-                return (this.externalLanguage !== null);
-            }
+            configurable: true, enumerable: true, get: () => this.externalLanguage !== null
         });
-
 
         this.__foundPropIndex = null;
         this.__foundValIndex = null;
@@ -158,6 +139,7 @@ Model.FmmlxClass = class {
         this.level = level;
         this.isAbstract = isAbstract;
         this.id = Helper.Helper.uuid4();
+
     };
 
     /**
@@ -199,10 +181,8 @@ Model.FmmlxClass = class {
     equals(obj) {
         let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
 
-        if (this.isExternal)
-            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        else if (typeof this.metaclass !== "undefined")
-            val = val && this.metaclass.id === obj.metaclass.id;
+        if (this.isExternal) val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
+        else if (typeof this.metaclass !== "undefined") val = val && this.metaclass.id === obj.metaclass.id;
 
         return val;
     }
@@ -213,8 +193,7 @@ Model.FmmlxClass = class {
      * @return
      */
     findCorrespondingArray(propOrValue) {
-        if (propOrValue.constructor === Model.FmmlxProperty)
-            return (propOrValue.isOperation) ? this.operations : this.attributes;
+        if (propOrValue.constructor === Model.FmmlxProperty) return (propOrValue.isOperation) ? this.operations : this.attributes;
         return (propOrValue.property.isOperation) ? this.operationValues : this.slotValues;
     }
 
@@ -255,8 +234,7 @@ Model.FmmlxClass = class {
         if (property.isOperation) {
             values = this.operationValues;
         }
-        else
-            values = this.slotValues;
+        else values = this.slotValues;
 
         let index = values.findIndex(item => {
             return value.equals(item);
@@ -280,8 +258,7 @@ Model.FmmlxClass = class {
         this.__foundPropIndex = (index === -1) ? null : index;
         if (index !== -1) return true;
 
-        if (propOrValue.constructor === Model.FmmlxProperty)
-            return this.findValueFromProperty(propOrValue) !== null;
+        if (propOrValue.constructor === Model.FmmlxProperty) return this.findValueFromProperty(propOrValue) !== null;
 
         return false;
     }

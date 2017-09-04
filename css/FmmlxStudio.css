@@ -1,106 +1,62 @@
-/*@import url("https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css");
-@import url("https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/css/selectize.bootstrap3.min.css");
-@import url("https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/css/bootstrap-material-design.min.css");
-@import url("https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.10/css/ripples.min.css");*/
-@import "vendor/bootstrap/bootstrap.min.css";
-@import "vendor/selectize/selectize.bootstrap3.min.css";
-/*@import "vendor/winstrap/winstrap.min.css";*/
-@import "vendor/bootstrap_material/bootstrap-material-design.min.css";
-@import "vendor/bootstrap_material/ripples.min.css";
-@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
-@import url('https://fonts.googleapis.com/css?family=Lato|Roboto:300,400,500,700|Cormorant:400,400i&subset=latin-ext');
-@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+@import 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css';
+@import 'https://fonts.googleapis.com/css?family=Lato|Cormorant:400,400i&subset=latin-ext';
+@import "vendor/materialize/materialize.min.css";
 
 body {
     margin: 0;
+    padding: 0;
 }
 
-.row hr {
-    border: 2px #DDD;
-    margin-top: 5px;
-    margin-bottom: 5px;
+#menuBtn {
+    position: fixed;
+    left: 15px;
+    top: 15px;
 }
 
-.modal-header > hr {
-    border: 2px #DDD;
-    margin-top: 10px;
-    margin-bottom: 0;
+#menuBtn ul {
+    text-align: right;
+    left: 64px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    height: 100%;
+    right: auto;
+    width: 500px;
+    /*width 100% only goes to width of button container */
 }
 
-.add {
-    cursor: pointer;
+.modal h1, .modal h2, .modal h3, .modal h4 {
+    font-size: 24px;
+    margin: 0 0 0 5px;
+    padding: 10px 15px;
 }
 
-/*.modal-content .modal-body {
-    padding-top: 15px;
-}*/
-
-.remove {
-    cursor: pointer;
+.modal form {
+    margin-top: 20px;
 }
 
-.hidden {
-    display: none;
+.crosshairPointer {
+    cursor: crosshair;
 }
 
-.toggle {
-    margin-left: 12px;
-}
-
-body {
-    min-height: 100vh;
-}
-
-#menu, #canvas {
-    min-height: 100vh !important;
-}
-
-#file i {
-    font-size: 18px !important;
-    margin-right: 15px;
-    display: inline-block;
-}
-
-#menu {
-    text-align: center;
-}
-
-#menu img {
-    width: 100px;
-    margin-bottom: 35px;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
+.autoPointer {
+    cursor: auto;
 }
 
 #canvas {
-    height: 100vh;
-    display: block;
-    resize: both;
-    overflow: scroll;
+    overflow-y: hidden;
+    vertical-align: top;
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+    width: 100vw
 }
 
-.info:before {
-    content: '?';
-    font-family: sans-serif;
-    display: inline-block;
-    font-weight: bold;
-    text-align: center;
-    width: 1.8ex;
-    height: 1.8ex;
-    line-height: 1.8ex;
-    border-radius: 1.2ex;
-    margin-right: 4px;
-    padding: 2px;
-    border: 1px solid;
-    text-decoration: none;
-}
-
-.info:hover:before {
-    color: white;
-    background: black;
-    border-color: white;
-    text-decoration: none;
+.mainTitle {
+    vertical-align: middle;
+    font: 24px Cormorant;
+    font-size: 39px;
+    margin-left: 20px;
 }
 
 .contextMenu {
@@ -114,4 +70,17 @@ body {
     font-size: 12px;
     font-family: sans-serif;
     font-weight: bold;
+}
+
+.mainContainer {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.horizontal-separator {
+    margin-left: 3px;
+    margin-right: 5px;
+    content: "|";
 }

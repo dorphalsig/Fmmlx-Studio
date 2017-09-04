@@ -5,20 +5,29 @@ if (typeof Controller === "undefined") window.Controller = {};
 Controller.FormController = {
 
     init() {
+        $("select").material_select();
         window._classForm = $("#fmmlxClassModal").find("form").clone();
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
+        $(".modal").modal();
     },
+
+
     /**
      *
      * @param {JQuery} form
      * @param {Error} error
      * @private
      */
+    __initSelect() {
+
+
+    },
+
+
     __error: function (form, error = undefined) {
-        let alert = form.find(".alert");
+
         if (typeof error !== "undefined") {
-            alert.find(".message").text(error.message);
-            alert.show();
+            Materialize.toast(`<h6 class="lime-text text-accent-1"><strong>ERROR!</strong></h6>&nbsp; ${error.message}`, 6000);
             console.log("\n***********************************");
             console.log(error);
             return;
@@ -64,12 +73,13 @@ Controller.FormController = {
          * @type {HTMLSelectElement}
          */
         select = select[0];
-        for (let opt of select) {
+        for (let opt of select.options) {
             if (typeof $(opt).data("keep") === "undefined") select.remove(opt);
         }
         for (let option of options) {
             select.add(option);
         }
+        $(select).material_select();
     },
 
     /**
@@ -97,7 +107,7 @@ Controller.FormController = {
      */
     __showField: function (field) {
         field.prop("disabled", false);
-        field.closest(".form-group").show();
+        field.closest(".input-field").removeClass("hide");
     },
 
     /**
@@ -107,49 +117,54 @@ Controller.FormController = {
      */
     __hideField: function (field) {
         field.prop("disabled", true);
-        field.closest(".form-group").hide();
+        field.closest(".input-field").addClass("hide");
     },
 
+    /**
+     * Checks the fields that have class needsExtraInfo and sets them up according to data-show and data-hide
+     * @param {JQuery} modal
+     * @private
+     */
     __setupExtraDataFields: function (modal) {
         modal.find(".needsExtraInfo").change(function (event) {
             let self = Controller.FormController;
+            let form = $(event.target.form);
             let target = $(event.target);
             let show = typeof target.data("show") === "undefined" ? [] : target.data("show").split(",");
             let hide = typeof target.data("hide") === "undefined" ? [] : target.data("hide").split(",");
-            for (let fieldName of show) {
-                let field = modal.find(`[name=${fieldName}]`);
-                target.prop("checked") ? self.__showField(field) : self.__hideField(field);
-            }
             for (let fieldName of hide) {
-                let field = modal.find(`[name=${fieldName}]`);
+                let field = form.find(`#${fieldName}`);
                 target.prop("checked") ? self.__hideField(field) : self.__showField(field);
+            }
+            for (let fieldName of show) {
+                let field = $(`#${fieldName.trim()}`);
+                target.prop("checked") ? self.__showField(field) : self.__hideField(field);
             }
         });
     },
 
-    displayClassForm: function (event, obj) {
+
+    displayClassForm: function (event = null, obj = null) {
         let self = Controller.FormController;
         let modal = $("#fmmlxClassModal");
-        let point = go.Point.stringify(event.documentPoint);
         modal.find("form").replaceWith(window._classForm.clone());
         self.__setupExtraDataFields(modal);
+        modal.find(".btn-flat").one("click", Controller.FormController.addEditFmmlxClass);
 
-        //Populates select with metaclasses according to level
-        let metaClassSelect = modal.find("[name=metaclass]");
-        modal.find("[name=level]").change(function (event) {
+        $("#class_level").change(function (event) {
+            let metaClassSelect = $("#class_metaclass");
             if (!metaClassSelect.prop("disabled")) {
+                let self = Controller.FormController;
                 let level = event.target.value;
-                let options = studio.getClassesbyLevel(level).map(
-                    fmmlxClass => new Option(fmmlxClass.name, fmmlxClass.id));
+                let options = studio.getClassesbyLevel(level)
+                    .map(fmmlxClass => new Option(fmmlxClass.name, fmmlxClass.id));
                 self.__fillSelect(metaClassSelect, options);
             }
         });
 
-        (obj.data !== null) ? self.__fillForm(modal, obj.data) : modal.find("[name=coords]").val(point);
+        if (obj !== null && obj.data !== null) self.__fillForm(modal, obj.data);
 
-        modal.find(".btn-primary").one("click", self.addEditFmmlxClass);
-        modal.modal();
-
+        modal.modal('open');
     },
 
     raiseProperty: function (event, obj) {
@@ -164,7 +179,6 @@ Controller.FormController = {
     showHideContextMenu: function (inputEvent, target) {
         let menu = "";
         let self = Controller.FormController;
-
         switch (target.data.constructor) {
             case Model.FmmlxClass:
                 menu = $("#classMenu");
@@ -184,19 +198,13 @@ Controller.FormController = {
         //let canvasOffset = menu.prev().offset();
         //let clickOffset =  tool.mouseDownPoint;
         //let offset = {top: clickOffset.y+canvasOffset.top, left: clickOffset.x+canvasOffset.left+20}
-        menu.show().offset({
-                               top: inputEvent.event.pageY,
-                               left: inputEvent.event.pageX + 5,
-                           });
-        //menu.on("contextMenu",()=>{debugger; return false});
+        let width = menu.css('width');
+        menu.css({
+            top: inputEvent.event.pageY, left: inputEvent.event.pageX + 5, display: "block", width: 0
+        }).animate({width: width}, 300, "swing");
 
-        $(document).one("click", function (event) {
-            let container = menu.find(".dropdown-toggle");
-            if (!container.is(event.target) && container.has(event.target).length === 0) {
-                menu.hide();
-                $(this).off(event);//.off("contextMenu");
-
-            }
+        $("body,canvas").one("click", function (event) {
+            menu.hide();
         });
 
         inputEvent.event.stopImmediatePropagation();
@@ -208,14 +216,15 @@ Controller.FormController = {
         let modal = $("#fmmlxAttributeModal");
         modal.find("form").replaceWith(window._propertyForm.clone());
         self.__setupExtraDataFields(modal);
+        modal.find(".btn-flat").one("click", Controller.FormController.addEditFmmlxProperty);
 
         let opBodyManager = function () {
             let opBody = modal.find("[name=operationBody]");
-            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]").prop(
-                "checked")) ? self.__showField(opBody) : self.__hideField(opBody);
+            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]")
+                .prop("checked")) ? self.__showField(opBody) : self.__hideField(opBody);
         };
 
-        modal.find("[name=isOperation]").change(opBodyManager);
+        $("[name=isOperation]").change(opBodyManager);
         modal.find("[name=isValue]").change(opBodyManager);
 
         if (obj.data.constructor === Model.FmmlxClass) { //new property,it was righht click on  the Class
@@ -242,7 +251,7 @@ Controller.FormController = {
             delete obj.data.isSimulation;
         }
         modal.find(".btn-primary").one("click", self.addEditFmmlxProperty);
-        modal.modal();
+        modal.modal('open');
         event.handled = true;
     },
 
@@ -268,54 +277,56 @@ Controller.FormController = {
     },
 
 
-    addEditFmmlxClass: function () {
+    addEditFmmlxClass: function (event) {
         const self = Controller.FormController;
         const modal = $("#fmmlxClassModal");
         const form = modal.find("form");
 
         if (!form[0].checkValidity()) {
-            form.find(":invalid").closest(".form-group").addClass("has-error");
             self.__error(form, new Error("Invalid input. Check the highlighted fields and try again."));
             return false;
         }
 
         try {
             let formVals = self.__readForm(form);
-            if (formVals.id === "") studio.addFmmlxClass(formVals.coords, formVals.name, formVals.level,
-                                                         formVals.isAbstract, formVals.metaclass,
-                                                         formVals.externalLanguage, formVals.externalMetaclass);
-            else studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract,
-                                       formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
 
-        }
-        catch (error) {
+            if (formVals.id === "") {
+                studio.addFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
+                Materialize.toast("Click on the canvas to insert the class", 4000);
+            }
+            else studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
+
+        } catch (error) {
             self.__error(form, error);
+            return;
         }
-        modal.modal("hide");
-        return false;
+        modal.modal("close");
     },
 
-    addEditFmmlxProperty() {
+    addEditFmmlxProperty: function (e) {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
         const form = modal.find("form");
-
+        modal.find(".btn-flat").one("click", self.addEditFmmlxClass);
         if (!form[0].checkValidity()) {
             form.find(":invalid").closest(".form-group").addClass("has-error");
             self.__error(form, new Error("Invalid input. Check the highlighted fields and try again."));
             return false;
         }
+        try {
+            let formVals = self.__readForm(form);
+            formVals.behaviors = [];
+            if (formVals.isObtainable.length > 0) formVals.behaviors.push(formVals.isObtainable);
+            if (formVals.isDerivable.length > 0) formVals.behaviors.push(formVals.isDerivable);
+            if (formVals.isSimulation.length > 0) formVals.behaviors.push(formVals.isSimulation);
+            if (formVals.id === "") studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.behaviors, formVals.isValue, formVals.value, formVals.operationBody);
+            else alert("ToDo xD");
+        } catch (error) {
+            self.__error(form, error);
+            return;
+        }
 
-        let formVals = self.__readForm(form);
-        formVals.behaviors = [];
-        if (formVals.isObtainable.length > 0) formVals.behaviors.push(formVals.isObtainable);
-        if (formVals.isDerivable.length > 0) formVals.behaviors.push(formVals.isDerivable);
-        if (formVals.isSimulation.length > 0) formVals.behaviors.push(formVals.isSimulation);
-        if (formVals.id === "") studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type,
-                                                    formVals.intrinsicness, formVals.isOperation, formVals.behaviors,
-                                                    formVals.isValue, formVals.value, formVals.operationBody);
-        else alert("ToDo xD");
-        modal.modal("hide");
+        modal.modal("close");
     },
 
 };

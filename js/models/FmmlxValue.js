@@ -1,7 +1,7 @@
 "use strict";
 if (typeof Model === "undefined") window.Model = {};
 /**
- *
+ * This is a handler object meant to be used in a proxy
  * @type {Model.FmmlxValue}
  * @param {Model.FmmlxProperty} property
  * @param {*} value
@@ -11,33 +11,87 @@ Model.FmmlxValue = class {
 
     // Instance
     /**
-     *
+     * Returns a Proxy object that handles the value, the class and the property transparently
      * @param {Model.FmmlxProperty} property
      * @param {*} value
      * @param {Model.FmmlxClass} fmmlxClass
      */
     constructor(property, value, fmmlxClass = null) {
-        this.property = property;
         this.value = value;
         this.class = fmmlxClass;
-    }
-
-    get id() {
-        let id = {
-            className: this.class.name, propertyName: this.property.name, value: this.value
-        };
-        return SparkMD5.hash(JSON.stringify(id), false);
+        this.id = Helper.Helper.uuid4();
+        return new Proxy(property, this);
     }
 
     /**
-     * Two properties are equal if their
+     *
      * @param {Model.FmmlxValue} obj
-     * @return {boolean}
+     * @param property {Model.FmmlxProperty}
      */
-    equals(obj) {
-        let result = (obj.constructor === Model.FmmlxValue && this.property.equals(obj.property));
-        if (this.class !== null) result = result && this.class.equals(obj.class);
-        else result = result && obj.class === null;
-        return result;
+    equals(obj, property) {
+        return this.class.equals(obj.class) && property.equals(obj.property);
+
+    }
+
+    get(target, name) {
+        switch (name) {
+
+            case "equals":
+                return this.equals;
+                break;
+
+            case "constructor":
+                return this.constructor;
+                break;
+
+            case "class":
+                return this.class;
+                break;
+
+            case "value":
+                return this.value;
+                break;
+
+            case "id":
+                return target.id + this.class.id;
+                break;
+
+            case "isValue":
+                return true;
+                break;
+
+            case "property":
+                return target;
+                break;
+
+            default:
+                return target[name];
+                break;
+
+        }
+    }
+
+    set(target, name, val) {
+        switch (name) {
+            case "class":
+                if (this.class === null) this.class = val;
+                else throw new Error("Cannot replace the class for a value");
+                break;
+
+            case "value":
+                this.value = val;
+                break;
+
+            default:
+                target[name] = val;
+                break;
+
+        }
     }
 };
+
+
+
+
+
+

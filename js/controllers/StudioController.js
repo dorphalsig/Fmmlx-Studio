@@ -3,6 +3,45 @@ if (typeof Controller === `undefined`) window.Controller = {};
 
 Controller.StudioController = class {
 
+    // Instance
+    /**
+     *  Constructor, receives the id of the div that's the parent for the GoJS canvas
+     * @param {string} div
+     */
+    constructor(div) {
+        if (typeof div === `undefined`) {
+            div = `canvas`;
+        }
+        go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
+        this._$ = go.GraphObject.make;
+
+        /**
+         *
+         * @type {go.Diagram | *}
+         * @private
+         */
+        this._diagram = this._$(go.Diagram, div, {
+            "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
+            model: new go.GraphLinksModel(),
+        });
+
+        this._model = this._diagram.model;
+
+        window.PIXELRATIO = this._diagram.computePixelRatio();
+
+        this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
+        this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
+        //This prevents stuff being created randomly when ppl click on the diagram
+        //This is only required because the add class sets the archetype to something else
+        this._diagram.addDiagramListener(`PartCreated`, (diagramEvent) => {
+            let tool = diagramEvent.diagram.toolManager.clickCreatingTool;
+            tool.archetypeNodeData = null;
+            tool.isDoubleClick = false;
+        });
+        //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
+        this._model.nodeKeyProperty = `id`;
+    }
+
     _beginTransaction() {
         let id = Helper.Helper.uuid4();
         this._diagram.startTransaction(id);
@@ -22,10 +61,8 @@ Controller.StudioController = class {
         if (fmmlxClass.lastChangeId === transId) return;
 
         if (upstream) {
-            if (fmmlxClass.metaclass !== null) this._calculateClassLevel(fmmlxClass.metaclass, delta, upstream,
-                                                                         transId);
-            if (fmmlxClass.superclass !== null) this._calculateClassLevel(fmmlxClass.superclass, delta, upstream,
-                                                                          transId);
+            if (fmmlxClass.metaclass !== null) this._calculateClassLevel(fmmlxClass.metaclass, delta, upstream, transId);
+            if (fmmlxClass.superclass !== null) this._calculateClassLevel(fmmlxClass.superclass, delta, upstream, transId);
         }
 
         let lvl = (delta === 0) ? "?" : (fmmlxClass.level === "?") ? fmmlxClass.distanceFromRoot + delta : fmmlxClass.level + delta;
@@ -35,8 +72,7 @@ Controller.StudioController = class {
             try {
                 this.processProperty(fmmlxClass, property, transId2);
                 this._model.setDataProperty(fmmlxClass, "lastChangeId", transId2);
-            }
-            catch (error) {
+            } catch (error) {
                 this._rollbackTransaction();
                 throw error;
             }
@@ -96,30 +132,22 @@ Controller.StudioController = class {
      * @param {string} externalMetaclass
      * @returns undefined
      */
-    addFmmlxClass(point, name, level, isAbstract, metaclassId = "", externalLanguage, externalMetaclass) {
+    addFmmlxClass(name, level, isAbstract, metaclassId = "", externalLanguage, externalMetaclass) {
 
         //Step 1 Search for dupes
 
         let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass);
         let dupe = this._model.findNodeDataForKey(fmmlxClass.id);
         if (dupe !== null) throw  new Error(`An equivalent class definition already exists.`);
-
         console.log(`Add Class ${name}`);
-        let transId = this._beginTransaction();
+
         //Step 2 Add basic info to the model
         fmmlxClass.category = "fmmlxClass";
-        fmmlxClass.location = point;
-        //Step 3: Add it
-        try {
-            fmmlxClass.lastChangeId = transId;
-            this._diagram.model.addNodeData(fmmlxClass);
-            if (metaclassId !== "") this.changeMetaclass(fmmlxClass, metaclassId);
-        }
-        catch (e) {
-            this._rollbackTransaction();
-            throw e;
-        }
-        this._commitTransaction(transId);
+        this.changeMetaclass(fmmlxClass, metaclassId);
+
+        //The next click on the diagram will insert the class
+        this._diagram.toolManager.clickCreatingTool.archetypeNodeData = fmmlxClass;
+        this._diagram.toolManager.clickCreatingTool.isDoubleClick = false;
     }
 
     /**
@@ -141,8 +169,7 @@ Controller.StudioController = class {
             this._model.addArrayItem(array, property);
             property.addClass(fmmlxClass);
             if (this._model.undoManager.transactionLevel > 1) fmmlxClass.lastChangeId = transId;
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw  error;
         }
@@ -170,8 +197,7 @@ Controller.StudioController = class {
     addValueToClass(fmmlxClass, property, value = null) {
 
         if ((property.intrinsicness === "?" && fmmlxClass.level === "?") || property.intrinsicness !== fmmlxClass.level) {
-            console.log(
-                `Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the property's (${property.name}) intrinsicness (${property.intrinsicness}). Doing nothing`);
+            console.log(`Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the property's (${property.name}) intrinsicness (${property.intrinsicness}). Doing nothing`);
             return;
         }
 
@@ -189,9 +215,8 @@ Controller.StudioController = class {
 
         try {
             let array = fmmlxClass.findCorrespondingArray(val);
-            this._model.addArrayItem(array, item);
-        }
-        catch (error) {
+            this._model.addArrayItem(array, val);
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -210,14 +235,12 @@ Controller.StudioController = class {
         newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
         if (newLevel === fmmlxClass.level) return;
 
-        let delta = isNaN(
-            newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
+        let delta = isNaN(newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
         console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
         let transId = this._beginTransaction();
         try {
             this._calculateClassLevel(fmmlxClass, delta, true, transId);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -228,10 +251,10 @@ Controller.StudioController = class {
      * @param {Model.FmmlxClass} fmmlxClass
      * @param {*} metaclassId
      */
-    changeMetaclass(fmmlxClass, metaclassId = null) {
+    changeMetaclass(fmmlxClass, metaclassId = "") {
 
 
-        if (metaclassId === null) {
+        if (metaclassId === "") {
             this.deleteMetaclass(fmmlxClass);
             return;
         }
@@ -248,8 +271,7 @@ Controller.StudioController = class {
         }
 
         //let className =
-        console.log(
-            `Change ${fmmlxClass.name}'s metaclass from  ${(fmmlxClass.metaclass === null) ? "Metaclass" : fmmlxClass.metaclass.name} to ${metaclass.name}`);
+        console.log(`Change ${fmmlxClass.name}'s metaclass from  ${(fmmlxClass.metaclass === null) ? "Metaclass" : fmmlxClass.metaclass.name} to ${metaclass.name}`);
 
         let transId = this._beginTransaction();
         try {
@@ -260,8 +282,7 @@ Controller.StudioController = class {
             for (let property of newProperties) {
                 this.addPropertyToClass(fmmlxClass, property);
             }
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -283,10 +304,10 @@ Controller.StudioController = class {
      */
     createMember(fmmlxClassId, name, type, intrinsicness, isOperation, behaviors, isValue, value = null, operationBody = null) {
         let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
-        let property = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors,
-                                               operationBody);
+        if (Boolean(isValue)) intrinsicness = fmmlxClass.level;
+        let property = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors, operationBody);
         this.addPropertyToClass(fmmlxClass, property);
-        if (Boolean(isValue)) this.addValueToClass(fmmlxClass, value);
+        if (Boolean(isValue)) this.addValueToClass(fmmlxClass, property, value);
     }
 
     /**
@@ -312,8 +333,7 @@ Controller.StudioController = class {
             let node = this._diagram.findNodeForKey(id);
             this._diagram.remove(node);
             this._model.removeNodeData(fmmlxClass);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -335,8 +355,7 @@ Controller.StudioController = class {
             for (let property of deletableProperties) {
                 this.deletePropertyFromClass(fmmlxClass, property);
             }
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -391,13 +410,10 @@ Controller.StudioController = class {
 
             //del upstream
             if (upstream) {
-                if (fmmlxClass.superclass !== null) this.deletePropertyFromClass(fmmlxClass.superclass, property,
-                                                                                 upstream, downstream);
-                if (fmmlxClass.metaclass !== null) this.deletePropertyFromClass(fmmlxClass.metaclass, property,
-                                                                                upstream, downstream);
+                if (fmmlxClass.superclass !== null) this.deletePropertyFromClass(fmmlxClass.superclass, property, upstream, downstream);
+                if (fmmlxClass.metaclass !== null) this.deletePropertyFromClass(fmmlxClass.metaclass, property, upstream, downstream);
             }
-        }
-        catch (e) {
+        } catch (e) {
             this._rollbackTransaction();
         }
         this._commitTransaction(transId);
@@ -421,8 +437,7 @@ Controller.StudioController = class {
             let array = fmmlxClass.findCorrespondingArray(value);
             value.property.deleteValue(value);
             this._model.removeArrayItem(array, index);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction(transId);
             throw error;
         }
@@ -438,8 +453,7 @@ Controller.StudioController = class {
         let fmmlxClass = this._model.findNodeDataForKey(id);
         metaclassId = (metaclassId === "") ? null : metaclassId;
 
-        if (isAbstract && fmmlxClass.instances.size > 0) throw new Error(
-            "Can not make class abstract because it has instances.");
+        if (isAbstract && fmmlxClass.instances.size > 0) throw new Error("Can not make class abstract because it has instances.");
 
         console.log(`Editing class ${fmmlxClass.name}`);
         let transId = this._beginTransaction();
@@ -447,17 +461,12 @@ Controller.StudioController = class {
             this._model.setDataProperty(fmmlxClass, "isAbstract", Boolean(isAbstract));
             this._model.setDataProperty(fmmlxClass, "name", name);
 
-            if (externalLanguage !== fmmlxClass.externalLanguage) this._model.setDataProperty(fmmlxClass,
-                                                                                              "externalLanguage",
-                                                                                              externalLanguage);
-            if (externalMetaclass !== fmmlxClass.externalMetaclass) this._model.setDataProperty(fmmlxClass,
-                                                                                                "externalMetaclass",
-                                                                                                externalMetaclass);
+            if (externalLanguage !== fmmlxClass.externalLanguage) this._model.setDataProperty(fmmlxClass, "externalLanguage", externalLanguage);
+            if (externalMetaclass !== fmmlxClass.externalMetaclass) this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
             this.changeClassLevel(fmmlxClass, level);
             this.changeMetaclass(fmmlxClass, metaclassId);
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -506,43 +515,6 @@ Controller.StudioController = class {
             if (val !== null) this.deleteValueFromClass(fmmlxClass, val);
             this.addPropertyToClass(fmmlxClass, property);
         }
-    }
-
-    // Instance
-    /**
-     *  Constructor, receives the id of the div that's the parent for the GoJS canvas
-     * @param {string} div
-     */
-    constructor(div) {
-        if (typeof div === `undefined`) {
-            div = `canvas`;
-        }
-        go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
-        this._$ = go.GraphObject.make;
-
-        /**
-         *
-         * @type {go.Diagram | *}
-         * @private
-         */
-        this._diagram = this._$(go.Diagram, div, {
-            padding: new go.Margin(75, 5, 5, 5),
-            "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
-            model: new go.GraphLinksModel(),
-            contextMenu: this._$(go.Adornment, `Vertical`,
-                                 this._$(`ContextMenuButton`, this._$(go.TextBlock, `Add Fmmlx Class`), {
-                                     click: Controller.FormController.displayClassForm,
-                                 })),
-        });
-
-        this._model = this._diagram.model;
-
-        window.PIXELRATIO = this._diagram.computePixelRatio();
-
-        this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
-        this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
-        //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
-        this._model.nodeKeyProperty = `id`;
     }
 
 

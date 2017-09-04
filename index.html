@@ -2,23 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
     <title>FMMLx Studio</title>
+
     <link rel="stylesheet" href="css/FmmlxStudio.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="js/vendor/jquery/jquery_3.2.1.js"></script>
+    <script src="js/vendor/materialize/materialize.min.js"></script>
 
-    <!-- Uncomment before production
-    <script src="js/loader.js" type="application/javascript"></script>
-
-    <!-- delete before production> -->
-    <script src="js/vendor/bootstrap/bootstrap_3.3.7.js"></script>
-    <script src="js/vendor/bootstrap_material/bootstrap_material_0.5.10.js"></script>
-    <script src="js/vendor/bootstrap_material/ripples_0.5.10.js"></script>
-    <script src="js/vendor/selectize/selectize_0.8.5.js"></script>
-    <script src="js/vendor/filesaver/FileSaver_1.3.3.js"></script>
     <script src="js/vendor/spark-md5/spark-md5_3.0.0.js"></script>
     <script src="js/vendor/gojs/go-debug_1.7.19.js"></script>
+
     <script src="js/helpers/Set.js"></script>
     <script src="js/helpers/Helper.js"></script>
     <script src="js/controllers/StudioController.js"></script>
@@ -32,368 +26,189 @@
     <script src="js/models/FmmlxRelationshipEndpoint.js"></script>
     <script src="js/models/FmmlxAssociation.js"></script>
 
-    <script>$(function () {
-        ///
-        $.material.init();
-        Controller.FormController.init();
-        window.studio = new Controller.StudioController();
-        console.log("Take the long way home..");
-    });</script>
 
-    <!-- -->
+    <script>
+        //Modal Init
+        $(function () {
+            //Set up Modals
+            Controller.FormController.init();
+            window.studio = new Controller.StudioController();
+        });
+    </script>
 
 </head>
+
+
 <body>
-<div class="contain">
-    <div class="row body" style="position: relative;">
-        <div class="col-md-2" id="menu">
-            <div class="well well-sm">
-                <div id="file">
-                    <i class="fa fa-floppy-o" aria-hidden="true" id="save" title="Save"></i>
-                    <i class="fa fa-folder-open" aria-hidden="true" id="load" title="Load"></i>
-                    <i class="fa fa-picture-o" aria-hidden="true" id="export" title="Export as Image"></i>
-                    <input type="file" class="hidden" id="loadFile">
-                </div>
-            </div>
+<div class="mainContainer">
+    <!-- Top Menu -->
+    <nav>
+        <div class="nav-wrapper light-blue darken-4">
 
-            <div class="well">
-                <button onclick="Controller.FormController.displayClassForm(10,20);">Modal</button>
-                <img src="images/class.png" class="menu" id="entity" draggable="true"/>
-                <img src="images/relation.png" class="menu" id="relationship" draggable="true"/><br/>
-                <img src="images/inheritance.png" class="menu" id="inheritance" draggable="true"/>
-            </div>
-        </div>
-        <div class="col-lg-10 well" id="canvas">
-        </div>
-        <div class="contextMenu" id="classMenu">
-            <ul class="nav nav-pills nav-stacked">
-                <li><a href="#" id="addMember">Add Member</a></li>
-                <li><a href="#" id="abstractClass">Abstract Class</a></li>
-                <li><a href="#" id="deleteClass">Delete Class</a></li>
-                <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Relations
-                    <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" id="associate">Associate</a></li>
-                        <li><a href="#" id="inherit">Inherit</a></li>
-                    </ul>
-                </li>
+            <span class="mainTitle">FMMLx Studio</span>
+            <ul id="nav-mobile" class="right">
+                <li><a href="#"><i class="fa fa-2x fa-floppy-o"></i></a></li>
+                <li><a href="#"><i class="fa fa-folder-open fa-2x"></i></a></li>
+                <li><a href="#"><i class="fa fa-picture-o fa-2x"></i></a></li>
+                <li><a href="#"><i class="fa fa-search fa-2x"></i> </a></li>
             </ul>
         </div>
-        <div class="contextMenu" id="propertyMenu">
-            <ul class="nav nav-pills nav-stacked">
-                <li><a href="#" id="deleteProperty">Delete Member</a></li>
-                <li><a href="#" id="raiseProperty">Raise Member</a></li>
-            </ul>
-        </div>
+    </nav>
+    <!-- End Top Menu -->
 
+    <!-- Begin Canvas -->
+    <div id="canvas"></div>
+    <!-- End Canvas -->
+
+    <!-- Begin Context Menus -->
+    <div class="contextMenu highlight collection" id="classMenu">
+        <a class="collection-item" href="#" id="addMember">Add Member</a>
+        <a class="collection-item" href="#" id="abstractClass">Abstract Class</a>
+        <a class="collection-item" href="#" id="deleteClass">Delete Class</a>
+        <a class="collection-item" href="#" id="associate">Associate</a>
+        <a class="collection-item" href="#" id="inherit">Inherit</a>
     </div>
+    <div class="contextMenu" id="propertyMenu">
+        <ul class="nav nav-pills nav-stacked">
+            <li><a href="#" id="deleteProperty">Delete Member</a></li>
+            <li><a href="#" id="raiseProperty">Raise Member</a></li>
+        </ul>
+    </div>
+    <!-- End Context Menus -->
 </div>
 
 
-<div class="modal fade" id="fmmlxClassModal">
-    <div class="modal-dialog">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="modal-title">Add / Edit FMML<sup>X</sup> Class</h3>
-            </div>
-            <div class="panel-body">
-                <form id="classForm" data-toggle="validator">
-                    <input class="hidden" title="id" name="id">
-                    <input class="hidden" title="coords" name="coords">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="alert alert-warning collapse">
-                                <strong>Error!&nbsp;</strong> <span class="message">Invalid Field data</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label">Class Name</label>
-                                <input class="form-control" name="name" pattern="^[\w\.,]+$" required/>
+<!-- Floating + button to add Class -->
+<div class="fixed-action-btn" id="addClass">
+    <button class="btn-floating btn-large waves-effect waves-light red"
+            onclick="Controller.FormController.displayClassForm()">
+        <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
+</div>
 
-                                <div class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label">Level</label>
-                                <input class="form-control" name="level" pattern="^(\d+|\?)$" required/>
-                                <p class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: 0-9 ?
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-static">
-                                <div class="checkbox">
-                                    <label class="checkbox-inline">
-                                        <small>Abstract?</small>
-                                        <input value="true" type="checkbox" name="isAbstract"> </label>
-                                    <label class="checkbox-inline">
-                                        <small>External?</small>
-                                        <input class="needsExtraInfo" name="isExternal" type="checkbox" value="true"
-                                               data-show="externalLanguage, externalMetaclass"
-                                               data-hide="metaclass"></label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-static">
-                                <label class="control-label">Metaclass</label>
-                                <select class="form-control" name="metaclass">
-                                    <option value="" data-keep="true" selected>Metaclass</option>
-                                </select>
-                            </div>
-                            <div class="form-group has-feedback label-floating" style="display: none">
-                                <label class="control-label">Ext. Metaclass</label>
-                                <input class="form-control externalMetaclass" name="externalMetaclass"
-                                       pattern="^[\w\.,]+$" disabled required/>
+<!-- Add / Edit Class Modal -->
+<div id="fmmlxClassModal" class="modal bottom-sheet">
+    <div class="modal-content">
+        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup> Class</h4>
+        <form id="classForm" data-toggle="validator">
+            <input type="hidden" name="id">
+            <input type="hidden" name="coords">
+            <div class="row">
+                <div class="input-field col s5">
+                    <input type="text" id="class_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
+                    <label for="class_name"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Class
+                        Name</label>
+                </div>
+                <div class="input-field col s2">
+                    <input type="text" id="class_level" class="validate" name="level" pattern="^(\d+|\?)$" required/>
+                    <label for="class_level" data-error="Only Numbers or &quot;?&quot;">Level</label>
+                </div>
+                <div class="input-field col s5">
+                    <select id="class_metaclass" class="validate" name="metaclass">
+                        <option value="" data-keep="true" selected>Metaclass</option>
+                    </select>
+                    <label for="class_metaclass">Metaclass</label>
+                </div>
+                <div class="input-field col s5 hide">
 
-                                <div class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">&nbsp;</div>
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-floating" style="display: none">
-                                <label class="control-label">External Language</label>
-                                <input class="form-control" name="externalLanguage" disabled pattern="^[\w\.,]+$"
-                                       required/>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-
-
-            </div>
-
-            <div class="panel-footer text-right">
-                <div class="btn-group btn-group-raised">
-                    <a href="javascript:void(0)" data-dismiss="modal" class="btn btn-default">Close</a>
-                    <a href="javascript:void(0)" class="btn btn-primary">Continue</a>
+                    <input type="text" id="class_externalMetaclass" data-wrong="Only Alphanumeric or &quot;. , _&quot;"
+                           class="validate" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
+                    <label for="class_externalMetaclass">Ext. Metaclass</label>
                 </div>
             </div>
+            <div class="row">
+                <div class="col s6 center-align">
+                    <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
+                    <label for="class_isAbstract">Mark as Abstract</label> &nbsp;
+                    <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox" name="isExternal"
+                           data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass"/>
+                    <label for="class_isExternal">From External Language</label>
+                </div>
+                <div class="col s5 offset-s1">
+                    <div class="input-field hide">
+                        <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
+                               pattern="^[\w\.,]+$" required/>
+                        <label for="class_externalLanguage" data-wrong="Only Alphanumeric or &quot;. , _&quot;">External
+                            Language</label>
+                    </div>
+                </div>
 
-        </div>
+
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer">
+        <a href="#" class="modal-action waves-effect waves-green btn-flat">Proceed</a>
     </div>
 </div>
 
-<div class="modal fade" id="fmmlxAttributeModal">
-    <div class="modal-dialog">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="modal-title">Add / Edit FMML<sup>X</sup> Class Member</h3>
-            </div>
-            <div class="panel-body">
-                <form id="property">
-                    <input type="hidden" name="id">
-                    <input type="hidden" name="fmmlxClassId">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="alert alert-warning collapse">
-                                <strong>Error!&nbsp;</strong> <span class="message">Invalid Field data</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label">Attribute Name</label>
-                                <input class="form-control" name="name" pattern="^[\w\.,]+$" required/>
-                                <div class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label">Type</label>
-                                <input class="form-control" name="type" pattern="^[\w\.,]+$" required/>
-                                <div class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
-                                </div>
-                            </div>
-                            <div class="form-group has-feedback label-floating collapse">
-                                <label class="control-label">Value</label>
-                                <input class="form-control" name="value" disabled/>
-                            </div>
+<!-- End Add / Edit Class Modal -->
 
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label">Intrinsicness</label>
-                                <input class="form-control" name="intrinsicness" pattern="^(\d+|\?)$" required/>
-                                <div class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: 0-9 ? _
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 text-center">
-                            <div class="form-group has-feedback label-static">
-                                <span class="checkbox">
-                                    <label class="checkbox-inline">
-                                        <small>Operation?</small>
-                                        <input name="isOperation" class="needsExtraInfo" data-show="operationBody"
-                                               value="true" type="checkbox"/>
-                                    </label>
-                                    <label class="checkbox-inline">
-                                        <small>Obtainable?</small>
-                                        <input name="isObtainable" value="O" type="checkbox"/>
-                                    </label>
-                                    <label class="checkbox-inline">
-                                        <small>Derivable?</small>
-                                        <input name="isDerivable" value="D" type="checkbox"/>
-                                    </label>
-                                    <label class="checkbox-inline">
-                                        <small>Simulation?</small>
-                                        <input name="isSimulation" value="S" type="checkbox"/>
-                                    </label>
-                                    <label class="checkbox-inline">
-                                        <small>Value?</small>
-                                        <input name="isValue" class="needsExtraInfo" data-show="value" data-hide="type"
-                                               value="true"
-                                               type="checkbox"/>
-                                    </label>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group collapse ">
-                            <label class="col-md-2 control-label">Operation Body</label>
-                            <div class="col-md-10">
-                                <textarea disabled class="form-control" rows="3" name="operationBody"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="panel-footer text-right">
-                <div class="btn-group btn-group-raised">
-                    <a href="javascript:void(0)" data-dismiss="modal" class="btn btn-default">Close</a>
-                    <a href="javascript:void(0)" class="btn btn-primary">Continue</a>
+<!-- Add / Edit Class Member Modal -->
+
+<div id="fmmlxAttributeModal" class="modal bottom-sheet">
+    <div class="modal-content">
+        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup> Class
+            Member
+        </h4>
+        <form id="propertyForm">
+            <input type="hidden" name="id">
+            <input type="hidden" name="fmmlxClassId">
+            <div class="row">
+                <div class="input-field col s5">
+                    <input type="text" id="attribute_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
+                    <label for="attribute_name"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
+                </div>
+                <div class="input-field col s4">
+                    <input type="text" id="attribute_type" class="validate" name="type" pattern="^[\w\.,]+$" required/>
+                    <label for="attribute_type"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Type</label>
+                </div>
+                <div class="input-field col s3 hide">
+                    <input type="text" id="attribute_value" class="validate" name="value" disabled/>
+                    <label for="attribute_value">Value</label>
+                </div>
+                <div class="input-field col s3">
+                    <input type="text" id="attribute_intrinsicness" class="validate" name="intrinsicness" pattern="^(\d+|\?)$"
+                           required/>
+                    <label for="attribute_intrinsicness"
+                           data-error="Only Numbers or &quot;?&quot;">Intrinsicness</label>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="fmmlxAssociationModal">
-    <div class="modal-dialog">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="modal-title">Add FMML<sup>X</sup> Association</h3>
-            </div>
-            <div class="modal-body">
-                <form id="associationForm">
-                    <input class="hidden id">
-                    <input class="hidden coords">
-
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label" for="name">Association Name</label>
-                                <input class="form-control" id="name" pattern="^\w\.,$" required/>
-                                <p class="help-block">
-                                    <span class="label label-info">REQUIRED</span> Allowed: A-Z 0-9 . , _
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            &nbsp;
-                        </div>
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-static">
-                                <div class="checkbox">
-                                    <label class="checkbox-inline">
-                                        <small>Instance?</small>
-                                        <input id="isInstance" class="needsExtraInfo" value="true" type="checkbox"/>
-                                    </label>
-                                    <label class="checkbox-inline">
-                                        <small>Refinment?</small>
-                                        <input id="isRefinement" class="needsExtraInfo" value="true"
-                                               type="checkbox"/>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-static">
-                                <label class="control-label" for="source">Source</label>
-                                <select class="form-control" id="source">
-                                    <option value="" selected>Select</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-1">&nbsp;</div>
-                        <div class="col-md-3">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label" for="cardinality0">Cardinality</label>
-                                <input pattern="[\d+|\*],[\d+|\*]" id="cardinality0" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label" for="intrinsicness0">Intrinsicness</label>
-                                <input class="form-control" id="intrinsicness0" pattern="^\d|\?$" required/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-static">
-                                <label class="control-label" for="target">Target</label>
-                                <select class="form-control" id="target">
-                                    <option value="" selected>Select</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-1">&nbsp;</div>
-                        <div class="col-md-3">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label" for="cardinality1">Cardinality</label>
-                                <input pattern="[\d+|\*],[\d+|\*]" id="cardinality1" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group has-feedback label-floating">
-                                <label class="control-label" for="intrinsicness1">Intrinsicness</label>
-                                <input class="form-control" id="intrinsicness1" pattern="^\d|\?$" required/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group has-feedback label-static">
-                                <label class="control-label" for="reference">Meta- / Primitive Association</label>
-                                <select class="form-control" id="reference">
-                                    <option value="" selected>Select</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="panel-footer text-right">
-                <div class="btn-group btn-group-raised">
-                    <a href="javascript:void(0)" data-dismiss="modal" class="btn btn-default">Close</a>
-                    <a href="javascript:void(0)" class="btn btn-primary"
-                       onclick="Controller.FormController.addEditFmmlxClass();">Continue</a>
+            <div class="row">
+                <div class="col s6 offset-s3 center-align">
+                    <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo"
+                           data-show="attribute_operationBody" value="true" type="checkbox"/>
+                    <label for="attribute_isOperation">Is Operation?</label>&nbsp;
+                    <span class="horizontal-separator"></span><input id="attribute_isValue" name="isValue" class="needsExtraInfo"
+                                                                     data-show="attribute_value"
+                                                                     data-hide="attribute_intrinsicness" value="true" type="checkbox"/>
+                    <label for="attribute_isValue">Is Value?</label> &nbsp;
+                    <span class="horizontal-separator"></span><<input id="attribute_isObtainable" name="isObtainable" value="O" type="checkbox"/>
+                    <label for="attribute_isObtainable">Is Obtainable?</label> &nbsp;
+                    <span class="horizontal-separator"></span><<input id="attribute_isDerivable" name="isDerivable" value="D" type="checkbox"/>
+                    <label for="attribute_isDerivable">Is Derivable?</label>&nbsp;
+                    <span class="horizontal-separator"></span><
+                    <input id="attribute_isSimulation" name="isSimulation" value="S" type="checkbox"/>
+                    <label for="attribute_isSimulation">Is Simulation?</label>
                 </div>
             </div>
-        </div>
+            <div class="row">
+                <div class="col s8 offset-s2 input-field hide">
+                    <textarea id="attribute_operationBody" disabled name="operationBody"></textarea>
+                    <label for="attribute_operationBody">Operation Body</label>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="modal-action waves-effect waves-green btn-flat">Agree</a>
     </div>
 </div>
+<!-- End Add / Edit Class Member Modal -->
+
+
 </body>
 </html>
