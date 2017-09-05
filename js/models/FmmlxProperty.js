@@ -66,7 +66,7 @@ Model.FmmlxProperty = class {
      * @param {String} type
      * @param {Number|NaN} intrinsicness
      * @param {Boolean} isOperation
-     * @param {Model.FmmlxBehaviors[]} behaviors
+     * @param {String[]} behaviors
      * @param {String} operationBody
      */
     constructor(name, type, intrinsicness, isOperation, behaviors = [], operationBody = null) {

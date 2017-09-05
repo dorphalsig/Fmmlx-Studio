@@ -33,6 +33,8 @@
             //Set up Modals
             Controller.FormController.init();
             window.studio = new Controller.StudioController();
+            $(document)
+                .keydown((event) => ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "i") ? Controller.FormController.displayClassForm() : true)
         });
     </script>
 
@@ -79,8 +81,8 @@
 
 
 <!-- Floating + button to add Class -->
-<div class="fixed-action-btn" id="addClass">
-    <button class="btn-floating btn-large waves-effect waves-light red" onclick="Controller.FormController.displayClassForm();">
+<div class="fixed-action-btn">
+    <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse" onclick="Controller.FormController.displayClassForm();">
         <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
 </div>
 

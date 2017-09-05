@@ -32,6 +32,12 @@ FmmlxShapes.FmmlxClass = class {
         }));
     }
 
+    static get shape() {
+        return gMake(go.Node, "Spot", {
+            doubleClick: Controller.FormController.displayClassForm, contextClick: Controller.FormController.displayContextMenu,
+        }, new go.Binding("location", "location", go.Point.parse), this._mainBlock, this._externalLanguageBlock);
+    }
+
     static genericBlock(collectionName) {
         return gMake(go.Panel, "Auto", {
             stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20),
@@ -114,11 +120,5 @@ FmmlxShapes.FmmlxClass = class {
     static getName(fmmlxClass) {
         return `^${fmmlxClass.metaclassName.toUpperCase()}^ \n${fmmlxClass.name}`;
     };
-
-    static get shape() {
-        return gMake(go.Node, "Spot", {
-            contextClick: Controller.FormController.showHideContextMenu, doubleClick: Controller.FormController.displayClassForm,
-        }, new go.Binding("location", "location", go.Point.parse), this._mainBlock, this._externalLanguageBlock);
-    }
 
 };

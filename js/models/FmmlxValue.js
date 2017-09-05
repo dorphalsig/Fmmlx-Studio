@@ -9,6 +9,32 @@ if (typeof Model === "undefined") window.Model = {};
  */
 Model.FmmlxValue = class {
 
+    // Instance
+    /**
+     * Returns a Proxy object that handles the value, the class and the property transparently
+     * @param {Model.FmmlxProperty} property
+     * @param {*} value
+     * @param {Model.FmmlxClass} fmmlxClass
+     */
+    constructor(property, value, fmmlxClass = null) {
+
+        this.value = value;
+        this.class = fmmlxClass;
+        this.id = Helper.Helper.uuid4();
+
+        /* Object.defineProperties(this, {
+         'value': {
+         configurable: true, writable: true, enumerable: true, value: value
+         }, 'class': {
+         configurable: true, writable: true, enumerable: true, value: fmmlxClass
+         }, 'id': {
+         configurable: true, writable: true, enumerable: true, value: Helper.Helper.uuid4()
+         }
+         });*/
+
+        return new Proxy(property, this);
+    }
+
     /**
      *
      * @param {Model.FmmlxValue} obj
@@ -57,6 +83,19 @@ Model.FmmlxValue = class {
         }
     }
 
+    getOwnPropertyDescriptor(obj, prop) {
+        console.log(obj.constructor);
+        return {
+            enumerable: true, configurable: true,
+        };
+    }
+
+    /* ownKeys(target) {
+     debugger;
+     // return Object.keys(target).concat(Object.keys(this))
+     return ;
+     }*/
+
     set(target, name, val) {
         switch (name) {
             case "class":
@@ -73,19 +112,7 @@ Model.FmmlxValue = class {
         return true;
     }
 
-    // Instance
-    /**
-     * Returns a Proxy object that handles the value, the class and the property transparently
-     * @param {Model.FmmlxProperty} property
-     * @param {*} value
-     * @param {Model.FmmlxClass} fmmlxClass
-     */
-    constructor(property, value, fmmlxClass = null) {
-        this.value = value;
-        this.class = fmmlxClass;
-        this.id = Helper.Helper.uuid4();
-        return new Proxy(property, this);
-    }
+
 };
 
 
