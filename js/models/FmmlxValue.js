@@ -41,8 +41,7 @@ Model.FmmlxValue = class {
      * @param property {Model.FmmlxProperty}
      */
     equals(obj) {
-        return this.class === obj.class && this.property.equals(obj.property);
-
+        return this.class.equals(obj.class) && this.property.equals(obj.property);
     }
 
     get(target, name) {

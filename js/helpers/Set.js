@@ -1,5 +1,7 @@
 "use strict";
-if (typeof Helper === "undefined") window.Helper = {};
+if (typeof Helper === "undefined") {
+    window.Helper = {};
+}
 
 /**
  *
@@ -16,20 +18,24 @@ Helper.Set = class extends Array {
      * @param value
      */
     add(value) {
-        if (!this.has(value))
+        if (!this.has(value)) {
             super.push(value);
+        }
         return this;
     }
 
-    delete(value) {
-        let pos = this.findIndex(value);
-        this._array.slice(pos, 1);
-    }
-
+    /**
+     *
+     * @param value
+     * @return {*|number}
+     */
     findIndex(value) {
-        return super.findIndex(item => {
-            return (typeof value.equals !== "undefined" && typeof value.equals === "function" && value.equals(item) ) || (value === item);
+        let v = super.findIndex(item => {
+            if (item !== null) {
+                return (value === item || (typeof value.equals !== "undefined" && typeof value.equals === "function" && value.equals(item)) );
+            }
         });
+        return v;
     }
 
     has(value) {
@@ -40,8 +46,16 @@ Helper.Set = class extends Array {
         add(value);
     }
 
+    remove(value) {
+        let pos = this.findIndex(value);
+        if (pos === -1) {
+            return false;
+        }
+        this.splice(pos, 1);
+        return true;
+    }
+
     toArray() {
         return Array.from(this);
     }
-}
-;
+};

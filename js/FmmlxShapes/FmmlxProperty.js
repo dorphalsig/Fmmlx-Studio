@@ -33,7 +33,7 @@ FmmlxShapes.FmmlxProperty = class {
         });
 
         return gMake(go.Panel, "Auto", {
-            stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20), name: "member", alignment: go.Spot.Left, contextClick: Controller.FormController.displayContextMenu, doubleClick: Controller.FormController.displayPropertyForm,
+            stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20), name: "member", alignment: go.Spot.Left, contextClick: Controller.FormController.displayContextMenu, doubleClick: Controller.FormController.displayMemberForm,
         }, gMake(go.Panel, "Horizontal", {
             name: "FMMLxProperty", minSize: new go.Size(100, 20), padding: new go.Margin(0, 2, 2, 2),
 

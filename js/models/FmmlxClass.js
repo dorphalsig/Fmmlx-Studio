@@ -1,145 +1,12 @@
 "use strict";
-if (typeof Model === "undefined") window, Model = {};
+if (typeof Model === "undefined") {
+    window.Model = {};
+}
 /**
  *
  * @type {Model.FmmlxClass}
  */
 Model.FmmlxClass = class {
-    /**
-     *
-     * @param {Model.FmmlxRelationEndpoint} endpoint
-     */
-    addEndpoint(endpoint) {
-        this._endpoints.add(endpoint);
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} instance
-     */
-    addInstance(instance) {
-        this._instances.add(instance);
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} subclass
-     */
-    addSubclass(subclass) {
-        this._subclasses.add(subclass);
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} subclass
-     */
-    deleteSubclass(subclass) {
-        this._subclasses.delete(subclass);
-    }
-
-    /**
-     * For object comparison. Determines an unique identifier based on the content of the obj
-     * @returns {boolean}
-     */
-    equals(obj) {
-        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
-
-        if (this.isExternal) val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        else if (typeof this.metaclass !== "undefined") val = val && this.metaclass.id === obj.metaclass.id;
-
-        return val;
-    }
-
-    /**
-     *  returns the appropriate array for a property or value. Ie. if its an attribute returns a ref to the attribute array.
-     * @param {Model.FmmlxProperty|Model.FmmlxValue} propOrValue
-     * @return
-     */
-    findCorrespondingArray(propOrValue) {
-        if (propOrValue.constructor === Model.FmmlxProperty) return (propOrValue.isOperation) ? this.operations : this.attributes;
-        return (propOrValue.property.isOperation) ? this.operationValues : this.slotValues;
-    }
-
-    /**
-     * returns the corresponding index of an Attribute or Operation, or null if not found
-     * @param property
-     * @return {null|number}
-     */
-    findIndexForProperty(property) {
-        let array = this.findCorrespondingArray(property);
-        if (this.__foundPropIndex === null || !array[this.__foundPropIndex].equals(property)) {
-            this.hasPropertyOrValue(property);
-        }
-        return this.__foundPropIndex;
-    }
-
-    /**
-     * returns the corresponding index of an Attribute or Operation, or null if not found
-     * @param value
-     * @return {null|number}
-     */
-    findIndexForValue(value) {
-        let array = this.findCorrespondingArray(value);
-        if (this.__foundValIndex === null || !array[this.__foundValIndex].equals(value)) {
-            this.hasPropertyOrValue(value);
-        }
-        return this.__foundValIndex;
-    }
-
-    /**
-     * Finds the respective <Value> for <Property> if it exists. Returns null otherwise
-     * @param {Model.FmmlxProperty} property
-     * @return {null|Model.FmmlxValue}
-     */
-    findValueFromProperty(property) {
-        let propertyCollection;
-
-        if (property.isOperation) {
-            propertyCollection = this.operationValues;
-        }
-        else propertyCollection = this.slotValues;
-
-        let index = propertyCollection.findIndex(value => value.property.equals(property));
-
-        this.__foundValIndex = (index === -1) ? null : index;
-        return (index === -1) ? null : propertyCollection[index];
-    }
-
-    /**
-     * Determines if a Property or its corresponding value exist
-     * @param {Model.FmmlxProperty} propOrValue
-     * @returns {boolean}
-     */
-    hasPropertyOrValue(propOrValue) {
-        let correspondingArray = this.findCorrespondingArray(propOrValue);
-        let index = correspondingArray.findIndex(item => {
-            return propOrValue.equals(item);
-        });
-
-        this.__foundPropIndex = (index === -1) ? null : index;
-        if (index !== -1) return true;
-
-        if (propOrValue.constructor === Model.FmmlxProperty) return this.findValueFromProperty(propOrValue) !== null;
-
-        return false;
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxRelationEndpoint} endpoint
-     */
-    removeEndpoint(endpoint) {
-        this._endpoints.remove(endpoint);
-    }
-
-    /**
-     *
-     * @param {Model.FmmlxClass} instance
-     */
-    removeInstance(instance) {
-        this._instances.remove(instance);
-    }
-
     // Instance
     /**
      * Constructor
@@ -203,16 +70,16 @@ Model.FmmlxClass = class {
          * @type String
          */
         /* Object.defineProperty(this, 'id', {
-             configurable: true, enumerable: true, get: function () {
-                 let id = {
-                     name: this.name,
-                     level: this.level,
-                     externalLanguage: (this.isExternal) ? this.externalLanguage : "",
-                     metaclass: (this.isExternal) ? this.externalMetaclass : this.metaclass
-                 };
-                 return SparkMD5.hash(JSON.stringify(id), false);
+         configurable: true, enumerable: true, get: function () {
+         let id = {
+         name: this.name,
+         level: this.level,
+         externalLanguage: (this.isExternal) ? this.externalLanguage : "",
+         metaclass: (this.isExternal) ? this.externalMetaclass : this.metaclass
+         };
+         return SparkMD5.hash(JSON.stringify(id), false);
 
-             }
+         }
          });*/
 
 
@@ -262,10 +129,26 @@ Model.FmmlxClass = class {
         this._subclasses = new Helper.Set();
         this.superclass = null;
         this.name = name;
-        this.attributes = [];
         this.lastChangeId = "";
+        /**
+         *
+         * @type {Model.FmmlxProperty[]}
+         */
+        this.attributes = [];
+        /**
+         *
+         * @type {Model.FmmlxProperty[]}
+         */
         this.operations = [];
+        /**
+         *
+         * @type {Model.FmmlxValue[]}
+         */
         this.slotValues = [];
+        /**
+         *
+         * @type {Model.FmmlxValue[]}
+         */
         this.operationValues = [];
         this._endpoints = new Helper.Set();
         this.tags = [];
@@ -273,8 +156,168 @@ Model.FmmlxClass = class {
         this.externalMetaclass = externalMetaclass;
         this.level = level;
         this.isAbstract = isAbstract;
-        this.id = Helper.Helper.uuid4();
+        let d = new Date(Date.now());
+        this.id = `${this.name} - ${d.getHours()}:${d.getMinutes()}.${d.getSeconds()}`;//Helper.Helper.uuid4();
 
     };
+
+    /**
+     *
+     * @param {Model.FmmlxRelationEndpoint} endpoint
+     */
+    addEndpoint(endpoint) {
+        this._endpoints.add(endpoint);
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxClass} instance
+     */
+    addInstance(instance) {
+        this._instances.add(instance);
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxClass} subclass
+     */
+    addSubclass(subclass) {
+        this._subclasses.add(subclass);
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxClass} subclass
+     */
+    deleteSubclass(subclass) {
+        this._subclasses.remove(subclass);
+    }
+
+    /**
+     * For object comparison. Determines an unique identifier based on the content of the obj
+     * @returns {boolean}
+     */
+    equals(obj) {
+        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
+
+        if (this.isExternal) {
+            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
+        }
+        else if (typeof this.metaclass !== "undefined") {
+            val = val && this.metaclass.id === obj.metaclass.id;
+        }
+
+        return val;
+    }
+
+    /**
+     *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
+     *  if returnName is true, returns the name as a String.
+     * @param {Model.FmmlxProperty|Model.FmmlxValue} member
+     * @param {Boolean} returnName
+     * @return {Model.FmmlxProperty[]|Model.FmmlxValue|String}
+     */
+    findCorrespondingArray(member, returnName = false) {
+        if (member.constructor === Model.FmmlxProperty) {
+            if (member.isOperation) {
+                return (returnName) ? "operations" : this.operations;
+            }
+            else {
+                return (returnName) ? "attributes" : this.attributes;
+            }
+        }
+        if (member.isOperation) {
+            return (returnName) ? "operationValues" : this.operationValues;
+        }
+        else {
+            return (returnName) ? "slotValues" : this.slotValues;
+        }
+    }
+
+    /**
+     * returns the corresponding index of an Attribute or Operation, or null if not found
+     * @param property
+     * @return {null|number}
+     */
+    findIndexForMember(property) {
+        let array = this.findCorrespondingArray(property);
+        let index = array.findIndex(item => item.equals(property));
+        return index !== -1 ? index : null;
+    }
+
+    /**
+     * returns the corresponding index of an Attribute or Operation, or null if not found
+     * @param value
+     * @return {null|number}
+     */
+    findIndexForValue(value) {
+        let array = this.findCorrespondingArray(value);
+        let index = array.findIndex(item => item.equals(value));
+        return index !== -1 ? index : null;
+    }
+
+    /**
+     * Returns the attribute/operation/*value with the specified id
+     * @param memberId
+     * @return {Model.FmmlxProperty|Model.FmmlxValue}
+     */
+    findMemberById(memberId) {
+        let members = this.attributes.concat(this.operations).concat(this.slotValues).concat(this.operationValues);
+        return members.filter(member => member.id === memberId)[0];
+    }
+
+    /**
+     * Finds the respective <Value> for <Member> if it exists. Returns null otherwise
+     * @param {Model.FmmlxProperty} property
+     * @return {null|Model.FmmlxValue}
+     */
+    findValueFromProperty(property) {
+
+        let propertyCollection = this.slotValues;
+
+        if (property.isOperation) {
+            propertyCollection = this.operationValues;
+        }
+
+        let index = propertyCollection.findIndex(val => val.property.equals(property));
+        return (index === -1) ? null : propertyCollection[index];
+    }
+
+    /**
+     * Determines if a Member or its corresponding value exist
+     * @param {Model.FmmlxProperty} member
+     * @returns {boolean}
+     */
+    hasMember(member) {
+        let correspondingArray = this.findCorrespondingArray(member);
+        let index = correspondingArray.findIndex(item => {
+            return member.equals(item);
+        });
+        if (index !== -1) {
+            return true;
+        }
+
+        if (member.constructor === Model.FmmlxProperty) {
+            return this.findValueFromProperty(member) !== null;
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxRelationEndpoint} endpoint
+     */
+    removeEndpoint(endpoint) {
+        this._endpoints.remove(endpoint);
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxClass} instance
+     */
+    removeInstance(instance) {
+        this._instances.remove(instance);
+    }
 
 };

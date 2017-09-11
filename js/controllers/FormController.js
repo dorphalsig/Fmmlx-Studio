@@ -1,6 +1,8 @@
 "use strict";
 
-if (typeof Controller === "undefined") window.Controller = {};
+if (typeof Controller === "undefined") {
+    window.Controller = {};
+}
 
 Controller.FormController = class {
 
@@ -27,12 +29,16 @@ Controller.FormController = class {
             field = $(field);
             let fieldName = field.prop("name");
             let value = data[fieldName];
-            if (typeof value === "undefined") continue;
-            if (field.prop("type") === "checkbox" && field.val() === value.toString()) {
-                field.click();
-                field.change();
+            if (typeof value === "undefined") {
+                continue;
             }
-            else if (field.prop("type") !== "checkbox") {
+            if (field.prop("type") === "checkbox") {
+                if (field.val() === value.toString()) {
+                    field.click();
+                    field.change();
+                }
+            }
+            else {
                 field.val(value);
                 field.click();
                 field.change();
@@ -47,18 +53,9 @@ Controller.FormController = class {
      * @private
      */
     static __fillSelect(select, options) {
-        /**
-         *
-         * @type {HTMLSelectElement}
-         */
-        select = select[0];
-        for (let opt of select.options) {
-            if (typeof $(opt).data("keep") === "undefined") select.remove(opt);
-        }
-        for (let option of options) {
-            select.add(option);
-        }
-        $(select).material_select();
+        select.find(":not([data-keep=true])").remove();
+        select.append(options);
+        select.material_select();
     }
 
     /**
@@ -83,8 +80,12 @@ Controller.FormController = class {
         for (let field of fields) {
             /*rfield = $(field)*/
             let name = field.name;
-            if (name !== "") fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
-            else fieldData[`${name}`] = field.value;
+            if (name !== "") {
+                fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
+            }
+            else {
+                fieldData[`${name}`] = field.value;
+            }
         }
         return fieldData;
     }
@@ -143,41 +144,54 @@ Controller.FormController = class {
                 studio.addFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass.toString(), formVals.externalLanguage, formVals.externalMetaclass);
                 Materialize.toast("Click on the canvas to insert the class", 4000);
             }
-            else studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
+            else {
+                studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
+            }
 
-        } catch (error) {
+        }
+        catch (error) {
             let submitBtn = modal.find(".btn-flat");
             submitBtn.one("click", self.addEditFmmlxClass);
-            modal.one('keydown', (e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+            modal.find(':input').keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
             self.__error(error);
             return;
         }
         modal.modal("close");
     }
 
-    static addEditFmmlxProperty() {
+    static addEditFmmlxClassMember() {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
         const form = modal.find("form");
-        if (!form[0].checkValidity()) {
-            form.find(":invalid").closest(".form-group").addClass("has-error");
-            self.__error(new Error("Invalid input. Check the highlighted fields and try again."));
-            return false;
-        }
         try {
+            if (!form[0].checkValidity()) {
+                throw new Error("Invalid input. Check the highlighted fields and try again.");
+            }
+
             let formVals = self.__readForm(form);
             formVals.behaviors = [];
 
-            if (formVals.isObtainable.length > 0) formVals.behaviors.push(formVals.isObtainable);
-            if (formVals.isDerivable.length > 0) formVals.behaviors.push(formVals.isDerivable);
-            if (formVals.isSimulation.length > 0) formVals.behaviors.push(formVals.isSimulation);
+            if (formVals.isObtainable.length > 0) {
+                formVals.behaviors.push(formVals.isObtainable);
+            }
+            if (formVals.isDerivable.length > 0) {
+                formVals.behaviors.push(formVals.isDerivable);
+            }
+            if (formVals.isSimulation.length > 0) {
+                formVals.behaviors.push(formVals.isSimulation);
+            }
 
-            if (formVals.id === "") studio.createMember(formVals.fmmlxClassId.toString(), formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.behaviors, formVals.isValue, formVals.value, formVals.operationBody);
-            else alert("ToDo xD");
-        } catch (error) {
+            if (formVals.id === "") {
+                studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.behaviors, formVals.isValue, formVals.value, formVals.operationBody);
+            }
+            else {
+                studio.editMember(formVals.fmmlxClassId, formVals.id, formVals.name, formVals.type, formVals.intrinsicness, formVals.behaviors, formVals.value, formVals.operationBody);
+            }
+        }
+        catch (error) {
             let submitBtn = modal.find(".btn-flat");
-            submitBtn.one("click", self.addEditFmmlxClass);
-            modal.one('keydown', (e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+            submitBtn.one("click", self.addEditFmmlxClassMember);
+            modal.find(":input").one('keydown', (e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
             self.__error(error);
             return;
         }
@@ -202,26 +216,34 @@ Controller.FormController = class {
         const modal = $("#fmmlxClassModal");
         const self = Controller.FormController;
 
-        $("#addClass").removeClass('pulse');
-
         modal.find("form").replaceWith(window._classForm.clone());
         self.__setupExtraDataFields(modal);
-        let submitBtn = modal.find(".btn-flat");
-        submitBtn.one("click", self.addEditFmmlxClass);
-        modal.one('keydown', (e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
 
 
         $("#class_level").change(function (event) {
             let metaClassSelect = $("#class_metaclass");
             if (!metaClassSelect.prop("disabled")) {
                 let level = event.target.value;
-                let options = studio.getClassesbyLevel(level)
-                    .map(fmmlxClass => new Option(fmmlxClass.name, fmmlxClass.id));
+                let options = [];
+                for (let fmmlxClass of studio.getClassesByLevel(level)) {
+                    if (fmmlxClass.id !== modal.find(`[name=id]`).val()) {
+                        options.push(new Option(fmmlxClass.name, fmmlxClass.id))
+                    }
+                }
                 self.__fillSelect(metaClassSelect, options);
             }
         });
 
-        if (obj !== null && obj.data !== null) self.__fillForm(modal, obj.data);
+        if (obj !== null && obj.data !== null) {
+            self.__fillForm(modal, obj.data);
+        }
+
+        $("#addClass").removeClass('pulse');
+        let submitBtn = modal.find(".btn-flat");
+        submitBtn.off("click", self.addEditFmmlxClass).one("click", self.addEditFmmlxClass);
+        modal.find(':input')
+            .remove("keydown")
+            .keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
         modal.modal("open");
     }
 
@@ -240,11 +262,15 @@ Controller.FormController = class {
                 $("#associate").one("click", () => self.displayAssociationForm(inputEvent, target));
                 $("#deleteClass").one("click", () => self.deleteProperty(target));
                 $("#abstractClass").one("click", () => self.abstractClass(target));
-                $("#addMember").one("click", () => self.displayPropertyForm(inputEvent, target));
+                $("#addMember").one("click", () => self.displayMemberForm(inputEvent, target));
                 break;
 
             case Model.FmmlxProperty:
                 menu = $("#propertyMenu");
+                break;
+
+            default:
+                return;
                 break;
         }
         let width = menu.css("width");
@@ -264,14 +290,11 @@ Controller.FormController = class {
         alert("You want me to do WHAT?");
     }
 
-    static displayPropertyForm(event, obj) {
+    static displayMemberForm(event, obj) {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
         modal.find("form").replaceWith(window._propertyForm.clone());
         self.__setupExtraDataFields(modal);
-        let submitBtn = modal.find(".btn-flat");
-        submitBtn.one("click", self.addEditFmmlxProperty);
-        modal.one('keydown', (e) => (e.key.toLowerCase() === "enter") ? submitBtn.click() : true);
 
         let opBodyManager = function () {
             let opBody = modal.find("[name=operationBody]");
@@ -282,11 +305,12 @@ Controller.FormController = class {
         $("[name=isOperation]").change(opBodyManager);
         modal.find("[name=isValue]").change(opBodyManager);
 
-        if (obj.data.constructor === Model.FmmlxClass) { /*new property,it was righht click on  the Class*/
+        if (obj.data.constructor === Model.FmmlxClass) { /*new property,it was right click on  the Class*/
             modal.find("[name=fmmlxClassId]").val(obj.data.id);
             /* id of the Fmmlx Class that will hold the property+*/
         }
         else {
+
             obj.data.behaviors.forEach((behavior) => {
                 switch (behavior) {
                     case "O":
@@ -300,13 +324,21 @@ Controller.FormController = class {
                         break;
                 }
             });
-            /*delete obj.data.behaviors;*/
+            obj.data.fmmlxClassId = obj.part.data.id;
+
             self.__fillForm(modal, obj.data);
+            $("#attribute_isValue").click(() => false);
+            $("#attribute_isOperation").click(() => false);
             delete obj.data.isObtainable;
             delete obj.data.isDerivable;
             delete obj.data.isSimulation;
+            delete obj.data.fmmlxClassId;
         }
-        modal.find(".btn-primary").one("click", self.addEditFmmlxProperty);
+        let submitBtn = modal.find(".btn-flat");
+        submitBtn.off("click", self.addEditFmmlxClassMember).one("click", self.addEditFmmlxClassMember);
+        modal.find(':input')
+            .remove("keydown")
+            .keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
         modal.modal("open");
         event.handled = true;
     }
