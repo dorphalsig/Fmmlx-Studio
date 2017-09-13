@@ -18,8 +18,12 @@ Helper.Set = class extends Array {
      * @param value
      */
     add(value) {
-        if (!this.has(value)) {
+        let index = this.findIndex(value);
+        if (index === -1) {
             super.push(value);
+        }
+        else {
+            this[index] = value;
         }
         return this;
     }

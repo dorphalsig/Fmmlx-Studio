@@ -45,7 +45,7 @@ Model.FmmlxProperty = class {
 
     set intrinsicness(val) {
         let numberVal = Number.parseInt(val);
-        if (val === "?" && this.maxIntrinsicness !== "?" || isNaN(numberVal) || numberVal > Number.parseInt(this.maxIntrinsicness)) {
+        if ((val !== "?" && isNaN(numberVal)) || numberVal > Number.parseInt(this.maxIntrinsicness)) {
             throw new Error(`Invalid intrinsicness ${val} for property ${this.name}`);
         }
         this._intrinsicness = (val === "?") ? "?" : numberVal;
@@ -82,11 +82,12 @@ Model.FmmlxProperty = class {
 
     /**
      * Creates an FmmlxValue
-     * @param value
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {String} value
      * @return {Model.FmmlxValue}
      */
-    createValue(value = null) {
-        let valObj = new Model.FmmlxValue(this, value);
+    createValue(fmmlxClass, value = null) {
+        let valObj = new Model.FmmlxValue(this, value, fmmlxClass);
         this.values.add(valObj);
         return valObj;
     }
@@ -109,7 +110,6 @@ Model.FmmlxProperty = class {
     }
 
     equals(obj) {
-
         return this.constructor === Model.FmmlxProperty && this.name === obj.name && this.intrinsicness === obj.intrinsicness;
     }
 };

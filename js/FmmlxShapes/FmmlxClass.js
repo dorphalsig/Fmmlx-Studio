@@ -1,7 +1,11 @@
 "use strict";
 
-if (typeof FmmlxShapes === "undefined") window.FmmlxShapes = {};
-if (typeof gMake === "undefined") window.gMake = go.GraphObject.make;
+if (typeof FmmlxShapes === "undefined") {
+    window.FmmlxShapes = {};
+}
+if (typeof gMake === "undefined") {
+    window.gMake = go.GraphObject.make;
+}
 
 //FmmlxShapes.FmmlxClass = {};
 
@@ -105,7 +109,9 @@ FmmlxShapes.FmmlxClass = class {
      */
     static getFontStyle(isAbstract) {
         let font = `15px 'Cormorant', serif`;
-        if (isAbstract) font = `Italic ${font}`;
+        if (isAbstract) {
+            font = `Italic ${font}`;
+        }
         return font;
     };
 

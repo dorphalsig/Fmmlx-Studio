@@ -13,25 +13,14 @@ Model.FmmlxValue = class {
     /**
      * Returns a Proxy object that handles the value, the class and the property transparently
      * @param {Model.FmmlxProperty} property
-     * @param {*} value
+     * @param {String} value
      * @param {Model.FmmlxClass} fmmlxClass
      */
-    constructor(property, value, fmmlxClass = null) {
+    constructor(property, value, fmmlxClass) {
 
         this.value = value;
         this.class = fmmlxClass;
         this.id = Helper.Helper.uuid4();
-
-        /* Object.defineProperties(this, {
-         'value': {
-         configurable: true, writable: true, enumerable: true, value: value
-         }, 'class': {
-         configurable: true, writable: true, enumerable: true, value: fmmlxClass
-         }, 'id': {
-         configurable: true, writable: true, enumerable: true, value: Helper.Helper.uuid4()
-         }
-         });*/
-
         return new Proxy(property, this);
     }
 

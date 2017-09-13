@@ -37,7 +37,6 @@ Model.FmmlxClass = class {
         /**
          * @type Helper.Set
          */
-
         Object.defineProperty(this, "instances", {
             configurable: true, enumerable: true, get: function () {
                 return this._instances;
@@ -203,7 +202,7 @@ Model.FmmlxClass = class {
         if (this.isExternal) {
             val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
         }
-        else if (typeof this.metaclass !== "undefined") {
+        else if (typeof this.metaclass !== null) {
             val = val && this.metaclass.id === obj.metaclass.id;
         }
 
