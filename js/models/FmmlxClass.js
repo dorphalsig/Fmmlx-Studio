@@ -27,10 +27,14 @@ Model.FmmlxClass = class {
             }, set: function (level) {
                 if (level !== "?") {
                     let parsedLevel = Number.parseInt(level);
-                    if (isNaN(parsedLevel)) throw new Error(`Erroneous level ${level} for class ${this.name}`);
+                    if (isNaN(parsedLevel)) {
+                        throw new Error(`Erroneous level ${level} for class ${this.name}`);
+                    }
                     this._level = parsedLevel;
                 }
-                else this._level = "?";
+                else {
+                    this._level = "?";
+                }
             },
         });
 
@@ -159,6 +163,18 @@ Model.FmmlxClass = class {
         this.id = `${this.name} - ${d.getHours()}:${d.getMinutes()}.${d.getSeconds()}`;//Helper.Helper.uuid4();
 
     };
+
+    get memberValues() {
+        return this.slotValues.concat(this.operationValues);
+    }
+
+    /**
+     *
+     * @return {Array.<Model.FmmlxProperty>}
+     */
+    get members() {
+        return this.attributes.concat(this.operations);
+    }
 
     /**
      *
@@ -317,6 +333,36 @@ Model.FmmlxClass = class {
      */
     removeInstance(instance) {
         this._instances.remove(instance);
+    }
+
+
+    stringify() {
+        /**
+         *
+         * @type {Model.FmmlxClass}
+         */
+        let clone = Object.assign({}, this);
+        clone.metaclass = (this._metaclass !== null) ? this._metaclass.id : null;
+        clone.superclass = (this.superclass !== null) ? this.superclass.id : null;
+        clone.subclasses = [];
+        clone.instances = [];
+        clone.attributes = [];
+        clone.operations = [];
+        clone.slotValues = [];
+        clone.operationValues = [];
+        for (let subclass of this._subclasses) {
+            clone.subclasses.push(subclass.id);
+        }
+        for (let instance of this._instances) {
+            clone.instances.push(instance.id);
+        }
+        for (let member of this.members) {
+            clone[(member.isOperation) ? "operations" : "attributes"].push(member.stringify());
+        }
+        for (let value of this.memberValues) {
+            clone[(value.isOperation) ? "slotValues" : "operationValues"].push(member.stringify());
+        }
+        return JSON.stringify(clone);
     }
 
 };

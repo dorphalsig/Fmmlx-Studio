@@ -28,6 +28,19 @@ Helper.Set = class extends Array {
         return this;
     }
 
+    intersection(setB) {
+        let intersection = new Set();
+        for (let elem of setB) {
+            if (this.has(elem)) {
+                intersection.add(elem);
+            }
+        }
+        return intersection;
+    }
+
+
+
+
     /**
      *
      * @param value

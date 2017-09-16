@@ -123,8 +123,16 @@ Controller.FormController = class {
         field.closest(".input-field").removeClass("hide");
     }
 
-    static abstractClass(obj) {
-        alert("This is not a feature, its a bug!");
+    static abstractClass() {
+        let self = Controller.FormController;
+        try {
+            studio.abstractClasses();
+            Materialize.toast("Click on the canvas to insert the class", 4000);
+
+        }
+        catch (e) {
+            self.__error(e);
+        }
     }
 
     static addEditFmmlxClass() {
@@ -154,7 +162,7 @@ Controller.FormController = class {
             submitBtn.one("click", self.addEditFmmlxClass);
             modal.find(':input').keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
             self.__error(error);
-            return;
+            return false;
         }
         modal.modal("close");
     }
@@ -258,11 +266,11 @@ Controller.FormController = class {
         switch (target.data.constructor) {
             case Model.FmmlxClass:
                 menu = $("#classMenu");
-                $("#inherit").one("click", () => self.displayInheritanceForm(inputEvent, target));
-                $("#associate").one("click", () => self.displayAssociationForm(inputEvent, target));
-                $("#deleteClass").one("click", () => self.deleteProperty(target));
-                $("#abstractClass").one("click", () => self.abstractClass(target));
-                $("#addMember").one("click", () => self.displayMemberForm(inputEvent, target));
+                $("#inherit").off("click").one("click", () => self.displayInheritanceForm(inputEvent, target));
+                $("#associate").off("click").one("click", () => self.displayAssociationForm(inputEvent, target));
+                $("#deleteClass").off("click").one("click", () => self.deleteProperty(target));
+                $("#abstractClass").off("click").one("click", () => self.abstractClass(target));
+                $("#addMember").off("click").one("click", () => self.displayMemberForm(inputEvent, target));
                 break;
 
             case Model.FmmlxProperty:
@@ -343,6 +351,18 @@ Controller.FormController = class {
         event.handled = true;
     }
 
+    static downloadImage() {
+        let data = studio.toPNG();
+        let fileName = `Model ${new Date(Date.now())}`;
+        let anchor = $("#image");
+        anchor.prop("href", data);
+        anchor.prop("download", fileName);
+        return true;
+    }
+
+    static exportJson() {
+
+    }
 
     static init() {
         $("select").material_select();

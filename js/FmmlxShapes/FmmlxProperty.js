@@ -1,6 +1,10 @@
 "use strict";
-if (typeof FmmlxShapes === "undefined") window.FmmlxShapes = {};
-if (typeof gMake === "undefined") window.gMake = "";
+if (typeof FmmlxShapes === "undefined") {
+    window.FmmlxShapes = {};
+}
+if (typeof gMake === "undefined") {
+    window.gMake = "";
+}
 gMake = go.GraphObject.make;
 
 
@@ -8,9 +12,7 @@ FmmlxShapes.FmmlxProperty = class {
     static get shape() {
         let _behaviourBlock = gMake(go.Panel, "Horizontal", {
             minSize: new go.Size(48, 20), alignment: go.Spot.Left, margin: 0,
-        }, new go.Binding("itemArray", "", prop =>
-
-            (!prop.isValue) ? [prop.intrinsicness].concat(prop.behaviors) : []), {
+        }, new go.Binding("itemArray", "", prop => (!prop.isValue) ? [prop.intrinsicness].concat(prop.behaviors) : []), {
             itemTemplate: gMake(go.Panel, "Auto", {
                 stretch: go.GraphObject.Fill, minSize: new go.Size(10, 20), margin: new go.Margin(0, 2, 0, 0),
             }, gMake(go.Shape, "Rectangle", {

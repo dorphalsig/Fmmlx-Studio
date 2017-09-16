@@ -34,6 +34,7 @@
             //Set up Modals
             Controller.FormController.init();
             window.studio = new Controller.StudioController();
+            window.onerror = function (messageOrEvent, source, lineno, colno, error) { Controller.FormController.__error(error)};
             $(document)
                 .keydown((event) => ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "i") ? Controller.FormController.displayClassForm() : true)
         });
@@ -48,12 +49,16 @@
     <nav>
         <div class="nav-wrapper light-blue darken-4">
 
-            <span class="mainTitle">FMMLx Studio F<sub>X</sub></span>
+            <span class="mainTitle">FMMLx Studio</span>
             <ul id="nav-mobile" class="right">
-                <li><a href="#"><i class="fa fa-2x fa-floppy-o"></i></a></li>
-                <li><a href="#"><i class="fa fa-folder-open fa-2x"></i></a></li>
-                <li><a href="#"><i class="fa fa-picture-o fa-2x"></i></a></li>
-                <li><a href="#"><i class="fa fa-search fa-2x"></i> </a></li>
+                <li>
+                    <a id="export" onclick="Controller.FormController.exportJson()" href="#"><i class="fa fa-2x fa-floppy-o"></i></a>
+                </li>
+                <li><a id="import" href="#"><i class="fa fa-folder-open fa-2x"></i></a></li>
+                <li>
+                    <a id="image" onclick="Controller.FormController.downloadImage()" href="#"><i class="fa fa-picture-o fa-2x"></i></a>
+                </li>
+                <li><a id="search" href="#"><i class="fa fa-search fa-2x"></i> </a></li>
             </ul>
         </div>
     </nav>
@@ -71,11 +76,9 @@
         <a class="collection-item" href="#" id="associate">Associate</a>
         <a class="collection-item" href="#" id="inherit">Inherit</a>
     </div>
-    <div class="contextMenu" id="propertyMenu">
-        <ul class="nav nav-pills nav-stacked">
-            <li><a href="#" id="deleteProperty">Delete Member</a></li>
-            <li><a href="#" id="raiseProperty">Raise Member</a></li>
-        </ul>
+    <div class="contextMenu highlight collection" id="propertyMenu">
+        <a class="collection-item" href="#" id="deleteMember">Delete Member</a>
+        <a class="collection-item" href="#" id="raiseMember">Delete Member</a>
     </div>
     <!-- End Context Menus -->
 </div>

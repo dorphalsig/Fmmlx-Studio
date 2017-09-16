@@ -42,7 +42,9 @@ Controller.StudioController = class {
         });
         //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
         this._model.nodeKeyProperty = `id`;
+        this.__history = [];
     }
+
 
     /**
      * Starts a Transaction and returns he TxID
@@ -65,7 +67,7 @@ Controller.StudioController = class {
      * @param transId
      */
     _calculateClassLevel(fmmlxClass, delta, upstream, transId) {
-        let lvl = (delta === 0) ? "?" : (fmmlxClass.level === "?") ? fmmlxClass.distanceFromRoot + delta : fmmlxClass.level + delta;
+        let lvl = (delta === 0) ? "?" : (fmmlxClass.level === "?") ? delta - fmmlxClass.distanceFromRoot : fmmlxClass.level + delta;
         console.log(`Chaninging level of ${fmmlxClass.name} from ${fmmlxClass.level} to ${lvl}`);
 
         if (fmmlxClass.lastChangeId === transId) {
@@ -137,12 +139,72 @@ Controller.StudioController = class {
 
     }
 
+    /**
+     *
+     * @param {go.Part[]} parts
+     * @return {Model.FmmlxProperty[]}
+     * @private
+     */
+    _findCommonMembers(parts) {
+        parts = [...parts];
+        if (parts.length === 1) {
+            return parts[0].data.members;
+        }
+
+        /**
+         *
+         * @type {Model.FmmlxClass}
+         */
+        let base = parts.pop().data;
+
+        return base.members.filter((member) => {
+            let common = true;
+            for (let part of parts) {
+                common = common && part.data.members.some((t) => t.equals(member))
+            }
+            return common;
+        });
+    }
+
     _rollbackTransaction() {
         let id = this._diagram.undoManager.currentTransaction;
         this._diagram.rollbackTransaction();
         console.groupEnd();
         console.warn(`❌ ${id} :: Rolled-back Transaction`);
 
+    }
+
+
+    abstractClasses() {
+        let fmmlxClassNodes = this._diagram.selection.toArray();
+        let classLevel = fmmlxClassNodes[0].data.level;
+        let partCreatedHandler = function (diagramEvent) {
+            diagramEvent.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
+            let transId = studio._beginTransaction("Abstracting Selection...");
+            try {
+                debugger;
+                let commonMembers = studio._findCommonMembers(fmmlxClassNodes);
+                for (let member of commonMembers) {
+                    studio.addMemberToClass(diagramEvent.subject.data, member);
+                }
+                for (let fmmlxClassNode of fmmlxClassNodes) {
+                    if (fmmlxClassNode.data.level !== classLevel) {
+                        throw new Error("All classes to be abstracted must have the same level");
+                    }
+                    studio.changeMetaclass(fmmlxClassNode.data, diagramEvent.subject.data.id)
+                }
+                studio._commitTransaction(transId);
+            }
+            catch (error) {
+                studio._rollbackTransaction();
+                //                throw error;
+            }
+        };
+
+        let name = `AbstractClass ${parseInt(Math.random() * 100)}`;
+        let level = (classLevel === "?") ? "?" : classLevel + 1;
+        this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
+        this.addFmmlxClass(name, level, false);
     }
 
     /**
@@ -175,8 +237,8 @@ Controller.StudioController = class {
         this._diagram.toolManager.clickCreatingTool.isDoubleClick = false;
 
         let partCreatedHandler = (e) => {
-            studio.changeMetaclass(e.subject.data, metaclassId);
             e.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
+            studio.changeMetaclass(e.subject.data, metaclassId);
         };
 
         //Step 3 once we have a part instance we add its metaclass
@@ -256,17 +318,18 @@ Controller.StudioController = class {
      * Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes up and downstream
      * @param fmmlxClass
      * @param newLevel
+     * @return false if the change was not done, true otherwise
      */
     changeClassLevel(fmmlxClass, newLevel) {
         console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
         newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
         if (newLevel === fmmlxClass.level) {
             console.log("Initial and target levels are the same. Doing nothing.");
-            return;
+            return false;
         }
 
         let transId = this._beginTransaction("Changing Class level...");
-        let delta = isNaN(newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel - fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
+        let delta = isNaN(newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel + fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
         try {
             this._calculateClassLevel(fmmlxClass, delta, true, transId);
             this._commitTransaction(transId)
@@ -275,7 +338,7 @@ Controller.StudioController = class {
             this._rollbackTransaction();
             throw error;
         }
-
+        return true;
     }
 
     /**
@@ -322,7 +385,7 @@ Controller.StudioController = class {
 
         let metaclass = this._model.findNodeDataForKey(metaclassId);
 
-        if ((metaclass.level !== `?` && fmmlxClass.level === `?`) || metaclass.level !== fmmlxClass.level + 1) {
+        if ((metaclass.level !== `?` && fmmlxClass.level === `?`) && metaclass.level !== fmmlxClass.level + 1) {
             throw new Error(`Metaclass (${metaclass.name}) level must be ${fmmlxClass.level + 1}`);
         }
 
@@ -560,6 +623,7 @@ Controller.StudioController = class {
 
         let transId = this._beginTransaction("Editing Class...");
         try {
+            let originalName = fmmlxClass.name;
             this._model.setDataProperty(fmmlxClass, "isAbstract", Boolean(isAbstract));
             this._model.setDataProperty(fmmlxClass, "name", name);
 
@@ -569,7 +633,16 @@ Controller.StudioController = class {
             if (externalMetaclass !== fmmlxClass.externalMetaclass) {
                 this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
             }
-            this.changeClassLevel(fmmlxClass, level);
+
+            //if the level changed the whole chain is refreshed and there is no need to refresh the instances
+            //to reflect name changes
+            if (!this.changeClassLevel(fmmlxClass, level)) {
+                for (let instance of fmmlxClass.instances) {
+                    let node = this._diagram.findNodeForData(instance);
+                    node.updateTargetBindings();
+                }
+            }
+
             this.changeMetaclass(fmmlxClass, metaclassId);
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
         }
@@ -637,6 +710,10 @@ Controller.StudioController = class {
             throw e
         }
         this._commitTransaction(transId);
+    }
+
+    fromJSON(jsonData) {
+        this._diagram.model = go.Model.fromJson(jsonData);
     }
 
     /**
@@ -728,6 +805,16 @@ Controller.StudioController = class {
 
         }
 
+    }
+
+    toJSON() {
+        return this._diagram.model.toJSON();
+    }
+
+    toPNG() {
+        return this._diagram.makeImageData({
+            scale: 1
+        });
     }
 
 

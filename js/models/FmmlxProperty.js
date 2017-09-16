@@ -26,7 +26,7 @@ Model.FmmlxProperty = class {
      * @param {String[]} behaviors
      * @param {String} operationBody
      */
-    constructor(name, type, intrinsicness, isOperation, behaviors = [], operationBody = null) {
+    constructor(name = "", type = "", intrinsicness = 0, isOperation = false, behaviors = [], operationBody = null) {
         this.values = new Helper.Set();
         this.classes = new Helper.Set();
         this.id = Helper.Helper.uuid4();
@@ -111,5 +111,29 @@ Model.FmmlxProperty = class {
 
     equals(obj) {
         return this.constructor === Model.FmmlxProperty && this.name === obj.name && this.intrinsicness === obj.intrinsicness;
+    }
+
+    static parse(string) {
+        let clone = JSON.parse(string);
+        let property = new Model.FmmlxProperty();
+
+
+    }
+
+    stringify() {
+        /**
+         *
+         * @type {Model.FmmlxProperty}
+         */
+        let clone = Object.assign({}, this);
+        clone.classes = [];
+        clone.values = [];
+        for (let fmmlxClass of this.classes) {
+            clone.classes.push(fmmlxClass.id);
+        }
+        for (let value of this.values) {
+            clone.values.push({classId: value.class.id, value: value.value})
+        }
+        return JSON.stringify(clone);
     }
 };
