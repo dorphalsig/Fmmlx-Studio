@@ -1,5 +1,7 @@
 "use strict";
-if (typeof Model === "undefined") window.Model = {};
+if (typeof Model === "undefined") {
+    window.Model = {};
+}
 
 
 /**
@@ -9,7 +11,7 @@ if (typeof Model === "undefined") window.Model = {};
 Model.FmmlxAssociation = class {
 
 
-// Instance
+    // Instance
     /**
      * @param {Model.FmmlxRelationEndpoint} source
      * @param {Model.FmmlxRelationEndpoint} target
@@ -26,12 +28,9 @@ Model.FmmlxAssociation = class {
         this.instances = new Helpers_Set();
     }
 
-    get id() {
+    static get id() {
         let id = JSON.stringify({
-            source: this.source,
-            target: this.target,
-            primitive: (this.isRefinement) ? this.primitive.id : "",
-            metaAssociation: (this.isInstance) ? this.metaAssociation.id : ""
+            source: this.source, target: this.target, primitive: (this.isRefinement) ? this.primitive.id : "", metaAssociation: (this.isInstance) ? this.metaAssociation.id : ""
         });
         return SparkMD5.hash(JSON.stringify(id), false);
     }
@@ -40,7 +39,7 @@ Model.FmmlxAssociation = class {
      *
      * @returns {boolean}
      */
-    get isInstance() {
+    static get isInstance() {
         return this.metaAssociation !== undefined;
     }
 
@@ -107,10 +106,11 @@ Model.FmmlxAssociation = class {
      */
     equals(obj) {
         let equals = obj.constructor === "Model.FmmlxAssociation" && obj.source.equals(this.source) && obj.target.equals(this.target);
-        if (this.isRefinement)
+        if (this.isRefinement) {
             equals = equals && this.primitive.equals(obj.primitive);
-        else if (this.isInstance)
+        } else if (this.isInstance) {
             equals = equals && this.metaAssociation.equals(obj.metaAssociation);
+        }
 
         return equals;
     }

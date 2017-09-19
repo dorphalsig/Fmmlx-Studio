@@ -37,8 +37,7 @@ Controller.FormController = class {
                     field.click();
                     field.change();
                 }
-            }
-            else {
+            } else {
                 field.val(value);
                 field.click();
                 field.change();
@@ -82,8 +81,7 @@ Controller.FormController = class {
             let name = field.name;
             if (name !== "") {
                 fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
-            }
-            else {
+            } else {
                 fieldData[`${name}`] = field.value;
             }
         }
@@ -129,8 +127,7 @@ Controller.FormController = class {
             studio.abstractClasses();
             Materialize.toast("Click on the canvas to insert the class", 4000);
 
-        }
-        catch (e) {
+        } catch (e) {
             self.__error(e);
         }
     }
@@ -151,13 +148,11 @@ Controller.FormController = class {
             if (formVals.id === "") {
                 studio.addFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass.toString(), formVals.externalLanguage, formVals.externalMetaclass);
                 Materialize.toast("Click on the canvas to insert the class", 4000);
-            }
-            else {
+            } else {
                 studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
             }
 
-        }
-        catch (error) {
+        } catch (error) {
             let submitBtn = modal.find(".btn-flat");
             submitBtn.one("click", self.addEditFmmlxClass);
             modal.find(':input').keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
@@ -191,12 +186,10 @@ Controller.FormController = class {
 
             if (formVals.id === "") {
                 studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.behaviors, formVals.isValue, formVals.value, formVals.operationBody);
-            }
-            else {
+            } else {
                 studio.editMember(formVals.fmmlxClassId, formVals.id, formVals.name, formVals.type, formVals.intrinsicness, formVals.behaviors, formVals.value, formVals.operationBody);
             }
-        }
-        catch (error) {
+        } catch (error) {
             let submitBtn = modal.find(".btn-flat");
             submitBtn.one("click", self.addEditFmmlxClassMember);
             modal.find(":input").one('keydown', (e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
@@ -207,13 +200,43 @@ Controller.FormController = class {
         modal.modal("close");
     }
 
-    static deleteClass(event, obj) {
-        alert(JSON.stringify(obj.part.data));
+    /**
+     * Deletes an FMMLx Class
+     * @param {go.Node} node
+     *
+     */
+    static deleteClass(node) {
+        try {
+            studio.deleteFmmlxClass(node.data.id)
+        } catch (e) {
+            self.__error(e);
+        }
     }
 
-    static deleteProperty(obj) {
-        /*alert("Just did it");*/
-        studio.deleteFmmlxClass(obj.data.id);
+    /**
+     * Deletes the member definition everywhere.
+     * @param classId
+     * @param memberId
+     */
+    static deleteMember(classId, memberId) {
+        try {
+            studio.deleteMember(classId, memberId, true, true);
+        } catch (e) {
+            this.__error(e);
+        }
+    }
+
+    /**
+     * Deletes the member definition upstream - that means from the metaclass upwards
+     * @param classId
+     * @param memberId
+     */
+    static deleteMemberUpstream(classId, memberId) {
+        try {
+            studio.deleteMember(classId, memberId, true, false);
+        } catch (e) {
+            this.__error(e);
+        }
     }
 
     static displayAssociationForm(event, obj) {
@@ -268,13 +291,17 @@ Controller.FormController = class {
                 menu = $("#classMenu");
                 $("#inherit").off("click").one("click", () => self.displayInheritanceForm(inputEvent, target));
                 $("#associate").off("click").one("click", () => self.displayAssociationForm(inputEvent, target));
-                $("#deleteClass").off("click").one("click", () => self.deleteProperty(target));
+                $("#deleteClass").off("click").one("click", () => self.deleteClass(target));
                 $("#abstractClass").off("click").one("click", () => self.abstractClass(target));
                 $("#addMember").off("click").one("click", () => self.displayMemberForm(inputEvent, target));
                 break;
 
             case Model.FmmlxProperty:
                 menu = $("#propertyMenu");
+                $("#deleteMemberUpstream").off("click").one("click", () => self.deleteMemberUpstream(target.part.data.id, target.data.id));
+                $("#deleteMember").off("click").one("click", () => self.deleteMember(target.part.data.id, target.data.id));
+                $("#toMetaclass").off("click").one("click", () => self.copyMemberToMetaclass(target.part.data.id, target.data.id));
+                $("#toSuperclass").off("click").one("click", () => self.copyMemberToSuperclass(target.part.data.id, target.data.id));
                 break;
 
             default:
@@ -290,7 +317,7 @@ Controller.FormController = class {
             menu.hide();
         });
 
-        inputEvent.event.stopImmediatePropagation();
+        inputEvent.handled = true;
 
     }
 
@@ -316,8 +343,7 @@ Controller.FormController = class {
         if (obj.data.constructor === Model.FmmlxClass) { /*new property,it was right click on  the Class*/
             modal.find("[name=fmmlxClassId]").val(obj.data.id);
             /* id of the Fmmlx Class that will hold the property+*/
-        }
-        else {
+        } else {
 
             obj.data.behaviors.forEach((behavior) => {
                 switch (behavior) {
@@ -371,8 +397,20 @@ Controller.FormController = class {
         $(".modal").modal();
     }
 
-    static raiseProperty(event, obj) {
-        alert(JSON.stringify(obj.part.data));
+    static copyMemberToMetaclass(classId, memberId) {
+        try {
+            studio.copyMemberToMetaclass(classId, memberId)
+        } catch (e) {
+            this.__error(e);
+        }
+    }
+
+    static copyMemberToSuperclass(classId, memberId) {
+        try {
+            studio.copyMemberToSuperclass(classId, memberId)
+        } catch (e) {
+            this.__error(e);
+        }
     }
 
 };

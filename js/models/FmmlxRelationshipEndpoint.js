@@ -1,5 +1,7 @@
 "use strict";
-if (typeof Model === "undefined") window.Model = {};
+if (typeof Model === "undefined") {
+    window.Model = {};
+}
 
 /**
  *
@@ -21,11 +23,7 @@ Model.FmmlxRelationEndpoint = class {
 
     get id() {
         let id = {
-            intrinsicness: this.intrinsicness,
-            cardinality: this.cardinality,
-            role: this.role,
-            fmmlxClass: this.class.id,
-            relation: this.relation.id
+            intrinsicness: this.intrinsicness, cardinality: this.cardinality, role: this.role, fmmlxClass: this.class.id, relation: this.relation.id
         };
         return SparkMD5.hash(JSON.stringify(id), false);
     }
@@ -43,8 +41,9 @@ Model.FmmlxRelationEndpoint = class {
     }
 
     isMoreRestrictive(obj) {
-        if (obj.constructor !== Model.FmmlxRelationEndpoint)
+        if (obj.constructor !== Model.FmmlxRelationEndpoint) {
             throw new Error("Compared object is not a Rel Endpoint");
+        }
 
         retun(obj.minCardinality >= this.minCardinality && obj.maxCardinality <= this.minCardinality);
     }

@@ -1,5 +1,7 @@
 "use strict";
-if (typeof Model === "undefined") window.Model = {};
+if (typeof Model === "undefined") {
+    window.Model = {};
+}
 /**
  * This is a handler object meant to be used in a proxy
  * @type {Model.FmmlxValue}
@@ -87,8 +89,11 @@ Model.FmmlxValue = class {
     set(target, name, val) {
         switch (name) {
             case "class":
-                if (this.class === null) this.class = val;
-                else throw new Error("Cannot replace the class for a value");
+                if (this.class === null) {
+                    this.class = val;
+                } else {
+                    throw new Error("Cannot replace the class for a value");
+                }
                 break;
             case "value":
                 this.value = val;

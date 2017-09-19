@@ -194,8 +194,7 @@ Controller.StudioController = class {
                     studio.changeMetaclass(fmmlxClassNode.data, diagramEvent.subject.data.id)
                 }
                 studio._commitTransaction(transId);
-            }
-            catch (error) {
+            } catch (error) {
                 studio._rollbackTransaction();
                 //                throw error;
             }
@@ -266,10 +265,9 @@ Controller.StudioController = class {
             let array = fmmlxClass.findCorrespondingArray(member);
             this._model.addArrayItem(array, member);
             member.addClass(fmmlxClass);//;
-            //this.processMember(fmmlxClass, member);
+            this.processMember(fmmlxClass, member);
             this._commitTransaction(transId);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw  error;
         }
@@ -306,8 +304,7 @@ Controller.StudioController = class {
             let array = fmmlxClass.findCorrespondingArray(val);
             this._model.addArrayItem(array, val);
             this._commitTransaction(transId);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -333,8 +330,7 @@ Controller.StudioController = class {
         try {
             this._calculateClassLevel(fmmlxClass, delta, true, transId);
             this._commitTransaction(transId)
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -360,8 +356,7 @@ Controller.StudioController = class {
                 this.processMember(fmmlxClass, member);
             }
             this._commitTransaction(transId);
-        }
-        catch (e) {
+        } catch (e) {
             this._rollbackTransaction();
             throw e;
         }
@@ -405,8 +400,7 @@ Controller.StudioController = class {
                 this.addMemberToClass(fmmlxClass, member);
                 this.addValueToClass(fmmlxClass, member);
             }
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -453,17 +447,29 @@ Controller.StudioController = class {
 
         let transId = this._beginTransaction(`Deleting class ${fmmlxClass.name}`);
         try {
+            //inheritance -  instantiation
             for (let instance of fmmlxClass.instances) {
-                this.changeMetaclass(instance, null);
+                this.deleteMetaclass(instance);
             }
             for (let subclass of fmmlxClass.subclasses) {
                 //do something
             }
+
+            this.deleteMetaclass(fmmlxClass);
+
+            //process own values - members
+            for (let value of fmmlxClass.memberValues) {
+                this.deleteValueFromClass(fmmlxClass, value);
+            }
+
+            for (let member of fmmlxClass.members) {
+                this.deleteMember(fmmlxClass, member);
+            }
+
             let node = this._diagram.findNodeForKey(id);
             this._diagram.remove(node);
             this._model.removeNodeData(fmmlxClass);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -531,8 +537,7 @@ Controller.StudioController = class {
                     this.deleteMember(fmmlxClass.metaclass, member, upstream, downstream, deleteValues);
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
             this._rollbackTransaction();
             throw e;
         }
@@ -557,8 +562,7 @@ Controller.StudioController = class {
             }
             this._model.setDataProperty(fmmlxClass, "metaclass", null);
             metaclass.removeInstance(fmmlxClass);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -587,8 +591,7 @@ Controller.StudioController = class {
             value.property.deleteValue(value);
             this._model.removeArrayItem(array, index);
 
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction(transId);
             throw error;
         }
@@ -645,8 +648,7 @@ Controller.StudioController = class {
 
             this.changeMetaclass(fmmlxClass, metaclassId);
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-        }
-        catch (error) {
+        } catch (error) {
             this._rollbackTransaction();
             throw error;
         }
@@ -704,8 +706,7 @@ Controller.StudioController = class {
                 }
             }
 
-        }
-        catch (e) {
+        } catch (e) {
             this._rollbackTransaction(e);
             throw e
         }
@@ -746,8 +747,7 @@ Controller.StudioController = class {
         if (transId === null) {
             transId = this._beginTransaction(`Processing Member ${member.name} in class ${fmmlxClass.name}`);
             localCommit = true;
-        }
-        else {
+        } else {
             console.log(`Processing Member ${member.name} in class ${fmmlxClass.name}`);
         }
 
@@ -763,18 +763,15 @@ Controller.StudioController = class {
 
             if (intrinsicness > level) { //if intrinsicness > level : the member + its value is deleted
                 this.deleteMember(fmmlxClass, member);
-            }
-            else if (intrinsicness === level && intrinsicness !== "?") { // if intrinsicness = level: the member gets deleted +  a value is created
+            } else if (intrinsicness === level && intrinsicness !== "?") { // if intrinsicness = level: the member gets deleted +  a value is created
                 this.deleteMember(fmmlxClass, member, false, true, false);
                 this.addValueToClass(fmmlxClass, member);
-            }
-            else { //if intrinsicness < level: if there is a value its gets deleted and the member gets added
+            } else { //if intrinsicness < level: if there is a value its gets deleted and the member gets added
                 let val = "";
                 if (member.isValue) {
                     val = member;
                     member = member.property;
-                }
-                else {
+                } else {
                     val = fmmlxClass.findValueFromProperty(member);
                 }
 
@@ -796,8 +793,7 @@ Controller.StudioController = class {
             if (localCommit) {
                 this._commitTransaction(transId);
             }
-        }
-        catch (e) {
+        } catch (e) {
             if (localCommit) {
                 this._rollbackTransaction();
             }
@@ -815,6 +811,38 @@ Controller.StudioController = class {
         return this._diagram.makeImageData({
             scale: 1
         });
+    }
+
+    /**
+     * Copies a member definition to the metaclass
+     * @param classId
+     * @param memberId
+     */
+    copyMemberToMetaclass(classId, memberId) {
+        /**
+         * @type {Model.FmmlxClass}
+         */
+        let fmmlxClass = this._model.findNodeDataForKey(classId);
+        if (fmmlxClass.metaclass === null) throw new Error("Class has no defined metaclass");
+
+        let member = fmmlxClass.findMemberById(memberId);
+        this.addMemberToClass(fmmlxClass.metaclass, member);
+    }
+
+    /**
+     * Copies a member definition to the superclass
+     * @param classId
+     * @param memberId
+     */
+    copyMemberToSuperclass(classId, memberId) {
+        /**
+         * @type {Model.FmmlxClass}
+         */
+        let fmmlxClass = this._model.findNodeDataForKey(classId);
+        if (fmmlxClass.superclass === null) throw new Error("Class has no defined superclass");
+
+        let member = fmmlxClass.findMemberById(memberId);
+        this.addMemberToClass(fmmlxClass.superclass, member);
     }
 
 

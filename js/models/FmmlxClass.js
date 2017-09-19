@@ -159,8 +159,8 @@ Model.FmmlxClass = class {
         this.externalMetaclass = externalMetaclass;
         this.level = level;
         this.isAbstract = isAbstract;
-        let d = new Date(Date.now());
-        this.id = `${this.name} - ${d.getHours()}:${d.getMinutes()}.${d.getSeconds()}`;//Helper.Helper.uuid4();
+        //let d = new Date(Date.now());
+        this.id = /*${this.name} - ${d.getHours()}:${d.getMinutes()}.${d.getSeconds()}`;//*/Helper.Helper.uuid4();
 
     };
 

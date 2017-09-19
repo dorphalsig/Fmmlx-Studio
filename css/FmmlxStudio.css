@@ -44,6 +44,7 @@ body {
 }
 
 #canvas {
+    /*position: relative;*/
     overflow-y: hidden;
     vertical-align: top;
     margin: 0;
