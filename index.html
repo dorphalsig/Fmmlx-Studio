@@ -21,6 +21,7 @@
     <script src="js/FmmlxShapes/FmmlxProperty.js"></script>
     <script src="js/FmmlxShapes/FmmlxClass.js"></script>
     <script src="js/FmmlxShapes/FmmlxAssociation.js"></script>
+    <script src="js/FmmlxShapes/FmmlxInheritance.js"></script>
     <script src="js/models/FmmlxProperty.js"></script>
     <script src="js/models/FmmlxClass.js"></script>
     <script src="js/models/FmmlxValue.js"></script>
@@ -73,17 +74,19 @@
         <a class="collection-item" href="#" id="addMember">Add Member</a>
         <a class="collection-item" href="#" id="abstractClass">Abstract Class</a>
         <a class="collection-item" href="#" id="deleteClass">Delete Class</a>
-        <a class="collection-item" href="#" id="associate">Associate</a>
-        <a class="collection-item" href="#" id="inherit">Inherit</a>
+        <a class="collection-item" href="#" id="associate">Associate to another Class</a>
+        <a class="collection-item" href="#" id="inherit">Inherit from another Class</a>
     </div>
     <div class="contextMenu highlight collection" id="propertyMenu">
         <a class="collection-item" href="#" id="deleteMemberUpstream">Delete Member Upstream</a>
         <a class="collection-item" href="#" id="deleteMember">Delete Member Completely</a>
         <a class="collection-item" href="#" id="toMetaclass">Copy Member to Metaclass</a>
-        <!--
         <a class="collection-item" href="#" id="toSuperclass">Copy Member to Superclass</a>
-        -->
     </div>
+    <div class="contextMenu highlight collection" id="inheritanceMenu">
+        <a class="collection-item" href="#" id="deleteInheritance">Delete Relationship</a>
+    </div>
+
     <!-- End Context Menus -->
 </div>
 

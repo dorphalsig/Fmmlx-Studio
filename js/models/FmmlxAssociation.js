@@ -35,6 +35,14 @@ Model.FmmlxAssociation = class {
         return SparkMD5.hash(JSON.stringify(id), false);
     }
 
+    static get from() {
+        return this.source.class;
+    }
+
+    static get to() {
+        return this.target.class;
+    }
+
     /**
      *
      * @returns {boolean}

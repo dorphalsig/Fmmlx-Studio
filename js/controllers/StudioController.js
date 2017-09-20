@@ -15,24 +15,27 @@ Controller.StudioController = class {
             div = `canvas`;
         }
         go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
-        this._$ = go.GraphObject.make;
-
         /**
          *
          * @type {go.Diagram | *}
          * @private
          */
-        this._diagram = this._$(go.Diagram, div, {
+        this._diagram = go.GraphObject.make(go.Diagram, div, {
             "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
-            model: new go.GraphLinksModel(),
+            model: new go.GraphLinksModel(), allowDelete: false
         });
 
+        /**
+         * @type {go.GraphLinksModel}
+         * @private
+         */
         this._model = this._diagram.model;
 
         window.PIXELRATIO = this._diagram.computePixelRatio();
 
         this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
         this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
+        this._diagram.linkTemplateMap.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
         //This prevents stuff being created randomly when ppl click on the diagram
         //This is only required because the add class sets the archetype to something else
         this._diagram.addDiagramListener(`PartCreated`, (diagramEvent) => {
@@ -40,11 +43,9 @@ Controller.StudioController = class {
             tool.archetypeNodeData = null;
             tool.isDoubleClick = false;
         });
-        //linkTemplates.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
-        this._model.nodeKeyProperty = `id`;
-        this.__history = [];
-    }
 
+        this._model.nodeKeyProperty = `id`;
+    }
 
     /**
      * Starts a Transaction and returns he TxID
@@ -173,7 +174,6 @@ Controller.StudioController = class {
         console.warn(`❌ ${id} :: Rolled-back Transaction`);
 
     }
-
 
     abstractClasses() {
         let fmmlxClassNodes = this._diagram.selection.toArray();
@@ -407,8 +407,41 @@ Controller.StudioController = class {
         this._commitTransaction(transId);
     }
 
-    //Creates an FMMLx class member and associates it to an fmmlx class
     /**
+     * Copies a member definition to the metaclass
+     * @param classId
+     * @param memberId
+     */
+    copyMemberToMetaclass(classId, memberId) {
+        /**
+         * @type {Model.FmmlxClass}
+         */
+        let fmmlxClass = this._model.findNodeDataForKey(classId);
+        if (fmmlxClass.metaclass === null) throw new Error("Class has no defined metaclass");
+
+        let member = fmmlxClass.findMemberById(memberId);
+        this.addMemberToClass(fmmlxClass.metaclass, member);
+    }
+
+    /**
+     * Copies a member definition to the superclass
+     * @param classId
+     * @param memberId
+     */
+    copyMemberToSuperclass(classId, memberId) {
+        /**
+         * @type {Model.FmmlxClass}
+         */
+        let fmmlxClass = this._model.findNodeDataForKey(classId);
+        if (fmmlxClass.superclass === null) throw new Error("Class has no defined superclass");
+
+        let member = fmmlxClass.findMemberById(memberId);
+        this.addMemberToClass(fmmlxClass.superclass, member);
+    }
+
+    /**
+     *
+     * Creates an FMMLx class member and associates it to an fmmlx class
      *
      * @param {String} fmmlxClassId
      * @param {String} name
@@ -435,7 +468,6 @@ Controller.StudioController = class {
 
     /**
      * Deletes an Fmmlx Class and its references
-     * @todo set parent class = null on subclasses
      * @param {String} id
      */
     deleteFmmlxClass(id) {
@@ -452,8 +484,10 @@ Controller.StudioController = class {
                 this.deleteMetaclass(instance);
             }
             for (let subclass of fmmlxClass.subclasses) {
-                //do something
+                this.deleteSuperclass(subclass, fmmlxClass)
             }
+
+            if (fmmlxClass.superclass !== null) fmmlxClass.superclass.removeSubclass(fmmlxClass);
 
             this.deleteMetaclass(fmmlxClass);
 
@@ -478,16 +512,16 @@ Controller.StudioController = class {
 
     /**
      * Deletes <Property> (and/or its corresponding <Value>) from <fmmlxClass>, its predecessors (`upstream`) and descendants (`downstream`)
-     * @param {Model.FmmlxClass|String} classOrClassId
-     * @param {Model.FmmlxProperty|String} memberOrMemberId
+     * @param {Model.FmmlxClass|String} classOrId
+     * @param {Model.FmmlxProperty|String} memberOrId
      * @param {boolean} upstream
      * @param {boolean} downstream
      * @param {boolean} deleteValues
      */
-    deleteMember(classOrClassId, memberOrMemberId, upstream = false, downstream = true, deleteValues = true) {
+    deleteMember(classOrId, memberOrId, upstream = false, downstream = true, deleteValues = true) {
 
-        let fmmlxClass = typeof classOrClassId === "string" ? this._model.findNodeDataForKey(classOrClassId) : classOrClassId;
-        let member = typeof  memberOrMemberId === "string" ? fmmlxClass.findMemberById(memberOrMemberId) : memberOrMemberId;
+        let fmmlxClass = typeof classOrId === "string" ? this._model.findNodeDataForKey(classOrId) : classOrId;
+        let member = typeof  memberOrId === "string" ? fmmlxClass.findMemberById(memberOrId) : memberOrId;
 
         console.log(`Delete member ${member.name} (and/or its value) from ${fmmlxClass.name}`);
 
@@ -567,6 +601,25 @@ Controller.StudioController = class {
             throw error;
         }
         this._commitTransaction(transId);
+    }
+
+    /**
+     * Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link
+     * @param {Model.FmmlxClass} subclass
+     * @param {Model.FmmlxClass} superclass
+     */
+    deleteSuperclass(subclassOrId, superclassOrId) {
+
+        let subclass = typeof subclassOrId === "string" ? this._model.findNodeDataForKey(subclassOrId) : subclassOrId;
+        let superclass = typeof  superclassOrId === "string" ? this._model.findNodeDataForKey(superclassOrId) : superclassOrId;
+
+        superclass.removeSubclass(subclass);
+        for (let member of superclass.members) {
+            this.deleteMember(subclass, member);
+        }
+        subclass.superclass = null;
+        let linkData = this._diagram.findLinksByExample({from: subclass.id, to: superclass.id, category: "fmmlxInheritance"}).first().data;
+        this._model.removeLinkData(linkData);
     }
 
     /**
@@ -728,6 +781,31 @@ Controller.StudioController = class {
         return this._filterClasses({level: targetLevel});
     }
 
+    inheritFromSuperclass(subclassId) {
+        let subclass = this._model.findNodeDataForKey(subclassId);
+        let handler = function (event) {
+            studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
+            let superclass = event.subject.part.data;
+            if (typeof superclass.level === "undefined" || superclass.id === subclass.id) throw new Error("Invalid selection");
+            if (superclass.level !== subclass.level) throw new Error("Subclass and Superclass must have the same level.");
+            let transId = studio._beginTransaction("Creating inheritance");
+            try {
+                let members = superclass.members;
+                for (let member of members) {
+                    studio.addMemberToClass(subclass, member);
+                }
+                studio._model.setDataProperty(subclass, "superclass", superclass);
+                superclass.addSubclass(subclass);
+                studio._model.addLinkData({from: subclass.id, to: superclass.id, category: "fmmlxInheritance"});
+                studio._commitTransaction(transId);
+            } catch (e) {
+                studio._rollbackTransaction();
+                throw e;
+            }
+        };
+        this._diagram.addDiagramListener("ObjectSingleClicked", handler);
+    }
+
     /**
      * Checks what to do with a member in a class:
      *  if intrinsicness > level : the member + its value is deleted
@@ -812,38 +890,4 @@ Controller.StudioController = class {
             scale: 1
         });
     }
-
-    /**
-     * Copies a member definition to the metaclass
-     * @param classId
-     * @param memberId
-     */
-    copyMemberToMetaclass(classId, memberId) {
-        /**
-         * @type {Model.FmmlxClass}
-         */
-        let fmmlxClass = this._model.findNodeDataForKey(classId);
-        if (fmmlxClass.metaclass === null) throw new Error("Class has no defined metaclass");
-
-        let member = fmmlxClass.findMemberById(memberId);
-        this.addMemberToClass(fmmlxClass.metaclass, member);
-    }
-
-    /**
-     * Copies a member definition to the superclass
-     * @param classId
-     * @param memberId
-     */
-    copyMemberToSuperclass(classId, memberId) {
-        /**
-         * @type {Model.FmmlxClass}
-         */
-        let fmmlxClass = this._model.findNodeDataForKey(classId);
-        if (fmmlxClass.superclass === null) throw new Error("Class has no defined superclass");
-
-        let member = fmmlxClass.findMemberById(memberId);
-        this.addMemberToClass(fmmlxClass.superclass, member);
-    }
-
-
 };

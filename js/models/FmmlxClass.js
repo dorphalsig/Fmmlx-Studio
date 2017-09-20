@@ -31,8 +31,7 @@ Model.FmmlxClass = class {
                         throw new Error(`Erroneous level ${level} for class ${this.name}`);
                     }
                     this._level = parsedLevel;
-                }
-                else {
+                } else {
                     this._level = "?";
                 }
             },
@@ -164,18 +163,6 @@ Model.FmmlxClass = class {
 
     };
 
-    get memberValues() {
-        return this.slotValues.concat(this.operationValues);
-    }
-
-    /**
-     *
-     * @return {Array.<Model.FmmlxProperty>}
-     */
-    get members() {
-        return this.attributes.concat(this.operations);
-    }
-
     /**
      *
      * @param {Model.FmmlxRelationEndpoint} endpoint
@@ -200,12 +187,8 @@ Model.FmmlxClass = class {
         this._subclasses.add(subclass);
     }
 
-    /**
-     *
-     * @param {Model.FmmlxClass} subclass
-     */
-    deleteSubclass(subclass) {
-        this._subclasses.remove(subclass);
+    static get category() {
+        return "FmmlxClass";
     }
 
     /**
@@ -217,36 +200,11 @@ Model.FmmlxClass = class {
 
         if (this.isExternal) {
             val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        }
-        else if (typeof this.metaclass !== null) {
+        } else if (typeof this.metaclass !== null) {
             val = val && this.metaclass.id === obj.metaclass.id;
         }
 
         return val;
-    }
-
-    /**
-     *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
-     *  if returnName is true, returns the name as a String.
-     * @param {Model.FmmlxProperty|Model.FmmlxValue} member
-     * @param {Boolean} returnName
-     * @return {Model.FmmlxProperty[]|Model.FmmlxValue|String}
-     */
-    findCorrespondingArray(member, returnName = false) {
-        if (member.constructor === Model.FmmlxProperty) {
-            if (member.isOperation) {
-                return (returnName) ? "operations" : this.operations;
-            }
-            else {
-                return (returnName) ? "attributes" : this.attributes;
-            }
-        }
-        if (member.isOperation) {
-            return (returnName) ? "operationValues" : this.operationValues;
-        }
-        else {
-            return (returnName) ? "slotValues" : this.slotValues;
-        }
     }
 
     /**
@@ -320,6 +278,32 @@ Model.FmmlxClass = class {
     }
 
     /**
+     *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
+     *  if returnName is true, returns the name as a String.
+     * @param {Model.FmmlxProperty|Model.FmmlxValue} member
+     * @param {Boolean} returnName
+     * @return {Model.FmmlxProperty[]|Model.FmmlxValue|String}
+     */
+    findCorrespondingArray(member, returnName = false) {
+        if (member.constructor === Model.FmmlxProperty) {
+            if (member.isOperation) {
+                return (returnName) ? "operations" : this.operations;
+            } else {
+                return (returnName) ? "attributes" : this.attributes;
+            }
+        }
+        if (member.isOperation) {
+            return (returnName) ? "operationValues" : this.operationValues;
+        } else {
+            return (returnName) ? "slotValues" : this.slotValues;
+        }
+    }
+
+    get memberValues() {
+        return this.slotValues.concat(this.operationValues);
+    }
+
+    /**
      *
      * @param {Model.FmmlxRelationEndpoint} endpoint
      */
@@ -335,6 +319,13 @@ Model.FmmlxClass = class {
         this._instances.remove(instance);
     }
 
+    /**
+     *
+     * @return {Array.<Model.FmmlxProperty>}
+     */
+    get members() {
+        return this.attributes.concat(this.operations);
+    }
 
     stringify() {
         /**
@@ -364,5 +355,14 @@ Model.FmmlxClass = class {
         }
         return JSON.stringify(clone);
     }
+
+    /**
+     *
+     * @param {Model.FmmlxClass} subclass
+     */
+    removeSubclass(subclass) {
+        this._subclasses.remove(subclass);
+    }
+
 
 };

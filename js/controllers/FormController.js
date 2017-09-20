@@ -200,6 +200,22 @@ Controller.FormController = class {
         modal.modal("close");
     }
 
+    static copyMemberToMetaclass(classId, memberId) {
+        try {
+            studio.copyMemberToMetaclass(classId, memberId)
+        } catch (e) {
+            this.__error(e);
+        }
+    }
+
+    static copyMemberToSuperclass(classId, memberId) {
+        try {
+            studio.copyMemberToSuperclass(classId, memberId)
+        } catch (e) {
+            this.__error(e);
+        }
+    }
+
     /**
      * Deletes an FMMLx Class
      * @param {go.Node} node
@@ -209,7 +225,7 @@ Controller.FormController = class {
         try {
             studio.deleteFmmlxClass(node.data.id)
         } catch (e) {
-            self.__error(e);
+            this.__error(e);
         }
     }
 
@@ -237,6 +253,13 @@ Controller.FormController = class {
         } catch (e) {
             this.__error(e);
         }
+    }
+
+    static deleteSuperclass(target) {
+        debugger;
+        let subclassId = target.data.from;
+        let superclassId = target.data.to;
+        studio.deleteSuperclass(subclassId, superclassId);
     }
 
     static displayAssociationForm(event, obj) {
@@ -286,10 +309,18 @@ Controller.FormController = class {
     static displayContextMenu(inputEvent, target) {
         const self = Controller.FormController;
         let menu = "";
+        let classMenu = $("#classMenu");
+        let memberMenu = $("#propertyMenu");
+        let inheritanceMenu = $("#inheritanceMenu");
+
+        classMenu.hide();
+        memberMenu.hide();
+        inheritanceMenu.hide();
+
         switch (target.data.constructor) {
             case Model.FmmlxClass:
-                menu = $("#classMenu");
-                $("#inherit").off("click").one("click", () => self.displayInheritanceForm(inputEvent, target));
+                menu = classMenu;
+                $("#inherit").off("click").one("click", () => self.inheritance(target.data.id));
                 $("#associate").off("click").one("click", () => self.displayAssociationForm(inputEvent, target));
                 $("#deleteClass").off("click").one("click", () => self.deleteClass(target));
                 $("#abstractClass").off("click").one("click", () => self.abstractClass(target));
@@ -297,15 +328,16 @@ Controller.FormController = class {
                 break;
 
             case Model.FmmlxProperty:
-                menu = $("#propertyMenu");
+                menu = memberMenu;
                 $("#deleteMemberUpstream").off("click").one("click", () => self.deleteMemberUpstream(target.part.data.id, target.data.id));
                 $("#deleteMember").off("click").one("click", () => self.deleteMember(target.part.data.id, target.data.id));
                 $("#toMetaclass").off("click").one("click", () => self.copyMemberToMetaclass(target.part.data.id, target.data.id));
                 $("#toSuperclass").off("click").one("click", () => self.copyMemberToSuperclass(target.part.data.id, target.data.id));
                 break;
 
-            default:
-                return;
+            default: // Inheritance has no model because its just a plain link
+                menu = inheritanceMenu;
+                $("#deleteInheritance").off("click").one("click", () => self.deleteSuperclass(target));
                 break;
         }
         let width = menu.css("width");
@@ -314,15 +346,13 @@ Controller.FormController = class {
         }).animate({width: width}, 300, "swing");
 
         $("body,canvas").one("click", function (event) {
-            menu.hide();
+            classMenu.hide();
+            memberMenu.hide();
+            inheritanceMenu.hide();
         });
 
         inputEvent.handled = true;
 
-    }
-
-    static displayInheritanceForm(event, obj) {
-        alert("You want me to do WHAT?");
     }
 
     static displayMemberForm(event, obj) {
@@ -390,27 +420,17 @@ Controller.FormController = class {
 
     }
 
+    static inheritance(subclassId) {
+        Materialize.toast("Select the superclass", 4000);
+        studio.inheritFromSuperclass(subclassId);
+
+    }
+
     static init() {
         $("select").material_select();
         window._classForm = $("#fmmlxClassModal").find("form").clone();
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
         $(".modal").modal();
-    }
-
-    static copyMemberToMetaclass(classId, memberId) {
-        try {
-            studio.copyMemberToMetaclass(classId, memberId)
-        } catch (e) {
-            this.__error(e);
-        }
-    }
-
-    static copyMemberToSuperclass(classId, memberId) {
-        try {
-            studio.copyMemberToSuperclass(classId, memberId)
-        } catch (e) {
-            this.__error(e);
-        }
     }
 
 };
