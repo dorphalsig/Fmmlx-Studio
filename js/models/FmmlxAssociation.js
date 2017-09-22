@@ -26,29 +26,31 @@ Model.FmmlxAssociation = class {
         this.metaAssociation = metaAssociation;
         this.refinements = new Helpers_Set();
         this.instances = new Helpers_Set();
+        this.id = Helper.Helper.uuid4();
     }
 
-    static get id() {
-        let id = JSON.stringify({
-            source: this.source, target: this.target, primitive: (this.isRefinement) ? this.primitive.id : "", metaAssociation: (this.isInstance) ? this.metaAssociation.id : ""
-        });
-        return SparkMD5.hash(JSON.stringify(id), false);
+    static get category() {
+        return "fmmlxAssociation";
     }
 
-    static get from() {
+    get category() {
+        return "fmmlxAssociation";
+    }
+
+    get from() {
         return this.source.class;
-    }
-
-    static get to() {
-        return this.target.class;
     }
 
     /**
      *
      * @returns {boolean}
      */
-    static get isInstance() {
+    get isInstance() {
         return this.metaAssociation !== undefined;
+    }
+
+    get to() {
+        return this.target.class;
     }
 
     /**

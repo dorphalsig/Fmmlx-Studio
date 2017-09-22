@@ -6,6 +6,13 @@ if (typeof Controller === "undefined") {
 
 Controller.FormController = class {
 
+    static __download(anchor, data, fileType) {
+        let filename = `FMMLxStudio - ${new Date(Date.now()).toLocaleString("DE-de")}.${fileType}`;
+        anchor.prop("href", data);
+        anchor.prop("download", filename);
+        return true;
+    }
+
     static __error(error = undefined) {
 
         if (typeof error !== "undefined") {
@@ -146,7 +153,7 @@ Controller.FormController = class {
             let formVals = self.__readForm(form);
 
             if (formVals.id === "") {
-                studio.addFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass.toString(), formVals.externalLanguage, formVals.externalMetaclass);
+                studio.createFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass.toString(), formVals.externalLanguage, formVals.externalMetaclass);
                 Materialize.toast("Click on the canvas to insert the class", 4000);
             } else {
                 studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
@@ -256,7 +263,6 @@ Controller.FormController = class {
     }
 
     static deleteSuperclass(target) {
-        debugger;
         let subclassId = target.data.from;
         let superclassId = target.data.to;
         studio.deleteSuperclass(subclassId, superclassId);
@@ -409,20 +415,30 @@ Controller.FormController = class {
 
     static downloadImage() {
         let data = studio.toPNG();
-        let fileName = `Model ${new Date(Date.now())}`;
+        let fileType = "png";
         let anchor = $("#image");
-        anchor.prop("href", data);
-        anchor.prop("download", fileName);
-        return true;
+        return this.__download(anchor, data, fileType);
     }
 
     static exportJson() {
+        let data = `data:text/plain;UTF-8,${encodeURIComponent(studio.toJSON())}`;
+        let fileType = "txt";
+        let anchor = $("#export");
+        return this.__download(anchor, data, fileType);
+    }
 
+    static importJson() {
+        let reader = new FileReader();
+        reader.onload = (e) => {
+            let json = reader.result;
+            studio.fromJSON(json);
+        };
+        reader.readAsText($("#importFile")[0].files[0]);
     }
 
     static inheritance(subclassId) {
         Materialize.toast("Select the superclass", 4000);
-        studio.inheritFromSuperclass(subclassId);
+        studio.inherit(subclassId);
 
     }
 

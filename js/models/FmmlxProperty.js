@@ -39,23 +39,6 @@ Model.FmmlxProperty = class {
         this.operationBody = operationBody;
     }
 
-    get intrinsicness() {
-        return this._intrinsicness;
-    };
-
-    set intrinsicness(val) {
-        let numberVal = Number.parseInt(val);
-        if ((val !== "?" && isNaN(numberVal)) || numberVal > Number.parseInt(this.maxIntrinsicness)) {
-            throw new Error(`Invalid intrinsicness ${val} for property ${this.name}`);
-        }
-        this._intrinsicness = (val === "?") ? "?" : numberVal;
-    };
-
-    static get isValue() {
-        return false;
-    }
-
-
     /**
      * Adds an FMMLx Class to the set. Recalculates max intrinsicness
      * @param {Model.FmmlxClass} fmmlxClass
@@ -66,13 +49,9 @@ Model.FmmlxProperty = class {
         if (fmmlxClass.level === "?") {
             this.maxIntrinsicness = "?";
             this.intrinsicness = "?";
-        }
-        else {
+        } else {
             let level = Number.parseInt(fmmlxClass.level);
-            if (this.maxIntrinsicness === Infinity) {
-                this.maxIntrinsicness = level;
-            }
-            else if (this.maxIntrinsicness <= level) {
+            if (this.maxIntrinsicness === Infinity || this.maxIntrinsicness < level) {
                 this.maxIntrinsicness = level - 1;
             }
         }
@@ -90,6 +69,27 @@ Model.FmmlxProperty = class {
         let valObj = new Model.FmmlxValue(this, value, fmmlxClass);
         this.values.add(valObj);
         return valObj;
+    }
+
+    /**
+     * Returns a flat copy of the property
+     * @return {Model.FmmlxProperty}
+     */
+    deflate() {
+        /**
+         *
+         * @type {Model.FmmlxProperty}
+         */
+        let clone = Object.assign({}, this);
+        delete clone.classes;
+        delete clone.values;
+        delete clone.intrinsicness;
+        clone.intrinsicness = clone._intrinsicness;
+        clone.isValue = false;
+        delete clone._intrinsicness;
+        delete clone.values;
+        delete clone.classes;
+        return clone;
     }
 
     /**
@@ -113,27 +113,32 @@ Model.FmmlxProperty = class {
         return this.constructor === Model.FmmlxProperty && this.name === obj.name && this.intrinsicness === obj.intrinsicness;
     }
 
-    static parse(string) {
-        let clone = JSON.parse(string);
-        let property = new Model.FmmlxProperty();
-
-
+    /**
+     * Inflates a flattened member
+     * @param flatMember
+     * @return {Model.FmmlxProperty}
+     */
+    static inflate(flatMember) {
+        let partial = new Model.FmmlxProperty(flatMember.name, flatMember.type, flatMember.intrinsicness, flatMember.isOperation, flatMember.behaviors, flatMember.operationBody);
+        partial.id = flatMember.id;
+        return partial;
     }
 
-    stringify() {
-        /**
-         *
-         * @type {Model.FmmlxProperty}
-         */
-        let clone = Object.assign({}, this);
-        clone.classes = [];
-        clone.values = [];
-        for (let fmmlxClass of this.classes) {
-            clone.classes.push(fmmlxClass.id);
+    get intrinsicness() {
+        return this._intrinsicness;
+    };
+
+    set intrinsicness(val) {
+        let numberVal = Number.parseInt(val);
+        if ((val !== "?" && isNaN(numberVal)) || numberVal > Number.parseInt(this.maxIntrinsicness)) {
+            throw new Error(`Invalid intrinsicness ${val} for property ${this.name}`);
         }
-        for (let value of this.values) {
-            clone.values.push({classId: value.class.id, value: value.value})
-        }
-        return JSON.stringify(clone);
+        this._intrinsicness = (val === "?") ? "?" : numberVal;
+    };
+
+    get isValue() {
+        return false;
     }
+
+
 };

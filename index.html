@@ -35,7 +35,9 @@
             //Set up Modals
             Controller.FormController.init();
             window.studio = new Controller.StudioController();
-            window.onerror = function (messageOrEvent, source, lineno, colno, error) { Controller.FormController.__error(error)};
+            window.onerror = function (messageOrEvent, source, lineno, colno, error) {
+                Controller.FormController.__error(error)
+            };
             $(document)
                 .keydown((event) => ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "i") ? Controller.FormController.displayClassForm() : true)
         });
@@ -53,11 +55,18 @@
             <span class="mainTitle">FMMLx Studio</span>
             <ul id="nav-mobile" class="right">
                 <li>
-                    <a id="export" onclick="Controller.FormController.exportJson()" href="#"><i class="fa fa-2x fa-floppy-o"></i></a>
+                    <a id="export" onclick="Controller.FormController.exportJson()" href="#"><i
+                            class="fa fa-2x fa-floppy-o"></i></a>
                 </li>
-                <li><a id="import" href="#"><i class="fa fa-folder-open fa-2x"></i></a></li>
                 <li>
-                    <a id="image" onclick="Controller.FormController.downloadImage()" href="#"><i class="fa fa-picture-o fa-2x"></i></a>
+                    <label for="importFile">
+                        <i class="fa fa-folder-open fa-2x white-text"></i>
+                    </label>
+                    <input type="file" class="hide" id="importFile" onchange="Controller.FormController.importJson()">
+                </li>
+                <li>
+                    <a id="image" onclick="Controller.FormController.downloadImage()" href="#"><i
+                            class="fa fa-picture-o fa-2x"></i></a>
                 </li>
                 <li><a id="search" href="#"><i class="fa fa-search fa-2x"></i> </a></li>
             </ul>
@@ -93,8 +102,17 @@
 
 <!-- Floating + button to add Class -->
 <div class="fixed-action-btn">
-    <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse" onclick="Controller.FormController.displayClassForm();">
+    <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse"
+            onclick="Controller.FormController.displayClassForm();">
         <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
+</div>
+
+<div class="tap-target" data-activates="addClass">
+    <div class="tap-target-content">
+        <h5>Help</h5>
+        <p>To add an FMMLx Class, just hit the + button, or press <code>CTRL (COMMAND) + I</code>,<br/>
+            everything else is accessible via context (right-click) menu.</p>
+    </div>
 </div>
 
 <!-- Add / Edit Class Modal -->
@@ -107,7 +125,8 @@
             <div class="row">
                 <div class="input-field col s5">
                     <input type="text" id="class_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
-                    <label for="class_name" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Class
+                    <label for="class_name"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Class
                         Name</label>
                 </div>
                 <div class="input-field col s2">
@@ -122,7 +141,8 @@
                 </div>
                 <div class="input-field col s5 hide">
 
-                    <input type="text" id="class_externalMetaclass" data-wrong="Only Alphanumeric or &quot;. , _&quot;" class="validate" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
+                    <input type="text" id="class_externalMetaclass" data-wrong="Only Alphanumeric or &quot;. , _&quot;"
+                           class="validate" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
                     <label for="class_externalMetaclass">Ext. Metaclass</label>
                 </div>
             </div>
@@ -130,12 +150,14 @@
                 <div class="col s6 center-align">
                     <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
                     <label for="class_isAbstract">Mark as Abstract</label> &nbsp;
-                    <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox" name="isExternal" data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass"/>
+                    <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox" name="isExternal"
+                           data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass"/>
                     <label for="class_isExternal">From External Language</label>
                 </div>
                 <div class="col s5 offset-s1">
                     <div class="input-field hide">
-                        <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled pattern="^[\w\.,]+$" required/>
+                        <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
+                               pattern="^[\w\.,]+$" required/>
                         <label for="class_externalLanguage" data-wrong="Only Alphanumeric or &quot;. , _&quot;">External
                             Language</label>
                     </div>
@@ -165,30 +187,40 @@
             <div class="row">
                 <div class="input-field col s5">
                     <input type="text" id="attribute_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
-                    <label for="attribute_name" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
+                    <label for="attribute_name"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
                 </div>
                 <div class="input-field col s4">
                     <input type="text" id="attribute_type" class="validate" name="type" pattern="^[\w\.,]+$" required/>
-                    <label for="attribute_type" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Type</label>
+                    <label for="attribute_type"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Type</label>
                 </div>
                 <div class="input-field col s3 hide">
                     <input type="text" id="attribute_value" class="validate" name="value" disabled/>
                     <label for="attribute_value">Value</label>
                 </div>
                 <div class="input-field col s3">
-                    <input type="text" id="attribute_intrinsicness" class="validate" name="intrinsicness" pattern="^(\d+|\?)$" required/>
-                    <label for="attribute_intrinsicness" data-error="Only Numbers or &quot;?&quot;">Intrinsicness</label>
+                    <input type="text" id="attribute_intrinsicness" class="validate" name="intrinsicness"
+                           pattern="^(\d+|\?)$" required/>
+                    <label for="attribute_intrinsicness"
+                           data-error="Only Numbers or &quot;?&quot;">Intrinsicness</label>
                 </div>
             </div>
             <div class="row">
                 <div class="col s6 offset-s3 center-align">
-                    <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo" data-show="attribute_operationBody" value="true" type="checkbox"/>
+                    <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo"
+                           data-show="attribute_operationBody" value="true" type="checkbox"/>
                     <label for="attribute_isOperation">Is Operation?</label>&nbsp;
-                    <span class="horizontal-separator"></span><input id="attribute_isValue" name="isValue" class="needsExtraInfo" data-show="attribute_value" data-hide="attribute_intrinsicness" value="true" type="checkbox"/>
+                    <span class="horizontal-separator"></span><input id="attribute_isValue" name="isValue"
+                                                                     class="needsExtraInfo" data-show="attribute_value"
+                                                                     data-hide="attribute_intrinsicness" value="true"
+                                                                     type="checkbox"/>
                     <label for="attribute_isValue">Is Value?</label> &nbsp;
-                    <span class="horizontal-separator"></span><input id="attribute_isObtainable" name="isObtainable" value="O" type="checkbox"/>
+                    <span class="horizontal-separator"></span><input id="attribute_isObtainable" name="isObtainable"
+                                                                     value="O" type="checkbox"/>
                     <label for="attribute_isObtainable">Is Obtainable?</label> &nbsp;
-                    <span class="horizontal-separator"></span><input id="attribute_isDerivable" name="isDerivable" value="D" type="checkbox"/>
+                    <span class="horizontal-separator"></span><input id="attribute_isDerivable" name="isDerivable"
+                                                                     value="D" type="checkbox"/>
                     <label for="attribute_isDerivable">Is Derivable?</label>&nbsp;
                     <span class="horizontal-separator"></span>
                     <input id="attribute_isSimulation" name="isSimulation" value="S" type="checkbox"/>

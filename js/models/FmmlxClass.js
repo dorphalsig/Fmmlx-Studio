@@ -13,8 +13,8 @@ Model.FmmlxClass = class {
      * @param {string} name
      * @param {string} level
      * @param {boolean} isAbstract
-     * @param {*} externalLanguage
-     * @param {*} externalMetaclass
+     * @param {string} externalLanguage
+     * @param {string} externalMetaclass
      */
     constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null) {
 
@@ -67,23 +67,6 @@ Model.FmmlxClass = class {
                 return this._distanceFromRoot;
             },
         });
-
-        /**
-         * @type String
-         */
-        /* Object.defineProperty(this, 'id', {
-         configurable: true, enumerable: true, get: function () {
-         let id = {
-         name: this.name,
-         level: this.level,
-         externalLanguage: (this.isExternal) ? this.externalLanguage : "",
-         metaclass: (this.isExternal) ? this.externalMetaclass : this.metaclass
-         };
-         return SparkMD5.hash(JSON.stringify(id), false);
-
-         }
-         });*/
-
 
         /**
          * @type Helper.Set
@@ -159,7 +142,7 @@ Model.FmmlxClass = class {
         this.level = level;
         this.isAbstract = isAbstract;
         //let d = new Date(Date.now());
-        this.id = /*${this.name} - ${d.getHours()}:${d.getMinutes()}.${d.getSeconds()}`;//*/Helper.Helper.uuid4();
+        this.id = Helper.Helper.uuid4();
 
     };
 
@@ -191,6 +174,52 @@ Model.FmmlxClass = class {
         return "FmmlxClass";
     }
 
+    get category() {
+        return "FmmlxClass";
+    }
+
+    /**
+     * Returns a flattened copy of the object
+     * @todo process associations
+     * @return {Model.FmmlxClass}
+     */
+    deflate() {
+        /**
+         *
+         * @type {Model.FmmlxClass}
+         */
+        let clone = Object.assign({}, this);
+        clone.metaclass = (this._metaclass !== null) ? this._metaclass.id : null;
+        clone.superclass = (this.superclass !== null) ? this.superclass.id : null;
+        clone.subclasses = [];
+        clone.instances = [];
+        clone.members = [];
+        clone.values = [];
+
+        for (let subclass of this._subclasses) {
+            clone.subclasses.push(subclass.id);
+        }
+        for (let instance of this._instances) {
+            clone.instances.push(instance.id);
+        }
+        for (let member of this.members) {
+            clone.members.push(member.deflate());
+        }
+        for (let value of this.memberValues) {
+            clone.values.push(value.deflate());
+        }
+        for (let attributeName in clone) {
+            if (attributeName[0] === "_") delete clone[attributeName];
+        }
+
+        delete clone.attributes;
+        delete clone.operations;
+        delete clone.slotValues;
+        delete clone.operationValues;
+
+        return clone;
+    }
+
     /**
      * For object comparison. Determines an unique identifier based on the content of the obj
      * @returns {boolean}
@@ -205,6 +234,28 @@ Model.FmmlxClass = class {
         }
 
         return val;
+    }
+
+    /**
+     *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
+     *  if returnName is true, returns the name as a String.
+     * @param {Model.FmmlxProperty|Model.FmmlxValue} member
+     * @param {Boolean} returnName
+     * @return {Model.FmmlxProperty[]|Model.FmmlxValue|String}
+     */
+    findCorrespondingArray(member, returnName = false) {
+        if (member.constructor === Model.FmmlxProperty) {
+            if (member.isOperation) {
+                return (returnName) ? "operations" : this.operations;
+            } else {
+                return (returnName) ? "attributes" : this.attributes;
+            }
+        }
+        if (member.isOperation) {
+            return (returnName) ? "operationValues" : this.operationValues;
+        } else {
+            return (returnName) ? "slotValues" : this.slotValues;
+        }
     }
 
     /**
@@ -278,29 +329,26 @@ Model.FmmlxClass = class {
     }
 
     /**
-     *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
-     *  if returnName is true, returns the name as a String.
-     * @param {Model.FmmlxProperty|Model.FmmlxValue} member
-     * @param {Boolean} returnName
-     * @return {Model.FmmlxProperty[]|Model.FmmlxValue|String}
+     * Returns a partially inflated copy of a flattened class
+     * @param flatClass
+     * @return Model.FmmlxClass
      */
-    findCorrespondingArray(member, returnName = false) {
-        if (member.constructor === Model.FmmlxProperty) {
-            if (member.isOperation) {
-                return (returnName) ? "operations" : this.operations;
-            } else {
-                return (returnName) ? "attributes" : this.attributes;
-            }
-        }
-        if (member.isOperation) {
-            return (returnName) ? "operationValues" : this.operationValues;
-        } else {
-            return (returnName) ? "slotValues" : this.slotValues;
-        }
+    static inflate(flatClass) {
+        let partial = new Model.FmmlxClass(flatClass.name, flatClass.level, flatClass.isAbstract, flatClass.externalLanguage, flatClass.externalMetaclass);
+        partial.id = flatClass.id;
+        return partial;
     }
 
     get memberValues() {
         return this.slotValues.concat(this.operationValues);
+    }
+
+    /**
+     *
+     * @return {Array.<Model.FmmlxProperty>}
+     */
+    get members() {
+        return this.attributes.concat(this.operations);
     }
 
     /**
@@ -317,43 +365,6 @@ Model.FmmlxClass = class {
      */
     removeInstance(instance) {
         this._instances.remove(instance);
-    }
-
-    /**
-     *
-     * @return {Array.<Model.FmmlxProperty>}
-     */
-    get members() {
-        return this.attributes.concat(this.operations);
-    }
-
-    stringify() {
-        /**
-         *
-         * @type {Model.FmmlxClass}
-         */
-        let clone = Object.assign({}, this);
-        clone.metaclass = (this._metaclass !== null) ? this._metaclass.id : null;
-        clone.superclass = (this.superclass !== null) ? this.superclass.id : null;
-        clone.subclasses = [];
-        clone.instances = [];
-        clone.attributes = [];
-        clone.operations = [];
-        clone.slotValues = [];
-        clone.operationValues = [];
-        for (let subclass of this._subclasses) {
-            clone.subclasses.push(subclass.id);
-        }
-        for (let instance of this._instances) {
-            clone.instances.push(instance.id);
-        }
-        for (let member of this.members) {
-            clone[(member.isOperation) ? "operations" : "attributes"].push(member.stringify());
-        }
-        for (let value of this.memberValues) {
-            clone[(value.isOperation) ? "slotValues" : "operationValues"].push(member.stringify());
-        }
-        return JSON.stringify(clone);
     }
 
     /**

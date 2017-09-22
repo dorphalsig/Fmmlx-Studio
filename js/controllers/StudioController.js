@@ -33,8 +33,8 @@ Controller.StudioController = class {
 
         window.PIXELRATIO = this._diagram.computePixelRatio();
 
-        this._diagram.nodeTemplateMap.add(`fmmlxClass`, FmmlxShapes.FmmlxClass.shape);
-        this._diagram.linkTemplateMap.add(`fmmlxAssociation`, FmmlxShapes.FmmlxAssociation.shape);
+        this._diagram.nodeTemplateMap.add(Model.FmmlxClass.category, FmmlxShapes.FmmlxClass.shape);
+        this._diagram.linkTemplateMap.add(Model.FmmlxAssociation.category, FmmlxShapes.FmmlxAssociation.shape);
         this._diagram.linkTemplateMap.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
         //This prevents stuff being created randomly when ppl click on the diagram
         //This is only required because the add class sets the archetype to something else
@@ -120,7 +120,7 @@ Controller.StudioController = class {
     }
 
     /**
-     * returns a list of fmmlx classes that meets each of filters
+     * returns a list of fmmlx classes that meets each of <filters> criteria
      * @param {Object} filters
      * @returns {Model.FmmlxClass[]}
      */
@@ -131,7 +131,7 @@ Controller.StudioController = class {
             let retVal = true;
             for (let filter in filters) {
                 if (!filters.hasOwnProperty(filter) || !nodeData.hasOwnProperty(filter)) {
-                    continue; //
+                    continue;
                 }
                 retVal = retVal && nodeData[filter] === filters[filter];
             }
@@ -191,7 +191,7 @@ Controller.StudioController = class {
                     if (fmmlxClassNode.data.level !== classLevel) {
                         throw new Error("All classes to be abstracted must have the same level");
                     }
-                    studio.changeMetaclass(fmmlxClassNode.data, diagramEvent.subject.data.id)
+                    studio.changeClassMetaclass(fmmlxClassNode.data, diagramEvent.subject.data.id)
                 }
                 studio._commitTransaction(transId);
             } catch (error) {
@@ -203,45 +203,7 @@ Controller.StudioController = class {
         let name = `AbstractClass ${parseInt(Math.random() * 100)}`;
         let level = (classLevel === "?") ? "?" : classLevel + 1;
         this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
-        this.addFmmlxClass(name, level, false);
-    }
-
-    /**
-     * Adds a new FMMLX Class to the diagram
-     * @param {string} name
-     * @param {string} isAbstract
-     * @param {string} metaclassId
-     * @param {string} level
-     * @param {string} externalLanguage
-     * @param {string} externalMetaclass
-     * @returns undefined
-     */
-    addFmmlxClass(name, level, isAbstract, metaclassId = "", externalLanguage, externalMetaclass) {
-
-        //Step 1 Search for dupes
-
-        let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass);
-        let dupe = this._model.findNodeDataForKey(fmmlxClass.id);
-        if (dupe !== null) {
-            throw  new Error(`An equivalent class definition already exists.`);
-        }
-        console.log(`Add Class ${name}`);
-
-        //Step 2 Add basic info to the model
-        fmmlxClass.category = "fmmlxClass";
-
-
-        //The next click on the diagram will insert the class
-        this._diagram.toolManager.clickCreatingTool.archetypeNodeData = fmmlxClass;
-        this._diagram.toolManager.clickCreatingTool.isDoubleClick = false;
-
-        let partCreatedHandler = (e) => {
-            e.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
-            studio.changeMetaclass(e.subject.data, metaclassId);
-        };
-
-        //Step 3 once we have a part instance we add its metaclass
-        this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
+        this.createFmmlxClass(name, level, false);
     }
 
     /**
@@ -338,36 +300,10 @@ Controller.StudioController = class {
     }
 
     /**
-     *  Changes the level of an FMMMLx member, if not possible throws an exception. returns true if successful, false otherwise
-     * @param {Model.FmmlxProperty} member
-     * @param newIntrinsicness
-     * @return {Boolean}
-     */
-    changeMemberIntrinsicness(member, newIntrinsicness) {
-        console.log(`Changing ${member.name} intrinsicness from ${member.intrinsicness} to ${newIntrinsicness}`);
-        if (member.intrinsicness.toString() === newIntrinsicness) {
-            console.log("Initial and target instrinsicness are the same. Doing nothing.");
-            return false;
-        }
-        let transId = this._beginTransaction("Changing intrinsicness...");
-        try {
-            this._model.setDataProperty(member, "intrinsicness", newIntrinsicness);
-            for (let fmmlxClass of member.classes) {
-                this.processMember(fmmlxClass, member);
-            }
-            this._commitTransaction(transId);
-        } catch (e) {
-            this._rollbackTransaction();
-            throw e;
-        }
-        return true;
-    }
-
-    /**
      * @param {Model.FmmlxClass} fmmlxClass
      * @param {*} metaclassId
      */
-    changeMetaclass(fmmlxClass, metaclassId = null) {
+    changeClassMetaclass(fmmlxClass, metaclassId = null) {
 
         if (metaclassId === null || metaclassId === "") {
             this.deleteMetaclass(fmmlxClass);
@@ -407,6 +343,58 @@ Controller.StudioController = class {
         this._commitTransaction(transId);
     }
 
+    changeClassSuperclass(superclass, subclass) {
+        if (superclass === null) {
+            console.log("Superclass is null, doing nothing");
+            return;
+        }
+        if (typeof superclass.level === "undefined" || superclass.id === subclass.id) throw new Error("Invalid selection");
+        if (superclass.level !== subclass.level) throw new Error("Subclass and Superclass must have the same level.");
+        if (subclass.superclass !== null) throw new Error("Subclass already inherits from another class.");
+
+
+        let transId = this._beginTransaction("Creating inheritance");
+        try {
+            let members = superclass.members;
+            for (let member of members) {
+                this.addMemberToClass(subclass, member);
+            }
+            this._model.setDataProperty(subclass, "superclass", superclass);
+            superclass.addSubclass(subclass);
+            this._model.addLinkData({from: subclass.id, to: superclass.id, category: "fmmlxInheritance"});
+            this._commitTransaction(transId);
+        } catch (e) {
+            this._rollbackTransaction();
+            throw e;
+        }
+    }
+
+    /**
+     *  Changes the level of an FMMMLx member, if not possible throws an exception. returns true if successful, false otherwise
+     * @param {Model.FmmlxProperty} member
+     * @param newIntrinsicness
+     * @return {Boolean}
+     */
+    changeMemberIntrinsicness(member, newIntrinsicness) {
+        console.log(`Changing ${member.name} intrinsicness from ${member.intrinsicness} to ${newIntrinsicness}`);
+        if (member.intrinsicness.toString() === newIntrinsicness) {
+            console.log("Initial and target instrinsicness are the same. Doing nothing.");
+            return false;
+        }
+        let transId = this._beginTransaction("Changing intrinsicness...");
+        try {
+            this._model.setDataProperty(member, "intrinsicness", newIntrinsicness);
+            for (let fmmlxClass of member.classes) {
+                this.processMember(fmmlxClass, member);
+            }
+            this._commitTransaction(transId);
+        } catch (e) {
+            this._rollbackTransaction();
+            throw e;
+        }
+        return true;
+    }
+
     /**
      * Copies a member definition to the metaclass
      * @param classId
@@ -437,6 +425,44 @@ Controller.StudioController = class {
 
         let member = fmmlxClass.findMemberById(memberId);
         this.addMemberToClass(fmmlxClass.superclass, member);
+    }
+
+    /**
+     * Adds a new FMMLX Class to the diagram
+     * @param {string} name
+     * @param {string} isAbstract
+     * @param {string} metaclassId
+     * @param {string} level
+     * @param {string} externalLanguage
+     * @param {string} externalMetaclass
+     * @returns undefined
+     */
+    createFmmlxClass(name, level, isAbstract, metaclassId = "", externalLanguage, externalMetaclass) {
+
+        //Step 1 Search for dupes
+
+        let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass);
+        let dupe = this._model.findNodeDataForKey(fmmlxClass.id);
+        if (dupe !== null) {
+            throw  new Error(`An equivalent class definition already exists.`);
+        }
+        console.log(`Add Class ${name}`);
+
+        //The next click on the diagram will insert the class
+        this._diagram.toolManager.clickCreatingTool.archetypeNodeData = fmmlxClass;
+        this._diagram.toolManager.clickCreatingTool.isDoubleClick = false;
+
+        let partCreatedHandler = (diagramEvent) => {
+            diagramEvent.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
+            let tool = diagramEvent.diagram.toolManager.clickCreatingTool;
+            tool.archetypeNodeData = null;
+            tool.isDoubleClick = true;
+            studio.changeClassMetaclass(diagramEvent.subject.data, metaclassId);
+        };
+
+
+        //Step 3 once we have a part instance we add its metaclass
+        this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
     }
 
     /**
@@ -605,8 +631,8 @@ Controller.StudioController = class {
 
     /**
      * Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link
-     * @param {Model.FmmlxClass} subclass
-     * @param {Model.FmmlxClass} superclass
+     * @param {Model.FmmlxClass|String} subclassOrId
+     * @param {Model.FmmlxClass|String} superclassOrId
      */
     deleteSuperclass(subclassOrId, superclassOrId) {
 
@@ -674,12 +700,11 @@ Controller.StudioController = class {
         metaclassId = (metaclassId === "") ? null : metaclassId;
 
         if (isAbstract && fmmlxClass.instances.size > 0) {
-            throw new Error("Can not make class abstract because it has instances.");
+            throw new Error("Can not$make class abstract because it has instances.");
         }
 
         let transId = this._beginTransaction("Editing Class...");
         try {
-            let originalName = fmmlxClass.name;
             this._model.setDataProperty(fmmlxClass, "isAbstract", Boolean(isAbstract));
             this._model.setDataProperty(fmmlxClass, "name", name);
 
@@ -699,7 +724,7 @@ Controller.StudioController = class {
                 }
             }
 
-            this.changeMetaclass(fmmlxClass, metaclassId);
+            this.changeClassMetaclass(fmmlxClass, metaclassId);
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
         } catch (error) {
             this._rollbackTransaction();
@@ -744,9 +769,6 @@ Controller.StudioController = class {
                 this._model.setDataProperty(member, prop, otherAttributes[prop]);
             }
 
-            //let collectionName = fmmlxClass.findCorrespondingArray(member, true);
-            // node.updateTargetBindings(collectionName);
-
             if (!member.isValue && member.intrinsicness.toString() !== intrinsicness) {
                 this.changeMemberIntrinsicness(member, intrinsicness);
             }
@@ -757,7 +779,7 @@ Controller.StudioController = class {
                     let node = this._diagram.findNodeForKey(fmmlxClass.id);
                     node.updateTargetBindings();
                 }
-            }
+            } else node.updateTargetBindings();
 
         } catch (e) {
             this._rollbackTransaction(e);
@@ -767,7 +789,16 @@ Controller.StudioController = class {
     }
 
     fromJSON(jsonData) {
-        this._diagram.model = go.Model.fromJson(jsonData);
+        let jsonArray = JSON.parse(jsonData);
+        while (jsonArray.length > 0) {
+            let level = jsonArray.pop();
+            if (Array.isArray(level)) {
+                for (let data of level) {
+                    let node = this.inflateClass(data.data);
+                    node.location = go.Point.parse(data.location);
+                }
+            }
+        }
     }
 
     /**
@@ -781,27 +812,65 @@ Controller.StudioController = class {
         return this._filterClasses({level: targetLevel});
     }
 
-    inheritFromSuperclass(subclassId) {
+    /**
+     * Inflates an Fmmlx Class that was deflated
+     * @param flatClass
+     * @return {go.Node}
+     */
+    inflateClass(flatClass) {
+        let transId = this._beginTransaction(`Inflating ${flatClass.name}`);
+        try {
+            /**
+             * @type {Model.FmmlxClass}
+             */
+            let fmmlxClass = Model.FmmlxClass.inflate(flatClass);
+            this._model.addNodeData(fmmlxClass);
+            this.changeClassMetaclass(fmmlxClass, flatClass.metaclass);
+
+            if (flatClass.superclass !== null) {
+                let superclass = this._model.findNodeDataForKey(flatClass.superclass);
+                this.changeClassSuperclass(superclass, fmmlxClass);
+            }
+
+            if (flatClass.subclasses.length > 0) {
+                for (let subclassId of flatClass.subclasses) {
+                    let subclass = this._model.findNodeDataForKey(subclassId);
+                    this.changeClassSuperclass(fmmlxClass, subclass);
+                }
+            }
+
+            for (let flatMember of flatClass.members) {
+                let member = Model.FmmlxProperty.inflate(flatMember);
+                this.addMemberToClass(fmmlxClass, member);
+            }
+
+            for (let flatValue of flatClass.values) {
+                /**
+                 *
+                 * @type {Model.FmmlxProperty}
+                 */
+                let member = Model.FmmlxProperty.inflate(flatValue);
+                this.addMemberToClass(fmmlxClass, member);
+                let value = fmmlxClass.findValueFromProperty(member);
+                value.value = flatValue.value;
+            }
+
+            ///@todo process associations
+            this._diagram.findNodeForKey(fmmlxClass.id).updateTargetBindings();
+            this._commitTransaction(transId);
+            return this._diagram.findNodeForKey(fmmlxClass.id);
+        } catch (e) {
+            this._rollbackTransaction();
+            throw e;
+        }
+    }
+
+    inherit(subclassId) {
         let subclass = this._model.findNodeDataForKey(subclassId);
         let handler = function (event) {
             studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
             let superclass = event.subject.part.data;
-            if (typeof superclass.level === "undefined" || superclass.id === subclass.id) throw new Error("Invalid selection");
-            if (superclass.level !== subclass.level) throw new Error("Subclass and Superclass must have the same level.");
-            let transId = studio._beginTransaction("Creating inheritance");
-            try {
-                let members = superclass.members;
-                for (let member of members) {
-                    studio.addMemberToClass(subclass, member);
-                }
-                studio._model.setDataProperty(subclass, "superclass", superclass);
-                superclass.addSubclass(subclass);
-                studio._model.addLinkData({from: subclass.id, to: superclass.id, category: "fmmlxInheritance"});
-                studio._commitTransaction(transId);
-            } catch (e) {
-                studio._rollbackTransaction();
-                throw e;
-            }
+            studio.changeClassSuperclass(superclass, subclass);
         };
         this._diagram.addDiagramListener("ObjectSingleClicked", handler);
     }
@@ -819,7 +888,6 @@ Controller.StudioController = class {
      * @param {String} transId
      */
     processMember(fmmlxClass, member, transId = null) {
-
 
         let localCommit = false;
         if (transId === null) {
@@ -859,7 +927,7 @@ Controller.StudioController = class {
                 this.addMemberToClass(fmmlxClass, member);
             }
 
-            //this._model.updateTargetBindings(fmmlxClass);
+            // this._model.updateTargetBindings(fmmlxClass);
 
             for (let instance of fmmlxClass.instances) {
                 this.processMember(instance, member, transId);
@@ -881,8 +949,19 @@ Controller.StudioController = class {
 
     }
 
+    /**
+     * Exports the diagram as JSON
+     */
     toJSON() {
-        return this._diagram.model.toJSON();
+        let jsonArray = [];
+        this._diagram.nodes.each((node) => {
+            let data = node.data;
+            if (data.category === Model.FmmlxClass.category) {
+                if (!Array.isArray(jsonArray[data.level])) jsonArray[data.level] = [];
+                jsonArray[data.level].push({data: data.deflate(), location: go.Point.stringify(node.location)});
+            }
+        });
+        return JSON.stringify(jsonArray);
     }
 
     toPNG() {

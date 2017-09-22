@@ -26,6 +26,15 @@ Model.FmmlxValue = class {
         return new Proxy(property, this);
     }
 
+    deflate() {
+        let clone = this.property.deflate();
+        clone.value = this.value;
+        clone.isValue = true;
+        clone.class = this.class.id;
+        delete this.property;
+        return clone;
+    }
+
     /**
      *
      * @param {Model.FmmlxValue} obj
@@ -37,6 +46,11 @@ Model.FmmlxValue = class {
 
     get(target, name) {
         switch (name) {
+
+            case "deflate":
+                this.property = target;
+                return this.deflate;
+                break;
 
             case "equals":
                 return this.equals;
@@ -80,11 +94,6 @@ Model.FmmlxValue = class {
         };
     }
 
-    /* ownKeys(target) {
-     debugger;
-     // return Object.keys(target).concat(Object.keys(this))
-     return ;
-     }*/
 
     set(target, name, val) {
         switch (name) {
@@ -104,7 +113,6 @@ Model.FmmlxValue = class {
         }
         return true;
     }
-
 
 };
 
