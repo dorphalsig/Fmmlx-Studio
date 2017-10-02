@@ -48,17 +48,6 @@ Model.FmmlxClass = class {
             },
         });
 
-
-        /**
-         * @type Helper.Set
-         */
-        Object.defineProperty(this, "endpoints", {
-            configurable: true, enumerable: true, get: function () {
-                return this._endpoints;
-            },
-        });
-
-
         /**
          * @type Number
          */
@@ -66,13 +55,6 @@ Model.FmmlxClass = class {
             configurable: true, enumerable: true, get: function () {
                 return this._distanceFromRoot;
             },
-        });
-
-        /**
-         * @type Helper.Set
-         */
-        Object.defineProperty(this, "subclasses", {
-            configurable: true, enumerable: true, get: () => this._subclasses,
         });
 
         /**
@@ -106,12 +88,10 @@ Model.FmmlxClass = class {
             configurable: true, enumerable: true, get: () => this.externalLanguage !== null,
         });
 
-        this.__foundPropIndex = null;
-        this.__foundValIndex = null;
         this.metaclass = null;
         this._distanceFromRoot = 0;
         this._instances = new Helper.Set();
-        this._subclasses = new Helper.Set();
+        this.subclasses = new Helper.Set();
         this.superclass = null;
         this.name = name;
         this.lastChangeId = "";
@@ -135,7 +115,7 @@ Model.FmmlxClass = class {
          * @type {Model.FmmlxValue[]}
          */
         this.operationValues = [];
-        this._endpoints = new Helper.Set();
+        this.associations = new Helper.Set();
         this.tags = [];
         this.externalLanguage = externalLanguage;
         this.externalMetaclass = externalMetaclass;
@@ -148,10 +128,10 @@ Model.FmmlxClass = class {
 
     /**
      *
-     * @param {Model.FmmlxRelationEndpoint} endpoint
+     * @param {Model.FmmlxAssociation} association
      */
-    addEndpoint(endpoint) {
-        this._endpoints.add(endpoint);
+    addAssociation(association) {
+        this.associations.add(association);
     }
 
     /**
@@ -167,7 +147,7 @@ Model.FmmlxClass = class {
      * @param {Model.FmmlxClass} subclass
      */
     addSubclass(subclass) {
-        this._subclasses.add(subclass);
+        this.subclasses.add(subclass);
     }
 
     static get category() {
@@ -196,7 +176,7 @@ Model.FmmlxClass = class {
         clone.members = [];
         clone.values = [];
 
-        for (let subclass of this._subclasses) {
+        for (let subclass of this.subclasses) {
             clone.subclasses.push(subclass.id);
         }
         for (let instance of this._instances) {
@@ -339,6 +319,27 @@ Model.FmmlxClass = class {
         return partial;
     }
 
+    /**
+     * Checks whether a class is a descendant of another class
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @return {Boolean}
+     */
+    isDescendantOf(fmmlxClass) {
+        let isDescendant = false;
+        while (!isDescendant) {
+            if (this._metaclass !== null) {
+                isDescendant = this._metaclass.equals(fmmlxClass) ? true : this._metaclass.isDescendantOf(fmmlxClass);
+            }
+
+            if (!isDescendant && this.superclass !== null) {
+                isDescendant = this.superclass.equals(fmmlxClass) ? true : this.superclass.isDescendantOf(fmmlxClass);
+            }
+
+
+        }
+
+    }
+
     get memberValues() {
         return this.slotValues.concat(this.operationValues);
     }
@@ -353,10 +354,11 @@ Model.FmmlxClass = class {
 
     /**
      *
-     * @param {Model.FmmlxRelationEndpoint} endpoint
+     * @param {Model.FmmlxAssociation} association
+     * @return {*}
      */
-    removeEndpoint(endpoint) {
-        this._endpoints.remove(endpoint);
+    removeAssociation(association) {
+        return this.associations.remove(association);
     }
 
     /**
@@ -372,7 +374,7 @@ Model.FmmlxClass = class {
      * @param {Model.FmmlxClass} subclass
      */
     removeSubclass(subclass) {
-        this._subclasses.remove(subclass);
+        this.subclasses.remove(subclass);
     }
 
 

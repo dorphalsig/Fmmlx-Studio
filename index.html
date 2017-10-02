@@ -25,7 +25,6 @@
     <script src="js/models/FmmlxProperty.js"></script>
     <script src="js/models/FmmlxClass.js"></script>
     <script src="js/models/FmmlxValue.js"></script>
-    <script src="js/models/FmmlxRelationshipEndpoint.js"></script>
     <script src="js/models/FmmlxAssociation.js"></script>
 
 
@@ -97,7 +96,11 @@
     <div class="contextMenu highlight collection" id="inheritanceMenu">
         <a class="collection-item" href="#" id="deleteInheritance">Delete Relationship</a>
     </div>
-
+    <div class="contextMenu highlight collection" id="associationMenu">
+        <a class="collection-item" href="#" id="deleteAssociation">Delete Association</a>
+        <a class="collection-item" href="#" id="instantiateAssociation">Instantiate Association</a>
+        <a class="collection-item" href="#" id="refineAssociation">Refine Association</a>
+    </div>
     <!-- End Context Menus -->
 </div>
 
@@ -181,7 +184,7 @@
 
 <div id="fmmlxAttributeModal" class="modal bottom-sheet">
     <div class="modal-content">
-        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup> Class
+        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMMLx Class
             Member </h4>
         <form id="propertyForm">
             <input type="hidden" name="id">
@@ -242,6 +245,93 @@
     </div>
 </div>
 <!-- End Add / Edit Class Member Modal -->
+
+
+<!-- Add / Edit Association -->
+<div id="fmmlxAssociationModal" class="modal bottom-sheet">
+    <div class="modal-content">
+        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMMLx Association</h4>
+        <form id="associationForm" data-toggle="validator">
+            <input type="hidden" name="id">
+            <div class="row">
+                <div class="input-field col s4">
+                    <input type="text" id="association_name" class="validate" name="name" pattern="^[\w\.,]+$"
+                           required/>
+                    <label for="association_name"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
+                </div>
+                <div class="input-field col s4">
+                    <input id="association_source" name="src" type="text" readonly>
+                    <label for="association_source">Source</label>
+                </div>
+                <div class="input-field col s4">
+                    <input id="association_target" name="tgt" type="text" readonly>
+                    <label for="association_target">Target</label>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input pattern="^[\w\.,]+$" id="association_sourceRole" name="sourceRole"
+                           class="validate" type="text" required>
+                    <label for="association_sourceRole"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Source
+                        Role</label>
+                </div>
+                <div class="input-field col s4">
+                    <input pattern="[\d+|\*],[\d+|\*]" id="association_sourceCardinality" name="sourceCardinality"
+                           class="validate" type="text" required>
+                    <label for="association_sourceCardinality"
+                           data-error="Must be #,# where # is a number or &quot;*&quot;">Source Cardinality</label>
+                </div>
+                <div class="input-field col s4">
+                    <input type="text" id="association_sourceIntrinsicness" class="validate"
+                           name="sourceIntrinsicness"
+                           pattern="^(\d+|\?)$" required/>
+                    <label for="association_sourceIntrinsicness"
+                           data-error="Only Numbers or &quot;?&quot;">Source Intrinsicness</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input pattern="^[\w\.,]+$" id="association_targetRole" name="targetRole"
+                           class="validate" type="text" required>
+                    <label for="association_targetRole"
+                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Target
+                        Role</label>
+                </div>
+                <div class="input-field col s4">
+                    <input pattern="[\d+|\*],[\d+|\*]" id="association_targetCardinality" name="targetCardinality"
+                           type="text"
+                           class="validate" required>
+                    <label for="association_targetCardinality"
+                           data-error="Must be #,# where # is a number or &quot;*&quot;">Target Cardinality</label>
+                </div>
+                <div class="input-field col s4">
+                    <input type="text" id="association_targetIntrinsicness" class="validate"
+                           name="targetIntrinsicness"
+                           pattern="^(\d+|\?)$" required/>
+                    <label for="association_targetIntrinsicness"
+                           data-error="Only Numbers or &quot;?&quot;">Target Intrinsicness</label>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="modal-action waves-effect waves-green btn-flat">Proceed</a>
+    </div>
+</div>
+<!--  End Add / Edit Association -->
+<!--
+<div>
+    <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup>
+        Association</h4>
+    <form id="associationForm">
+        <input id="associationId" type="hidden">
+
+
+</div>
+-->
 
 </body>
 </html>

@@ -6,83 +6,86 @@ if (typeof Model === "undefined") {
 
 /**
  * Represents an Association
- * @type {Model.FmmlxAssociation}
+ * @param {Model.FmmlxClass} source
+ * @param {Model.FmmlxClass} target
+ * @param {String} name
+ * @param {String} cardinality0
+ * @param {String} intrinsicness0
+ * @param {String} role0
+ * @param {String} cardinality1
+ * @param {String} intrinsicness1
+ * @param {String} role1
+ * @param {Model.FmmlxAssociation} primitive
+ * @param {Model.FmmlxAssociation} metaAssociation
+ * @param {String} id of the association, only useful when inflating a deflated association
  */
+
 Model.FmmlxAssociation = class {
 
 
     // Instance
     /**
-     * @param {Model.FmmlxRelationEndpoint} source
-     * @param {Model.FmmlxRelationEndpoint} target
+     * Represents an Association
+     * @param {Model.FmmlxClass} source
+     * @param {Model.FmmlxClass} target
+     * @param {String} name
+     * @param {String} cardinality0
+     * @param {String} intrinsicness0
+     * @param {String} role0
+     * @param {String} cardinality1
+     * @param {String} intrinsicness1
+     * @param {String} role1
      * @param {Model.FmmlxAssociation} primitive
      * @param {Model.FmmlxAssociation} metaAssociation
      */
-    constructor(source, target, primitive = undefined, metaAssociation = undefined) {
-
+    constructor(source, target, name, cardinality0, intrinsicness0, role0, cardinality1, intrinsicness1, role1, primitive = null, metaAssociation = null) {
         this.source = source;
         this.target = target;
+        this.name = name;
+        this.sourceRole = role0;
+        this.targetRole = role1;
         this.primitive = primitive;
         this.metaAssociation = metaAssociation;
-        this.refinements = new Helpers_Set();
-        this.instances = new Helpers_Set();
+        this.sourceCardinality = cardinality0;
+        this.targetCardinality = cardinality1;
+        this.sourceIntrinsicness = intrinsicness0;
+        this.targetIntrinsicness = intrinsicness1;
+        this.refinements = new Helper.Set();
+        this.instances = new Helper.Set();
         this.id = Helper.Helper.uuid4();
     }
 
-    static get category() {
-        return "fmmlxAssociation";
-    }
+    /**
+     * Validates that <cardinality> is a more restrictive cardinality than <reference>
+     * @param cardinality
+     * @param reference
+     * @return {boolean}
+     * @private
+     */
+    _validateCardinality(cardinality, reference) {
+        const regex = /(\d+|\*).+?(\d+|\*)/g;
+        let cardArray = regex.exec(cardinality);
+        let refArray = regex.exec(reference);
+        cardArray[0] = cardArray[0] === "*" ? -Infinity : parseInt(cardArray[0]);
+        refArray[0] = refArray[0] === "*" ? -Infinity : parseInt(refArray[0]);
+        cardArray[1] = cardArray[1] === "*" ? Infinity : parseInt(cardArray[1]);
+        refArray[1] = refArray[1] === "*" ? Infinity : parseInt(refArray[1]);
+        return cardArray[0] >= refArray[0] && cardArray[1] <= refArray[1];
 
-    get category() {
-        return "fmmlxAssociation";
-    }
-
-    get from() {
-        return this.source.class;
     }
 
     /**
-     *
-     * @returns {boolean}
+     * Validates an intrinsicness value vs a reference.
+     * @param intrinsicness
+     * @param reference
+     * @return boolean
+     * @private
      */
-    get isInstance() {
-        return this.metaAssociation !== undefined;
-    }
+    _validateIntrinsicness(intrinsicness, reference) {
+        if (reference === "?") return true;
+        if (intrinsicness === "?") return false;
 
-    get to() {
-        return this.target.class;
-    }
-
-    /**
-     *
-     * @returns {boolean}
-     */
-    get isRefinement() {
-        return this.primitive !== undefined;
-    }
-
-    get sourceCardinality() {
-        return this.source.cardinality;
-    }
-
-    get sourceIntrinsicness() {
-        return this.source.intrinsicness;
-    }
-
-    get sourceRole() {
-        return this.source.role;
-    }
-
-    get targetCardinality() {
-        return this.target.cardinality;
-    }
-
-    get targetIntrinsicness() {
-        return this.target.intrinsicness;
-    }
-
-    get targetRole() {
-        return this.target.role;
+        return Number.parseInt(intrinsicness) <= Number.parseInt(reference);
     }
 
     /**
@@ -99,6 +102,39 @@ Model.FmmlxAssociation = class {
      */
     addRefinement(refinement) {
         this.refinements.add(refinement);
+    }
+
+    static get category() {
+        return "fmmlxAssociation";
+    }
+
+    get category() {
+        return Model.FmmlxAssociation.category;
+    }
+
+    /**
+     * Returns a flat JSON representation of the Association state, namely the references to other models (namely FmmlxClass & FmmlxAssociation)
+     * are replaced by their respective id
+     */
+    deflate() {
+        let clone = Object.assign({}, this);
+        delete clone.from;
+        delete clone.to;
+        clone.source = this.source.id;
+        clone.target = this.target.id;
+        clone.primitive = (this.primitive !== null ) ? this.primitive.id : null;
+        clone.metaAssociation = (this.metaAssociation !== null) ? this.metaAssociation.id : null;
+        let refinements = [];
+        for (let i = 0; i < this.refinements.length;) {
+            refinements.push(this.refinements[i].id);
+        }
+        clone.refinements = refinements;
+        let instances = [];
+        for (let i = 0; i < this.instances.length;) {
+            instances.push(this.instances[i].id);
+        }
+        clone.instances = instances;
+        return JSON.stringify(clone);
     }
 
     /**
@@ -123,6 +159,69 @@ Model.FmmlxAssociation = class {
         }
 
         return equals;
+    }
+
+    get from() {
+        return this.source.id;
+    }
+
+    /**
+     *
+     * @returns {boolean}
+     */
+    get isInstance() {
+        return this.metaAssociation !== null;
+    }
+
+    /**
+     *
+     * @returns {boolean}
+     */
+    get isRefinement() {
+        return this.primitive !== null;
+    }
+
+    get sourceCardinality() {
+        return this._sourceCardinality;
+    }
+
+    set sourceCardinality(cardinality) {
+        if (this.primitive !== null && !this._validateCardinality(cardinality, this.primitive.sourceCardinality)) throw new Error(`Source cardinality must be more restrictive than ${this.primitive.sourceCardinality}`);
+        this._sourceCardinality = cardinality;
+    }
+
+
+    get sourceIntrinsicness() {
+        return this._sourceIntrinsicness;
+    }
+
+    set sourceIntrinsicness(intrinsicness) {
+        if (this.primitive !== null && !this._validateIntrinsicness(intrinsicness, this.source.level)) throw new Error(`Invalid source intrinsicness. Should be smaller than ${this.source.level}`);
+
+        this._sourceIntrinsicness = intrinsicness;
+    }
+
+    get targetCardinality() {
+        return this._targetCardinality;
+    }
+
+    set targetCardinality(cardinality) {
+        if (this.primitive !== null && !this._validateCardinality(cardinality, this.primitive.targetCardinality)) throw new Error(`Target cardinality must be more restrictive than ${this.primitive.targetCardinality}`);
+        this._targetCardinality = cardinality;
+    }
+
+    get targetIntrinsicness() {
+        return this._targetIntrinsicness;
+    }
+
+    set targetIntrinsicness(intrinsicness) {
+        if (this.primitive !== null && !this._validateIntrinsicness(intrinsicness, this.target.level)) throw new Error(`Invalid target intrinsicness. Should be smaller than ${this.target.level}`);
+
+        this._targetIntrinsicness = intrinsicness;
+    }
+
+    get to() {
+        return this.target.id;
     }
 
 };

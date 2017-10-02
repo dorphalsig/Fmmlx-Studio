@@ -77,7 +77,7 @@ Controller.FormController = class {
     /**
      * Parses a form into an object. The field names are the properties of the object
      * @param {JQuery} form
-     * @returns {*}
+     * @returns {Object}
      * @private
      */
     static __readForm(form) {
@@ -223,14 +223,26 @@ Controller.FormController = class {
         }
     }
 
+    static createAssociation(sourceId) {
+        Materialize.toast("Select the target class", 4000);
+        studio.createAssociation(sourceId);
+
+    }
+
+    static createInheritance(subclassId) {
+        Materialize.toast("Select the superclass", 4000);
+        studio.createInheritance(subclassId);
+
+    }
+
     /**
      * Deletes an FMMLx Class
-     * @param {go.Node} node
+     * @param {String} classId
      *
      */
-    static deleteClass(node) {
+    static deleteClass(classId) {
         try {
-            studio.deleteFmmlxClass(node.data.id)
+            studio.deleteFmmlxClass(classId)
         } catch (e) {
             this.__error(e);
         }
@@ -269,7 +281,26 @@ Controller.FormController = class {
     }
 
     static displayAssociationForm(event, obj) {
-        alert("This is not a bug, its a feature!");
+        let modal = $("#fmmlxAssociationModal");
+        let self = Controller.FormController;
+
+        modal.find("form").replaceWith(window._associationForm.clone());
+        //self.__setupExtraDataFields(modal);
+
+        if (obj !== null && obj.data !== null) {
+            obj.data.src = obj.data.source.name;
+            obj.data.tgt = obj.data.target.name;
+            self.__fillForm(modal, obj.data);
+            delete obj.data.src;
+            delete obj.data.tgt;
+        }
+
+        let submitBtn = modal.find(".btn-flat");
+        submitBtn.off("click", self.editFmmlxAssociation).one("click", self.editFmmlxAssociation);
+        modal.find(':input')
+            .remove("keydown")
+            .keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+        modal.modal("open");
     }
 
     static displayClassForm(event = null, obj = null) {
@@ -314,35 +345,36 @@ Controller.FormController = class {
      */
     static displayContextMenu(inputEvent, target) {
         const self = Controller.FormController;
-        let menu = "";
-        let classMenu = $("#classMenu");
-        let memberMenu = $("#propertyMenu");
-        let inheritanceMenu = $("#inheritanceMenu");
-
-        classMenu.hide();
-        memberMenu.hide();
-        inheritanceMenu.hide();
-
+        let menu;
+        let contextMenus = $(".contextMenu");
+        contextMenus.hide();
         switch (target.data.constructor) {
             case Model.FmmlxClass:
-                menu = classMenu;
-                $("#inherit").off("click").one("click", () => self.inheritance(target.data.id));
-                $("#associate").off("click").one("click", () => self.displayAssociationForm(inputEvent, target));
-                $("#deleteClass").off("click").one("click", () => self.deleteClass(target));
-                $("#abstractClass").off("click").one("click", () => self.abstractClass(target));
+                menu = $("#classMenu");
+                $("#inherit").off("click").one("click", () => self.createInheritance(target.data.id));
+                $("#associate").off("click").one("click", () => self.createAssociation(target.data.id));
+                $("#deleteClass").off("click").one("click", () => self.deleteClass(target.data.id));
+                $("#abstractClass").off("click").one("click", () => self.abstractClass());
                 $("#addMember").off("click").one("click", () => self.displayMemberForm(inputEvent, target));
                 break;
 
             case Model.FmmlxProperty:
-                menu = memberMenu;
+                menu = $("#propertyMenu");
                 $("#deleteMemberUpstream").off("click").one("click", () => self.deleteMemberUpstream(target.part.data.id, target.data.id));
                 $("#deleteMember").off("click").one("click", () => self.deleteMember(target.part.data.id, target.data.id));
                 $("#toMetaclass").off("click").one("click", () => self.copyMemberToMetaclass(target.part.data.id, target.data.id));
                 $("#toSuperclass").off("click").one("click", () => self.copyMemberToSuperclass(target.part.data.id, target.data.id));
                 break;
 
+            case Model.FmmlxAssociation:
+                menu = $("#associationMenu");
+                $("#deleteAssociation").off("click").one("click", () => alert('If you don\'t like it, don\'t look at it!'));
+                $("#instantiateAssociation").off("click").one("click", () => alert('This is an adult functionality, please confirm your age'));
+                $("#refineAssociation").off("click").one("click", () => alert('It just won\'t learn proper manners...'));
+                break;
+
             default: // Inheritance has no model because its just a plain link
-                menu = inheritanceMenu;
+                menu = $("#inheritanceMenu");
                 $("#deleteInheritance").off("click").one("click", () => self.deleteSuperclass(target));
                 break;
         }
@@ -351,11 +383,7 @@ Controller.FormController = class {
             top: inputEvent.event.pageY, left: inputEvent.event.pageX + 5, display: "block", width: 0,
         }).animate({width: width}, 300, "swing");
 
-        $("body,canvas").one("click", function (event) {
-            classMenu.hide();
-            memberMenu.hide();
-            inheritanceMenu.hide();
-        });
+        $("body,canvas").one("click", () => contextMenus.hide());
 
         inputEvent.handled = true;
 
@@ -420,6 +448,25 @@ Controller.FormController = class {
         return this.__download(anchor, data, fileType);
     }
 
+    static editFmmlxAssociation() {
+        const self = Controller.FormController;
+        const modal = $("#fmmlxAssociationModal");
+        const form = modal.find("form");
+
+        try {
+            if (!form[0].checkValidity()) throw new Error("Invalid input. Check the highlighted fields and try again.");
+            let formVals = self.__readForm(form);
+            studio.editAssociation(formVals.id, formVals.name, formVals.sourceCardinality, formVals.sourceIntrinsicness, formVals.sourceRole, formVals.targetCardinality, formVals.targetIntrinsicness, formVals.targetRole);
+        } catch (error) {
+            let submitBtn = modal.find(".btn-flat");
+            submitBtn.one("click", self.editFmmlxAssociation);
+            modal.find(':input').keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+            self.__error(error);
+            return false;
+        }
+        modal.modal("close");
+    }
+
     static exportJson() {
         let data = `data:text/plain;UTF-8,${encodeURIComponent(studio.toJSON())}`;
         let fileType = "txt";
@@ -436,16 +483,11 @@ Controller.FormController = class {
         reader.readAsText($("#importFile")[0].files[0]);
     }
 
-    static inheritance(subclassId) {
-        Materialize.toast("Select the superclass", 4000);
-        studio.inherit(subclassId);
-
-    }
-
     static init() {
         $("select").material_select();
         window._classForm = $("#fmmlxClassModal").find("form").clone();
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
+        window._associationForm = $("#fmmlxAssociationModal").find("form").clone();
         $(".modal").modal();
     }
 

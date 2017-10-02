@@ -45,6 +45,7 @@ Controller.StudioController = class {
         });
 
         this._model.nodeKeyProperty = `id`;
+        this._model.linkKeyProperty = `id`;
     }
 
     /**
@@ -182,7 +183,6 @@ Controller.StudioController = class {
             diagramEvent.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
             let transId = studio._beginTransaction("Abstracting Selection...");
             try {
-                debugger;
                 let commonMembers = studio._findCommonMembers(fmmlxClassNodes);
                 for (let member of commonMembers) {
                     studio.addMemberToClass(diagramEvent.subject.data, member);
@@ -427,6 +427,27 @@ Controller.StudioController = class {
         this.addMemberToClass(fmmlxClass.superclass, member);
     }
 
+    createAssociation(sourceId) {
+        let source = this._model.findNodeDataForKey(sourceId);
+        let handler = function (event) {
+            try {
+                studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
+                let target = event.subject.part.data;
+                let transId = studio._beginTransaction(`Associating ${source.name} and ${target.name}`);
+                let assoc = new Model.FmmlxAssociation(source, target, "association", "0,*", "?", "src", "0,*", "?", "dst");
+                studio._model.addLinkData(assoc);
+                source.addAssociation(assoc);
+                target.addAssociation(assoc);
+                studio._commitTransaction(transId);
+            } catch (err) {
+                studio._rollbackTransaction();
+                throw err;
+            }
+
+        };
+        this._diagram.addDiagramListener("ObjectSingleClicked", handler);
+    }
+
     /**
      * Adds a new FMMLX Class to the diagram
      * @param {string} name
@@ -463,6 +484,16 @@ Controller.StudioController = class {
 
         //Step 3 once we have a part instance we add its metaclass
         this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
+    }
+
+    createInheritance(subclassId) {
+        let subclass = this._model.findNodeDataForKey(subclassId);
+        let handler = function (event) {
+            studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
+            let superclass = event.subject.part.data;
+            studio.changeClassSuperclass(superclass, subclass);
+        };
+        this._diagram.addDiagramListener("ObjectSingleClicked", handler);
     }
 
     /**
@@ -510,7 +541,7 @@ Controller.StudioController = class {
                 this.deleteMetaclass(instance);
             }
             for (let subclass of fmmlxClass.subclasses) {
-                this.deleteSuperclass(subclass, fmmlxClass)
+                this.deleteSuperclass(subclass)
             }
 
             if (fmmlxClass.superclass !== null) fmmlxClass.superclass.removeSubclass(fmmlxClass);
@@ -634,10 +665,10 @@ Controller.StudioController = class {
      * @param {Model.FmmlxClass|String} subclassOrId
      * @param {Model.FmmlxClass|String} superclassOrId
      */
-    deleteSuperclass(subclassOrId, superclassOrId) {
+    deleteSuperclass(subclassOrId) {
 
         let subclass = typeof subclassOrId === "string" ? this._model.findNodeDataForKey(subclassOrId) : subclassOrId;
-        let superclass = typeof  superclassOrId === "string" ? this._model.findNodeDataForKey(superclassOrId) : superclassOrId;
+        let superclass = subclass.superclass;
 
         superclass.removeSubclass(subclass);
         for (let member of superclass.members) {
@@ -676,6 +707,30 @@ Controller.StudioController = class {
         }
 
         this._commitTransaction(transId);
+    }
+
+    editAssociation(assocId, name, sourceCardinality, sourceIntrinsicness, sourceRole, targetCardinality, targetIntrinsicness, targetRole) {
+        /**
+         *
+         * @type {Model.FmmlxAssociation}
+         */
+        let association = this._model.findLinkDataForKey(assocId);
+        let transId = this._beginTransaction("Edit Association");
+        try {
+            this._model.setDataProperty(association, "name", name);
+            this._model.setDataProperty(association, "sourceCardinality", sourceCardinality);
+            this._model.setDataProperty(association, "sourceRole", sourceRole);
+            this._model.setDataProperty(association, "sourceIntrinsicness", sourceIntrinsicness);
+            this._model.setDataProperty(association, "targetCardinality", targetCardinality);
+            this._model.setDataProperty(association, "targetIntrinsicness", targetIntrinsicness);
+            this._model.setDataProperty(association, "targetRole", targetRole);
+            this._commitTransaction(transId);
+        } catch (error) {
+            this._rollbackTransaction();
+            throw error;
+        }
+
+
     }
 
     /**
@@ -795,7 +850,15 @@ Controller.StudioController = class {
             if (Array.isArray(level)) {
                 for (let data of level) {
                     let node = this.inflateClass(data.data);
-                    node.location = go.Point.parse(data.location);
+                    let transId = this._beginTransaction("Relocating class node");
+                    try {
+                        node.location = go.Point.parse(data.location);
+                        this._commitTransaction(transId);
+                    } catch (err) {
+                        this._rollbackTransaction();
+                        throw err;
+                    }
+
                 }
             }
         }
@@ -863,16 +926,6 @@ Controller.StudioController = class {
             this._rollbackTransaction();
             throw e;
         }
-    }
-
-    inherit(subclassId) {
-        let subclass = this._model.findNodeDataForKey(subclassId);
-        let handler = function (event) {
-            studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
-            let superclass = event.subject.part.data;
-            studio.changeClassSuperclass(superclass, subclass);
-        };
-        this._diagram.addDiagramListener("ObjectSingleClicked", handler);
     }
 
     /**
