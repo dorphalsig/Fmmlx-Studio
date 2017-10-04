@@ -26,6 +26,7 @@ Model.FmmlxAssociation = class {
     // Instance
     /**
      * Represents an Association
+     * @constructor
      * @param {Model.FmmlxClass} source
      * @param {Model.FmmlxClass} target
      * @param {String} name
@@ -63,8 +64,9 @@ Model.FmmlxAssociation = class {
      * @private
      */
     _validateCardinality(cardinality, reference) {
-        const regex = /(\d+|\*).+?(\d+|\*)/g;
+        const regex = /(\d+|\*).+?(\d+|\*)/g; //
         let cardArray = regex.exec(cardinality);
+        regex.lastIndex = 0;
         let refArray = regex.exec(reference);
         cardArray[0] = cardArray[0] === "*" ? -Infinity : parseInt(cardArray[0]);
         refArray[0] = refArray[0] === "*" ? -Infinity : parseInt(refArray[0]);

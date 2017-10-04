@@ -21,25 +21,9 @@ FmmlxShapes.FmmlxAssociation = class {
     }
 
     static intrinsicnessBlock(intrinsicnessProperty) {
-        if (intrinsicnessProperty === null) return null;
-        return gMake(go.Panel, "Auto", {minSize: new go.Size(10, 15), margin: new go.Margin(0, 2, 0, 0)}, gMake(go.Shape, "Rectangle", {fill: "black"}), gMake(go.TextBlock, new go.Binding("text", intrinsicnessProperty), {stroke: "white", margin: new go.Margin(0, 2, 0, 2), font: "bold 14px monospace", verticalAlignment: go.Spot.Center}))
+        return gMake(go.Panel, "Auto", {minSize: new go.Size(10, 15), margin: new go.Margin(0, 2, 0, 0)}, gMake(go.Shape, "Rectangle", new go.Binding("fill", "", (assoc) => (assoc.isInstance) ? null : "black"), new go.Binding("stroke", "", (assoc) => (assoc.isInstance) ? null : "black")), gMake(go.TextBlock, new go.Binding("text", intrinsicnessProperty), {stroke: "white", margin: new go.Margin(0, 2, 0, 2), font: "bold 14px monospace", verticalAlignment: go.Spot.Center}))
     }
 
-    static get nameBlock() {
-        let sourceIntrinsicness = this.intrinsicnessBlock("sourceIntrinsicness");
-        let targetIntrinsicness = this.intrinsicnessBlock("targetIntrinsicness");
-        /**
-         * @type go.Panel
-         */
-        let nameBlock = gMake(go.Panel, "Horizontal", {
-            segmentOffset: new go.Point(0, -10), segmentOrientation: go.Link.OrientUpright
-        }, gMake(go.TextBlock, new go.Binding("text", "name")));
-        if (sourceIntrinsicness !== null) nameBlock.add(sourceIntrinsicness);
-        if (targetIntrinsicness !== null) {
-            nameBlock.insertAt(nameBlock.elements.count, targetIntrinsicness);
-        }
-        return nameBlock;
-    }
 
     static get shape() {
         let sourceRole = gMake(go.TextBlock, new go.Binding("text", "sourceRole"), {
@@ -58,22 +42,24 @@ FmmlxShapes.FmmlxAssociation = class {
             segmentIndex: -1, segmentOffset: new go.Point(NaN, 10), segmentOrientation: go.Link.OrientUpright, margin: new go.Margin(0, 5)
         });
 
-        let associations = gMake(go.Panel, "Horizontal", {
-            segmentOffset: new go.Point(0, -10), segmentOrientation: go.Link.OrientUpright
+        let nameBlock = gMake(go.Panel, "Horizontal", {
+            segmentOffset: new go.Point(0, 10), segmentOrientation: go.Link.OrientUpright
         }, this.intrinsicnessBlock("sourceIntrinsicness"), gMake(go.TextBlock, new go.Binding("text", "name"), {
             margin: new go.Margin(0, 2, 0, 2)
         }), this.intrinsicnessBlock("targetIntrinsicness"));
 
-        let reference = gMake(go.TextBlock, new go.Binding("text", "", this.getReference), {segmentOffset: new go.Point(0, -10), segmentOrientation: go.Link.OrientUpright});
+
+        let referenceBlock = gMake(go.TextBlock, new go.Binding("text", "", this.getReference), {segmentOffset: new go.Point(0, -10), segmentOrientation: go.Link.OrientUpright});
 
 
         return gMake(go.Link, {
                 routing: go.Link.Orthogonal,  // may be either Orthogonal or AvoidsNodes
+                reshapable: true, resegmentable: true,
                 curve: go.Link.JumpGap, doubleClick: Controller.FormController.displayAssociationForm, contextClick: Controller.FormController.displayContextMenu,
             }, gMake(go.Shape, new go.Binding("strokeDashArray", "isInstance", this.strokeType)) // this is the link shape
             , gMake(go.Shape, {
-                toArrow: "Standard", scale: 2
-            }), sourceRole, sourceCardinality, associations, reference, targetRole, targetCardinality);
+                toArrow: "Standard"
+            }), sourceRole, sourceCardinality, nameBlock, referenceBlock, targetRole, targetCardinality);
     }
 
     static strokeType(instance) {

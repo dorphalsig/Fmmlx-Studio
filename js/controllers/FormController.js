@@ -244,8 +244,9 @@ Controller.FormController = class {
     /**
      * Given an association, creates an instance of it
      * @param {go.Node} metaAssociation
+     * @param {}
      */
-    static createAssociationInstance(metaAssociation) {
+    static createAssociationInstanceOrRefinement(metaAssociation, refinement) {
         /**
          *
          * @type {Model.FmmlxAssociation}
@@ -255,11 +256,10 @@ Controller.FormController = class {
         studio.setNodesVisibility(false);
         studio.showDescendantsOf(metaAssociation.source, metaAssociation.sourceIntrinsicness);
         let handlerSrc = function (event) {
-            debugger;
             if (event.subject.part.constructor === go.Node) {
                 studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc);
                 instanceSrc = event.subject.part.data;
-                Materialize.toast("Choose target");
+                Materialize.toast("Choose target", 4000);
                 studio.setNodesVisibility(false);
                 studio.showDescendantsOf(metaAssociation.target, metaAssociation.targetIntrinsicness);
 
@@ -268,12 +268,13 @@ Controller.FormController = class {
                         studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt);
                         studio.setNodesVisibility(true);
                         instanceTgt = event.subject.part.data;
-                        studio.createAssociationInstance(metaAssociation, instanceSrc, instanceTgt);
+                        studio.createAssociationInstanceOrRefinement(metaAssociation, instanceSrc, instanceTgt, refinement);
                     }
-                }
+                };
+                studio._diagram.addDiagramListener("ObjectSingleClicked", handlerTgt);
             }
         };
-        studio._diagram.addDiagramListener(handlerSrc);
+        studio._diagram.addDiagramListener("ObjectSingleClicked", handlerSrc);
     }
 
     static createInheritance(subclass) {
@@ -359,6 +360,11 @@ Controller.FormController = class {
             delete obj.data.tgt;
         }
 
+        if (obj.data.isInstance) {
+            $("#association_sourceIntrinsicness").prop('disabled', 'disabled');
+            $("#association_targetIntrinsicness").prop('disabled', 'disabled');
+        }
+
         let submitBtn = modal.find(".btn-flat");
         submitBtn.off("click", self.editFmmlxAssociation).one("click", self.editFmmlxAssociation);
         modal.find(':input')
@@ -432,9 +438,18 @@ Controller.FormController = class {
 
             case Model.FmmlxAssociation:
                 menu = $("#associationMenu");
+                let refine = $("#refineAssociation");
+                let instantiate = $("#instantiateAssociation");
+                if (target.part.data.isInstance) {
+                    refine.hide();
+                    instantiate.hide()
+                } else {
+                    refine.show();
+                    instantiate.show();
+                }
                 $("#deleteAssociation").off("click").one("click", () => self.deleteAssociation(target.part.data));
-                $("#instantiateAssociation").off("click").one("click", () => self.createAssociationInstance(target.part.data));
-                $("#refineAssociation").off("click").one("click", () => alert('It just won\'t learn proper manners...'));
+                instantiate.off("click").one("click", () => self.createAssociationInstanceOrRefinement(target.part.data, false));
+                refine.off("click").one("click", () => self.createAssociationInstanceOrRefinement(target.part.data, true));
                 break;
 
             default: // Inheritance has no model because its just a plain link

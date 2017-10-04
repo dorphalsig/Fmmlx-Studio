@@ -8,6 +8,7 @@ Controller.StudioController = class {
     // Instance
     /**
      *  Constructor, receives the id of the div that's the parent for the GoJS canvas
+     *  @constructor
      * @param {string} div
      */
     constructor(div) {
@@ -36,6 +37,10 @@ Controller.StudioController = class {
          * @private
          */
         this._model = this._diagram.model;
+
+        this._diagram.addDiagramListener("PartRotated", (event) => {
+            console.log(event)
+        })
     }
 
     /**
@@ -433,18 +438,28 @@ Controller.StudioController = class {
     }
 
     /**
-     * Given an association, creates an instance of it
-     * @param {Model.FmmlxAssociation} metaAssoc
+     * Given an association, creates an instance or a refinement of it
+     * @param {Model.FmmlxAssociation} association
      * @param {Model.FmmlxClass} source
      * @param {Model.FmmlxClass} target
+     * @param {boolean} isRefinement
      */
-    createAssociationInstance(metaAssoc, source, target) {
-        let transId = this._beginTransaction(`Instantiating assoc ${metaAssoc.name}`);
+    createAssociationInstanceOrRefinement(association, source, target, isRefinement = false) {
+        let transId = this._beginTransaction(`Instantiating assoc ${association.name}`);
         try {
-            let assoc = new Model.FmmlxAssociation(source, target, "Instance", metaAssoc.sourceCardinality, null, metaAssoc.sourceRole, metaAssoc.targetCardinality, null, metaAssoc.targetRole, null, metaAssoc);
+            let assoc;
+            if (isRefinement) {
+                assoc = new Model.FmmlxAssociation(source, target, "Refinement", association.sourceCardinality, association.sourceIntrinsicness, association.sourceRole, association.targetCardinality, association.targetIntrinsicness, association.targetRole, association, null);
+
+            } else {
+                assoc = new Model.FmmlxAssociation(source, target, "Instance", association.sourceCardinality, null, association.sourceRole, association.targetCardinality, null, association.targetRole, null, association);
+            }
             studio._model.addLinkData(assoc);
             source.addAssociation(assoc);
             target.addAssociation(assoc);
+
+            (isRefinement) ? association.addRefinement(assoc) : association.addInstance(assoc);
+
             this._commitTransaction(transId);
         } catch (err) {
             this._rollbackTransaction();
@@ -526,7 +541,9 @@ Controller.StudioController = class {
         try {
             association.source.removeAssociation(association);
             association.target.removeAssociation(association);
-            this._diagram.remove(association);
+            if (association.metaAssociation !== null) association.metaAssociation.deleteInstance(association);
+            if (association.primitive !== null) association.primitive.deleteRefinement(association);
+            this._diagram.remove(this._diagram.findLinkForData(association));
             this._commitTransaction(transId);
         } catch (err) {
             this._rollbackTransaction();
@@ -850,60 +867,58 @@ Controller.StudioController = class {
     }
 
     fromJSON(jsonData) {
-        let flatData = JSON.parse(jsonData);
-        while (flatData.nodes.length > 0) {
-            let level = flatData.nodes.pop();
-            if (Array.isArray(level)) {
-                for (let data of level) {
-                    let node = this.inflateClass(data.data);
-                    let transId = this._beginTransaction("Relocating class node");
-                    try {
+        let transId = this._beginTransaction("Importing JSON");
+        try {
+            let flatData = JSON.parse(jsonData);
+            while (flatData.nodes.length > 0) {
+                let level = flatData.nodes.pop();
+                if (Array.isArray(level)) {
+                    for (let data of level) {
+                        let node = this.inflateClass(data.data);
                         node.location = go.Point.parse(data.location);
-                        this._commitTransaction(transId);
-                    } catch (err) {
-                        this._rollbackTransaction();
-                        throw err;
-                    }
-
-                }
-            }
-        }
-
-        for (let link of flatData.links) {
-            if (link.category === Model.FmmlxInheritance.category) {
-                let subclass = this._model.findLinkDataForKey(link.subclass);
-                let superclass = this._model.findLinkDataForKey(link.superclass);
-                this.changeClassSuperclass(superclass, subclass);
-            } else if (link.category === Model.FmmlxAssociation.category) {
-
-                let source = this._model.findNodeDataForKey(link.source);
-                let target = this._model.findNodeDataForKey(link.target);
-                let primitive = (link.primitive !== null) ? this._model.findNodeDataForKey(link.primitive) : null;
-                let metaAssoc = (link.metaAssociation !== null) ? this._model.findNodeDataForKey(link.metaAssociation) : null;
-                let assoc = Model.FmmlxAssociation.inflate(link, source, target, primitive, metaAssoc);
-                this._model.addLinkData(assoc);
-                for (let instance of link.instances) {
-                    /**
-                     * @type {Model.FmmlxAssociation}
-                     */
-                    let assocInstance = this._model.findLinkDataForKey(instance);
-                    if (assocInstance !== null) {
-                        this._model.setDataProperty(assocInstance, "metaAssoc", assoc);
-                        assoc.addInstance(assocInstance);
-                    }
-                }
-
-                for (let refinement of link.refinements) {
-                    /**
-                     * @type {Model.FmmlxAssociation}
-                     */
-                    let assocRefinement = this._model.findLinkDataForKey(refinement);
-                    if (assocRefinement !== null) {
-                        this._model.setDataProperty(assocRefinement, "primitive", assoc);
-                        assoc.addRefinement(assocRefinement);
                     }
                 }
             }
+            for (let link of flatData.links) {
+                if (link.category === Model.FmmlxInheritance.category) {
+                    let subclass = this._model.findLinkDataForKey(link.subclass);
+                    let superclass = this._model.findLinkDataForKey(link.superclass);
+                    this.changeClassSuperclass(superclass, subclass);
+                } else if (link.category === Model.FmmlxAssociation.category) {
+
+                    let source = this._model.findNodeDataForKey(link.source);
+                    let target = this._model.findNodeDataForKey(link.target);
+                    let primitive = (link.primitive !== null) ? this._model.findNodeDataForKey(link.primitive) : null;
+                    let metaAssoc = (link.metaAssociation !== null) ? this._model.findNodeDataForKey(link.metaAssociation) : null;
+                    let assoc = Model.FmmlxAssociation.inflate(link, source, target, primitive, metaAssoc);
+                    this._model.addLinkData(assoc);
+                    for (let instance of link.instances) {
+                        /**
+                         * @type {Model.FmmlxAssociation}
+                         */
+                        let assocInstance = this._model.findLinkDataForKey(instance);
+                        if (assocInstance !== null) {
+                            this._model.setDataProperty(assocInstance, "metaAssoc", assoc);
+                            assoc.addInstance(assocInstance);
+                        }
+                    }
+
+                    for (let refinement of link.refinements) {
+                        /**
+                         * @type {Model.FmmlxAssociation}
+                         */
+                        let assocRefinement = this._model.findLinkDataForKey(refinement);
+                        if (assocRefinement !== null) {
+                            this._model.setDataProperty(assocRefinement, "primitive", assoc);
+                            assoc.addRefinement(assocRefinement);
+                        }
+                    }
+                }
+            }
+            this._commitTransaction(transId);
+        } catch (err) {
+            this._rollbackTransaction();
+            throw err;
         }
     }
 
