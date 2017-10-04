@@ -15,8 +15,8 @@ FmmlxShapes.FmmlxClass = class {
             stretch: go.GraphObject.Fill, alignment: new go.Spot(1, 0), maxSize: new go.Size(54, Infinity),
         }, new go.Binding("visible", "", this.getIsExternal), gMake(go.Shape, "Rectangle", {
             fill: "orange",
-        }), gMake(go.TextBlock, new go.Binding("text", "w"), {
-            margin: 2, wrap: go.TextBlock.None, overflow: go.TextBlock.OverflowEllipsis, toolTip: gMake(go.Adornment, "Auto", gMake(go.Shape, {
+        }), gMake(go.TextBlock, new go.Binding("text", "externalLanguage"), {
+            margin: 2, wrap: go.TextBlock.None, stroke: "black", overflow: go.TextBlock.OverflowEllipsis, toolTip: gMake(go.Adornment, "Auto", gMake(go.Shape, {
                 fill: "#FFFFCC",
             }), gMake(go.TextBlock, {
                 margin: 4,
@@ -108,7 +108,7 @@ FmmlxShapes.FmmlxClass = class {
      * @returns {string}
      */
     static getFontStyle(isAbstract) {
-        let font = `15px 'Cormorant', serif`;
+        let font = `15px 'Roboto', sans-serif`;
         if (isAbstract) {
             font = `Italic ${font}`;
         }
@@ -124,7 +124,7 @@ FmmlxShapes.FmmlxClass = class {
      * @param {Model.FmmlxClass} fmmlxClass
      */
     static getName(fmmlxClass) {
-        return `^${fmmlxClass.metaclassName.toUpperCase()}^ \n${fmmlxClass.name}`;
+        return `^${fmmlxClass.metaclassName.toUpperCase()}^\n${fmmlxClass.name} (${fmmlxClass.level})`;
     };
 
 };

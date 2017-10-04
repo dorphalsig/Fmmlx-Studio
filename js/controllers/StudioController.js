@@ -18,34 +18,24 @@ Controller.StudioController = class {
         /**
          *
          * @type {go.Diagram | *}
-         * @private
          */
-        this._diagram = go.GraphObject.make(go.Diagram, div, {
+        window.diagram = go.GraphObject.make(go.Diagram, div, {
             "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
             model: new go.GraphLinksModel(), allowDelete: false
         });
+        window.PIXELRATIO = window.diagram.computePixelRatio();
+        window.diagram.nodeTemplateMap.add(Model.FmmlxClass.category, FmmlxShapes.FmmlxClass.shape);
+        window.diagram.linkTemplateMap.add(Model.FmmlxAssociation.category, FmmlxShapes.FmmlxAssociation.shape);
+        window.diagram.linkTemplateMap.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
+        window.diagram.model.nodeKeyProperty = `id`;
+        window.diagram.model.linkKeyProperty = `id`;
 
+        this._diagram = window.diagram;
         /**
          * @type {go.GraphLinksModel}
          * @private
          */
         this._model = this._diagram.model;
-
-        window.PIXELRATIO = this._diagram.computePixelRatio();
-
-        this._diagram.nodeTemplateMap.add(Model.FmmlxClass.category, FmmlxShapes.FmmlxClass.shape);
-        this._diagram.linkTemplateMap.add(Model.FmmlxAssociation.category, FmmlxShapes.FmmlxAssociation.shape);
-        this._diagram.linkTemplateMap.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
-        //This prevents stuff being created randomly when ppl click on the diagram
-        //This is only required because the add class sets the archetype to something else
-        this._diagram.addDiagramListener(`PartCreated`, (diagramEvent) => {
-            let tool = diagramEvent.diagram.toolManager.clickCreatingTool;
-            tool.archetypeNodeData = null;
-            tool.isDoubleClick = false;
-        });
-
-        this._model.nodeKeyProperty = `id`;
-        this._model.linkKeyProperty = `id`;
     }
 
     /**
@@ -361,7 +351,8 @@ Controller.StudioController = class {
             }
             this._model.setDataProperty(subclass, "superclass", superclass);
             superclass.addSubclass(subclass);
-            this._model.addLinkData({from: subclass.id, to: superclass.id, category: "fmmlxInheritance"});
+            let data = new Model.FmmlxInheritance(subclass, superclass);
+            this._model.addLinkData(data);
             this._commitTransaction(transId);
         } catch (e) {
             this._rollbackTransaction();
@@ -397,17 +388,17 @@ Controller.StudioController = class {
 
     /**
      * Copies a member definition to the metaclass
-     * @param classId
-     * @param memberId
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} member
      */
-    copyMemberToMetaclass(classId, memberId) {
+    copyMemberToMetaclass(fmmlxClass, member) {
         /**
          * @type {Model.FmmlxClass}
          */
-        let fmmlxClass = this._model.findNodeDataForKey(classId);
+        //let fmmlxClass = this._model.findNodeDataForKey(classId);
         if (fmmlxClass.metaclass === null) throw new Error("Class has no defined metaclass");
 
-        let member = fmmlxClass.findMemberById(memberId);
+        //let member = fmmlxClass.findMemberById(memberId);
         this.addMemberToClass(fmmlxClass.metaclass, member);
     }
 
@@ -427,25 +418,38 @@ Controller.StudioController = class {
         this.addMemberToClass(fmmlxClass.superclass, member);
     }
 
-    createAssociation(sourceId) {
-        let source = this._model.findNodeDataForKey(sourceId);
-        let handler = function (event) {
-            try {
-                studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
-                let target = event.subject.part.data;
-                let transId = studio._beginTransaction(`Associating ${source.name} and ${target.name}`);
-                let assoc = new Model.FmmlxAssociation(source, target, "association", "0,*", "?", "src", "0,*", "?", "dst");
-                studio._model.addLinkData(assoc);
-                source.addAssociation(assoc);
-                target.addAssociation(assoc);
-                studio._commitTransaction(transId);
-            } catch (err) {
-                studio._rollbackTransaction();
-                throw err;
-            }
+    createAssociation(source, target) {
+        try {
+            let transId = this._beginTransaction(`Associating ${source.name} and ${target.name}`);
+            let assoc = new Model.FmmlxAssociation(source, target, "association", "0,*", "?", "src", "0,*", "?", "dst");
+            this._model.addLinkData(assoc);
+            source.addAssociation(assoc);
+            target.addAssociation(assoc);
+            this._commitTransaction(transId);
+        } catch (err) {
+            studio._rollbackTransaction();
+            throw err;
+        }
+    }
 
-        };
-        this._diagram.addDiagramListener("ObjectSingleClicked", handler);
+    /**
+     * Given an association, creates an instance of it
+     * @param {Model.FmmlxAssociation} metaAssoc
+     * @param {Model.FmmlxClass} source
+     * @param {Model.FmmlxClass} target
+     */
+    createAssociationInstance(metaAssoc, source, target) {
+        let transId = this._beginTransaction(`Instantiating assoc ${metaAssoc.name}`);
+        try {
+            let assoc = new Model.FmmlxAssociation(source, target, "Instance", metaAssoc.sourceCardinality, null, metaAssoc.sourceRole, metaAssoc.targetCardinality, null, metaAssoc.targetRole, null, metaAssoc);
+            studio._model.addLinkData(assoc);
+            source.addAssociation(assoc);
+            target.addAssociation(assoc);
+            this._commitTransaction(transId);
+        } catch (err) {
+            this._rollbackTransaction();
+            throw err;
+        }
     }
 
     /**
@@ -486,16 +490,6 @@ Controller.StudioController = class {
         this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
     }
 
-    createInheritance(subclassId) {
-        let subclass = this._model.findNodeDataForKey(subclassId);
-        let handler = function (event) {
-            studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
-            let superclass = event.subject.part.data;
-            studio.changeClassSuperclass(superclass, subclass);
-        };
-        this._diagram.addDiagramListener("ObjectSingleClicked", handler);
-    }
-
     /**
      *
      * Creates an FMMLx class member and associates it to an fmmlx class
@@ -524,15 +518,27 @@ Controller.StudioController = class {
     }
 
     /**
-     * Deletes an Fmmlx Class and its references
-     * @param {String} id
+     * Deletes and FMMLx Association
+     * @param {Model.FmmlxAssociation} association
      */
-    deleteFmmlxClass(id) {
-        /**
-         *
-         * @type {Model.FmmlxClass}
-         */
-        let fmmlxClass = this._model.findNodeDataForKey(id);
+    deleteAssociation(association) {
+        let transId = this._beginTransaction(`Deleting association ${association.name}`);
+        try {
+            association.source.removeAssociation(association);
+            association.target.removeAssociation(association);
+            this._diagram.remove(association);
+            this._commitTransaction(transId);
+        } catch (err) {
+            this._rollbackTransaction();
+            throw err;
+        }
+    }
+
+    /**
+     * Deletes an Fmmlx Class and its references
+     * @param {Model.FmmlxClass} fmmlxClass
+     */
+    deleteFmmlxClass(fmmlxClass) {
 
         let transId = this._beginTransaction(`Deleting class ${fmmlxClass.name}`);
         try {
@@ -557,7 +563,7 @@ Controller.StudioController = class {
                 this.deleteMember(fmmlxClass, member);
             }
 
-            let node = this._diagram.findNodeForKey(id);
+            let node = this._diagram.findNodeForData(fmmlxClass);
             this._diagram.remove(node);
             this._model.removeNodeData(fmmlxClass);
         } catch (error) {
@@ -844,9 +850,9 @@ Controller.StudioController = class {
     }
 
     fromJSON(jsonData) {
-        let jsonArray = JSON.parse(jsonData);
-        while (jsonArray.length > 0) {
-            let level = jsonArray.pop();
+        let flatData = JSON.parse(jsonData);
+        while (flatData.nodes.length > 0) {
+            let level = flatData.nodes.pop();
             if (Array.isArray(level)) {
                 for (let data of level) {
                     let node = this.inflateClass(data.data);
@@ -859,6 +865,43 @@ Controller.StudioController = class {
                         throw err;
                     }
 
+                }
+            }
+        }
+
+        for (let link of flatData.links) {
+            if (link.category === Model.FmmlxInheritance.category) {
+                let subclass = this._model.findLinkDataForKey(link.subclass);
+                let superclass = this._model.findLinkDataForKey(link.superclass);
+                this.changeClassSuperclass(superclass, subclass);
+            } else if (link.category === Model.FmmlxAssociation.category) {
+
+                let source = this._model.findNodeDataForKey(link.source);
+                let target = this._model.findNodeDataForKey(link.target);
+                let primitive = (link.primitive !== null) ? this._model.findNodeDataForKey(link.primitive) : null;
+                let metaAssoc = (link.metaAssociation !== null) ? this._model.findNodeDataForKey(link.metaAssociation) : null;
+                let assoc = Model.FmmlxAssociation.inflate(link, source, target, primitive, metaAssoc);
+                this._model.addLinkData(assoc);
+                for (let instance of link.instances) {
+                    /**
+                     * @type {Model.FmmlxAssociation}
+                     */
+                    let assocInstance = this._model.findLinkDataForKey(instance);
+                    if (assocInstance !== null) {
+                        this._model.setDataProperty(assocInstance, "metaAssoc", assoc);
+                        assoc.addInstance(assocInstance);
+                    }
+                }
+
+                for (let refinement of link.refinements) {
+                    /**
+                     * @type {Model.FmmlxAssociation}
+                     */
+                    let assocRefinement = this._model.findLinkDataForKey(refinement);
+                    if (assocRefinement !== null) {
+                        this._model.setDataProperty(assocRefinement, "primitive", assoc);
+                        assoc.addRefinement(assocRefinement);
+                    }
                 }
             }
         }
@@ -895,18 +938,6 @@ Controller.StudioController = class {
                 this.changeClassSuperclass(superclass, fmmlxClass);
             }
 
-            if (flatClass.subclasses.length > 0) {
-                for (let subclassId of flatClass.subclasses) {
-                    let subclass = this._model.findNodeDataForKey(subclassId);
-                    this.changeClassSuperclass(fmmlxClass, subclass);
-                }
-            }
-
-            for (let flatMember of flatClass.members) {
-                let member = Model.FmmlxProperty.inflate(flatMember);
-                this.addMemberToClass(fmmlxClass, member);
-            }
-
             for (let flatValue of flatClass.values) {
                 /**
                  *
@@ -918,7 +949,6 @@ Controller.StudioController = class {
                 value.value = flatValue.value;
             }
 
-            ///@todo process associations
             this._diagram.findNodeForKey(fmmlxClass.id).updateTargetBindings();
             this._commitTransaction(transId);
             return this._diagram.findNodeForKey(fmmlxClass.id);
@@ -1003,18 +1033,59 @@ Controller.StudioController = class {
     }
 
     /**
+     * Changes the visibility of all nodes
+     * @param {boolean} visible if true the nodes are visible, else they are not.
+     */
+    setNodesVisibility(visible) {
+        let transId = this._beginTransaction("Hiding/Showing all nodes");
+        try {
+            this._diagram.nodes.each(node => node.visible = visible);
+            this._commitTransaction(transId)
+        } catch (err) {
+            this._rollbackTransaction();
+            throw err;
+        }
+    }
+
+    /**
+     * Makes the instances and subclasses of fmmlxClass and their descendants visible if they have <level> level
+     * if <level> is not specified, all descendants are shown.
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Number} level
+     */
+    showDescendantsOf(fmmlxClass, level = null) {
+
+        for (let instance of fmmlxClass.instances) {
+            let node = this._diagram.findNodeForKey(instance.id);
+            if (level === null || instance.level === Number.parseInt(level)) node.visible = true;
+            this.showDescendantsOf(instance);
+        }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            let node = this._diagram.findNodeForKey(subclass.id);
+            if (level === null || subclass.level === Number.parseInt(level)) node.visible = true;
+            this.showDescendantsOf(subclass);
+        }
+    }
+
+    /**
      * Exports the diagram as JSON
      */
     toJSON() {
-        let jsonArray = [];
+        let flatData = {nodes: [], links: []};
         this._diagram.nodes.each((node) => {
             let data = node.data;
             if (data.category === Model.FmmlxClass.category) {
-                if (!Array.isArray(jsonArray[data.level])) jsonArray[data.level] = [];
-                jsonArray[data.level].push({data: data.deflate(), location: go.Point.stringify(node.location)});
+                if (!Array.isArray(flatData.nodes[data.level])) flatData.nodes[data.level] = [];
+                flatData.nodes[data.level].push({data: data.deflate(), location: go.Point.stringify(node.location)});
             }
         });
-        return JSON.stringify(jsonArray);
+
+        this._diagram.links.each((link) => {
+            flatData.links.push(link.data.deflate())
+        });
+
+        return JSON.stringify(flatData);
     }
 
     toPNG() {

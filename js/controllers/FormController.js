@@ -7,7 +7,7 @@ if (typeof Controller === "undefined") {
 Controller.FormController = class {
 
     static __download(anchor, data, fileType) {
-        let filename = `FMMLxStudio - ${new Date(Date.now()).toLocaleString("DE-de")}.${fileType}`;
+        let filename = `FMMLxStudio - ${new Date().toISOString()}.${fileType}`;
         anchor.prop("href", data);
         anchor.prop("download", filename);
         return true;
@@ -144,16 +144,14 @@ Controller.FormController = class {
         const modal = $("#fmmlxClassModal");
         const form = modal.find("form");
 
-        if (!form[0].checkValidity()) {
-            self.__error(new Error("Invalid input. Check the highlighted fields and try again."));
-            return false;
-        }
 
         try {
+            if (!form[0].checkValidity()) throw new Error("Invalid input. Check the highlighted fields and try again.");
+
             let formVals = self.__readForm(form);
 
             if (formVals.id === "") {
-                studio.createFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass.toString(), formVals.externalLanguage, formVals.externalMetaclass);
+                studio.createFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
                 Materialize.toast("Click on the canvas to insert the class", 4000);
             } else {
                 studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
@@ -207,9 +205,9 @@ Controller.FormController = class {
         modal.modal("close");
     }
 
-    static copyMemberToMetaclass(classId, memberId) {
+    static copyMemberToMetaclass(fmmlxClass, member) {
         try {
-            studio.copyMemberToMetaclass(classId, memberId)
+            studio.copyMemberToMetaclass(fmmlxClass, member)
         } catch (e) {
             this.__error(e);
         }
@@ -223,26 +221,92 @@ Controller.FormController = class {
         }
     }
 
-    static createAssociation(sourceId) {
+    static createAssociation(source) {
         Materialize.toast("Select the target class", 4000);
-        studio.createAssociation(sourceId);
 
+        /**
+         *
+         * @param {go.DiagramEvent} event
+         */
+        let handler = function (event) {
+            try {
+                studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
+                let target = event.subject.part.data;
+                studio.createAssociation(source, target);
+            } catch (err) {
+                debugger;
+                Controller.FormController.__error(err)
+            }
+        };
+        diagram.addDiagramListener("ObjectSingleClicked", handler);
     }
 
-    static createInheritance(subclassId) {
-        Materialize.toast("Select the superclass", 4000);
-        studio.createInheritance(subclassId);
+    /**
+     * Given an association, creates an instance of it
+     * @param {go.Node} metaAssociation
+     */
+    static createAssociationInstance(metaAssociation) {
+        /**
+         *
+         * @type {Model.FmmlxAssociation}
+         */
+        let instanceSrc, instanceTgt;
+        Materialize.toast("Choose source", 4000);
+        studio.setNodesVisibility(false);
+        studio.showDescendantsOf(metaAssociation.source, metaAssociation.sourceIntrinsicness);
+        let handlerSrc = function (event) {
+            debugger;
+            if (event.subject.part.constructor === go.Node) {
+                studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc);
+                instanceSrc = event.subject.part.data;
+                Materialize.toast("Choose target");
+                studio.setNodesVisibility(false);
+                studio.showDescendantsOf(metaAssociation.target, metaAssociation.targetIntrinsicness);
 
+                let handlerTgt = function (event) {
+                    if (event.subject.part.constructor === go.Node) {
+                        studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt);
+                        studio.setNodesVisibility(true);
+                        instanceTgt = event.subject.part.data;
+                        studio.createAssociationInstance(metaAssociation, instanceSrc, instanceTgt);
+                    }
+                }
+            }
+        };
+        studio._diagram.addDiagramListener(handlerSrc);
+    }
+
+    static createInheritance(subclass) {
+        Materialize.toast("Select the superclass", 4000);
+        let handler = function (event) {
+            try {
+                diagram.removeDiagramListener("ObjectSingleClicked", handler);
+                let superclass = event.subject.part.data;
+                studio.changeClassSuperclass(superclass, subclass);
+            } catch (err) {
+                Controller.FormController.__error(err);
+            }
+        };
+
+        diagram.addDiagramListener("ObjectSingleClicked", handler)
+    }
+
+    static deleteAssociation(assoc) {
+        try {
+            studio.deleteAssociation(assoc)
+        } catch (err) {
+            Controller.FormController.__error(err);
+        }
     }
 
     /**
      * Deletes an FMMLx Class
-     * @param {String} classId
+     * @param {Model.FmmlxClass} fmmlxClass
      *
      */
-    static deleteClass(classId) {
+    static deleteClass(fmmlxClass) {
         try {
-            studio.deleteFmmlxClass(classId)
+            studio.deleteFmmlxClass(fmmlxClass)
         } catch (e) {
             this.__error(e);
         }
@@ -250,12 +314,12 @@ Controller.FormController = class {
 
     /**
      * Deletes the member definition everywhere.
-     * @param classId
-     * @param memberId
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} member
      */
-    static deleteMember(classId, memberId) {
+    static deleteMember(fmmlxClass, member) {
         try {
-            studio.deleteMember(classId, memberId, true, true);
+            studio.deleteMember(fmmlxClass, member, true, true);
         } catch (e) {
             this.__error(e);
         }
@@ -263,12 +327,12 @@ Controller.FormController = class {
 
     /**
      * Deletes the member definition upstream - that means from the metaclass upwards
-     * @param classId
-     * @param memberId
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} member
      */
-    static deleteMemberUpstream(classId, memberId) {
+    static deleteMemberUpstream(fmmlxClass, member) {
         try {
-            studio.deleteMember(classId, memberId, true, false);
+            studio.deleteMember(fmmlxClass, member, true, false);
         } catch (e) {
             this.__error(e);
         }
@@ -351,25 +415,25 @@ Controller.FormController = class {
         switch (target.data.constructor) {
             case Model.FmmlxClass:
                 menu = $("#classMenu");
-                $("#inherit").off("click").one("click", () => self.createInheritance(target.data.id));
-                $("#associate").off("click").one("click", () => self.createAssociation(target.data.id));
-                $("#deleteClass").off("click").one("click", () => self.deleteClass(target.data.id));
+                $("#inherit").off("click").one("click", () => self.createInheritance(target.data));
+                $("#associate").off("click").one("click", () => self.createAssociation(target.data));
+                $("#deleteClass").off("click").one("click", () => self.deleteClass(target.data));
                 $("#abstractClass").off("click").one("click", () => self.abstractClass());
-                $("#addMember").off("click").one("click", () => self.displayMemberForm(inputEvent, target));
+                $("#addMember").off("click").one("click", () => self.displayMemberForm(inputEvent, target.data));
                 break;
 
             case Model.FmmlxProperty:
                 menu = $("#propertyMenu");
-                $("#deleteMemberUpstream").off("click").one("click", () => self.deleteMemberUpstream(target.part.data.id, target.data.id));
-                $("#deleteMember").off("click").one("click", () => self.deleteMember(target.part.data.id, target.data.id));
-                $("#toMetaclass").off("click").one("click", () => self.copyMemberToMetaclass(target.part.data.id, target.data.id));
+                $("#deleteMemberUpstream").off("click").one("click", () => self.deleteMemberUpstream(target.part.data, target.data));
+                $("#deleteMember").off("click").one("click", () => self.deleteMember(target.part.data, target.data));
+                $("#toMetaclass").off("click").one("click", () => self.copyMemberToMetaclass(target.part.data, target.data));
                 $("#toSuperclass").off("click").one("click", () => self.copyMemberToSuperclass(target.part.data.id, target.data.id));
                 break;
 
             case Model.FmmlxAssociation:
                 menu = $("#associationMenu");
-                $("#deleteAssociation").off("click").one("click", () => alert('If you don\'t like it, don\'t look at it!'));
-                $("#instantiateAssociation").off("click").one("click", () => alert('This is an adult functionality, please confirm your age'));
+                $("#deleteAssociation").off("click").one("click", () => self.deleteAssociation(target.part.data));
+                $("#instantiateAssociation").off("click").one("click", () => self.createAssociationInstance(target.part.data));
                 $("#refineAssociation").off("click").one("click", () => alert('It just won\'t learn proper manners...'));
                 break;
 
@@ -404,8 +468,8 @@ Controller.FormController = class {
         $("[name=isOperation]").change(opBodyManager);
         modal.find("[name=isValue]").change(opBodyManager);
 
-        if (obj.data.constructor === Model.FmmlxClass) { /*new property,it was right click on  the Class*/
-            modal.find("[name=fmmlxClassId]").val(obj.data.id);
+        if (obj.constructor === Model.FmmlxClass) { /*new property,it was right click on  the Class*/
+            modal.find("[name=fmmlxClassId]").val(obj.id);
             /* id of the Fmmlx Class that will hold the property+*/
         } else {
 

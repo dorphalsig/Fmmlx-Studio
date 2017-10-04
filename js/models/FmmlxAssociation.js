@@ -124,6 +124,15 @@ Model.FmmlxAssociation = class {
         clone.target = this.target.id;
         clone.primitive = (this.primitive !== null ) ? this.primitive.id : null;
         clone.metaAssociation = (this.metaAssociation !== null) ? this.metaAssociation.id : null;
+        delete clone.sourceIntrinsicness;
+        clone.sourceIntrinsicness = this.sourceIntrinsicness;
+        delete clone.sourceCardinality;
+        clone.sourceCardinality = this.sourceCardinality;
+        delete clone.targetIntrinsicness;
+        clone.targetIntrinsicness = this.targetIntrinsicness;
+        delete clone.targetCardinality;
+        clone.targetCardinality = this.targetCardinality;
+
         let refinements = [];
         for (let i = 0; i < this.refinements.length;) {
             refinements.push(this.refinements[i].id);
@@ -134,7 +143,17 @@ Model.FmmlxAssociation = class {
             instances.push(this.instances[i].id);
         }
         clone.instances = instances;
-        return JSON.stringify(clone);
+        delete clone.category;
+        clone.category = this.category;
+        return clone;
+    }
+
+    /**
+     * Removes an instance reference
+     * @param instance
+     */
+    deleteInstance(instance) {
+        this.instances.remove(instance)
     }
 
     /**
@@ -163,6 +182,20 @@ Model.FmmlxAssociation = class {
 
     get from() {
         return this.source.id;
+    }
+
+    /**
+     *  Inflates a deflated FmmlxAssociation
+     * @param {Model.FmmlxAssociation} flatData
+     * @param {Model.FmmlxClass} source
+     * @param {Model.FmmlxClass} target
+     * @param {Model.FmmlxAssociation} primitive
+     * @param {Model.FmmlxAssociation} meta
+     */
+    static inflate(flatData, source, target, primitive, meta) {
+        let assoc = new Model.FmmlxAssociation(source, target, flatData.name, flatData.sourceCardinality, flatData.sourceIntrinsicness, flatData.sourceRole, flatData.targetCardinality, flatData.targetIntrinsicness, flatData.targetRole, primitive, meta);
+        assoc.id = flatData.id;
+        return assoc;
     }
 
     /**

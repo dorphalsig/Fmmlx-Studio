@@ -192,11 +192,12 @@ Model.FmmlxClass = class {
             if (attributeName[0] === "_") delete clone[attributeName];
         }
 
+
         delete clone.attributes;
         delete clone.operations;
         delete clone.slotValues;
         delete clone.operationValues;
-
+        delete clone.associations;
         return clone;
     }
 
