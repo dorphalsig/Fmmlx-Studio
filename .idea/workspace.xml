@@ -5,15 +5,7 @@
     <bookmark url="file://$PROJECT_DIR$/js/models/FmmlxClass.js" line="202" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f774273-41f3-47c0-8b61-ff04b9d9198e" name="Default" comment="Create / Edit Association OK">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/FmmlxShapes/FmmlxAssociation.js" afterPath="$PROJECT_DIR$/js/FmmlxShapes/FmmlxAssociation.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/FmmlxShapes/FmmlxInheritance.js" afterPath="$PROJECT_DIR$/js/FmmlxShapes/FmmlxInheritance.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/controllers/FormController.js" afterPath="$PROJECT_DIR$/js/controllers/FormController.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/controllers/StudioController.js" afterPath="$PROJECT_DIR$/js/controllers/StudioController.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/models/FmmlxAssociation.js" afterPath="$PROJECT_DIR$/js/models/FmmlxAssociation.js" />
-    </list>
+    <list default="true" id="2f774273-41f3-47c0-8b61-ff04b9d9198e" name="Default" comment="Create / Edit Association OK" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -26,208 +18,260 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="FmmlxInheritance.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/js/FmmlxShapes/FmmlxInheritance.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" column="54" lean-forward="false" selection-start-line="8" selection-start-column="54" selection-end-line="8" selection-end-column="54" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="StudioController.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/js/controllers/StudioController.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="654">
-              <caret line="460" column="25" lean-forward="false" selection-start-line="460" selection-start-column="25" selection-end-line="460" selection-end-column="25" />
+            <state relative-caret-position="379">
+              <caret line="65" column="63" lean-forward="false" selection-start-line="65" selection-start-column="63" selection-end-line="65" selection-end-column="63" />
               <folding>
-                <element signature="e#145#290#0" expanded="true" />
-                <element signature="e#312#1771#0" expanded="true" />
-                <element signature="e#839#1001#0" expanded="true" />
-                <element signature="e#1722#1723#0" expanded="true" />
-                <element signature="e#1763#1764#0" expanded="true" />
-                <element signature="e#5540#5744#0" expanded="true" />
-                <element signature="e#6189#7176#0" expanded="true" />
-                <element signature="e#15576#15627#0" expanded="true" />
-                <element signature="e#16088#16139#0" expanded="true" />
-                <element signature="e#16989#17239#0" expanded="true" />
-                <marker date="1507155923000" expanded="true" signature="122:43122" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="17333:18404" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="17436:18310" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="17491:17784" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="17790:18026" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="18323:18398" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="18410:18699" ph="/** Adds a new FMMLX Class to the diagram ...*/" />
-                <marker date="1507155923000" expanded="false" signature="18801:19942" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="19041:19132" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="19449:19789" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="19948:20340" ph="/** Creates an FMMLx class member and associates it to an fmmlx class ...*/" />
-                <marker date="1507155923000" expanded="false" signature="20468:20910" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="20571:20628" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="20832:20904" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="20916:21015" ph="/** Deletes and FMMLx Association ...*/" />
-                <marker date="1507155923000" expanded="true" signature="21051:21722" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="21155:21628" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="21641:21716" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="21728:21832" ph="/** Deletes an Fmmlx Class and its references ...*/" />
-                <marker date="1507155923000" expanded="false" signature="21866:23002" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="21964:22862" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="22064:22127" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="22184:22247" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="22493:22570" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="22623:22693" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="22877:22954" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="23008:23369" ph="/** Deletes &lt;Property&gt; (and/or its corresponding &lt;Value&gt;) from &lt;fmmlxClass&gt;, its predecessors (`upstream`) and descendants (`downstream`) ...*/" />
-                <marker date="1507155923000" expanded="false" signature="23468:25726" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="23894:24027" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="24135:25594" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="24377:24502" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="24534:24740" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="24642:24726" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="24800:25160" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="24861:24973" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="25034:25146" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="25215:25584" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="25269:25394" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="25446:25570" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="25605:25678" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="25732:25866" ph="/** Deletes a Class' Metaclass. Returns true if successful, false otherwise ...*/" />
-                <marker date="1507155923000" expanded="false" signature="25899:26626" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="25945:25982" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="26091:26486" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="26284:26354" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="26501:26578" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="26632:26886" ph="/** Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link ...*/" />
-                <marker date="1507155923000" expanded="false" signature="26922:27471" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="27183:27243" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="27477:27622" ph="/** Deletes (if exists) &lt;Value&gt; from FmmlxClass ...*/" />
-                <marker date="1507155923000" expanded="false" signature="27667:28533" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="27888:27988" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="28070:28385" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="28400:28484" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="28674:29667" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="28684:28752" ph="/** @type {Model.FmmlxAssociation} ...*/" />
-                <marker date="1507155923000" expanded="true" signature="28898:29567" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="29582:29659" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="29673:29919" ph="/** Edits an FMMLx Class and recalculates its properties ...*/" />
-                <marker date="1507155923000" expanded="false" signature="30044:31774" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="30055:30117" ph="/** @type {Model.FmmlxClass} ...*/" />
-                <marker date="1507155923000" expanded="true" signature="30365:30462" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="30542:31634" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="30766:30876" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="30945:31057" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="31071:31206" ph="//..." />
-                <marker date="1507155923000" expanded="true" signature="31266:31481" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="31327:31467" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="31649:31726" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="31780:32109" ph="/** Edits an FMmlx Attribute/ Operation / *Value ...*/" />
-                <marker date="1507155923000" expanded="false" signature="32218:33647" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="32287:32349" ph="/** @type {Model.FmmlxClass} ...*/" />
-                <marker date="1507155923000" expanded="true" signature="32580:32634" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="32726:33515" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="32774:32981" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="32836:32885" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="33069:33155" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="33199:33470" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="33312:33456" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="33526:33599" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="33672:36412" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="33750:36318" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="33847:34178" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="33941:34164" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="33987:34146" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="34224:36262" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="34297:34554" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="34615:36248" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="35241:35698" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="35267:35356" ph="/** @type {Model.FmmlxAssociation} ...*/" />
-                <marker date="1507155923000" expanded="true" signature="35495:35676" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="35761:36230" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="35787:35876" ph="/** @type {Model.FmmlxAssociation} ...*/" />
-                <marker date="1507155923000" expanded="true" signature="36021:36208" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="36331:36406" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="36418:36534" ph="/** Finds all classes that are level +1 ...*/" />
-                <marker date="1507155923000" expanded="false" signature="36564:36708" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="36714:36823" ph="/** Inflates an Fmmlx Class that was deflated ...*/" />
-                <marker date="1507155923000" expanded="false" signature="36852:38133" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="36943:38043" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="36957:37016" ph="/** @type {Model.FmmlxClass} ...*/" />
-                <marker date="1507155923000" expanded="true" signature="37252:37422" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="37476:37842" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="37494:37583" ph="/** @type {Model.FmmlxProperty} ...*/" />
-                <marker date="1507155923000" expanded="true" signature="38054:38127" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="38139:38636" ph="/** Checks what to do with a member in a class: ...*/" />
-                <marker date="1507155923000" expanded="false" signature="38691:41011" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="38757:38910" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="38916:39016" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="39030:40870" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="39135:39252" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="39467:39600" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="39660:39883" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="39889:40432" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="40048:40147" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="40153:40240" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="40276:40359" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="40551:40629" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="40687:40765" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="40795:40860" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="40881:41004" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="40912:40972" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="41017:41153" ph="/** Changes the visibility of all nodes ...*/" />
-                <marker date="1507155923000" expanded="false" signature="41186:41494" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="41274:41400" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="41413:41488" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="41500:41760" ph="/** Makes the instances and subclasses of fmmlxClass and their descendants visible if they have &lt;level&gt; level ...*/" />
-                <marker date="1507155923000" expanded="false" signature="41809:42365" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="41863:42084" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="42138:42359" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="42371:42417" ph="/** Exports the diagram as JSON ...*/" />
-                <marker date="1507155923000" expanded="false" signature="42431:43021" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="42523:42860" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="42620:42850" ph="{...}" />
-                <marker date="1507155923000" expanded="false" signature="42906:42921" ph=" { " />
-                <marker date="1507155923000" expanded="false" signature="42961:42971" ph=" }" />
-                <marker date="1507155923000" expanded="false" signature="43035:43120" ph="{...}" />
-                <marker date="1507155923000" expanded="true" signature="43080:43112" ph="{...}" />
+                <element signature="e#53#84#0" expanded="false" />
+                <element signature="e#145#290#0" expanded="false" />
+                <element signature="e#312#1773#0" expanded="false" />
+                <element signature="e#354#393#0" expanded="false" />
+                <element signature="e#716#776#0" expanded="false" />
+                <element signature="e#839#1001#0" expanded="false" />
+                <element signature="e#1537#1610#0" expanded="false" />
+                <element signature="e#1722#1765#0" expanded="false" />
+                <element signature="e#1779#1905#0" expanded="false" />
+                <element signature="e#1933#2106#0" expanded="false" />
+                <element signature="e#2112#2412#0" expanded="false" />
+                <element signature="e#2476#4353#0" expanded="false" />
+                <element signature="e#2759#2847#0" expanded="false" />
+                <element signature="e#2945#3438#0" expanded="false" />
+                <element signature="e#2994#3185#0" expanded="false" />
+                <element signature="e#3234#3428#0" expanded="false" />
+                <element signature="e#3877#4087#0" expanded="false" />
+                <element signature="e#3986#4077#0" expanded="false" />
+                <element signature="e#4135#4347#0" expanded="false" />
+                <element signature="e#4247#4337#0" expanded="false" />
+                <element signature="e#4387#4534#0" expanded="false" />
+                <element signature="e#4540#4832#0" expanded="false" />
+                <marker date="1513099377212" expanded="false" signature="5462:5618" ph="/** returns a list of fmmlx classes that meets each of &lt;filters&gt; criteria ...*/" />
+                <marker date="1513099377212" expanded="false" signature="5652:6110" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="5764:6101" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="5837:6064" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="5928:5977" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="6116:6221" ph="/** @param {go.Part[]} parts ...*/" />
+                <marker date="1513099377212" expanded="false" signature="6252:6738" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="6314:6367" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="6377:6439" ph="/** @type {Model.FmmlxClass} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="6525:6730" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="6594:6693" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="6767:6971" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="6995:8445" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="7175:8175" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="7364:8029" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="7496:7595" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="7656:7963" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="7724:7845" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="8056:8165" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="8451:8706" ph="/** Adds &lt;Property&gt; to &lt;fmmlxClass&gt; and its descendants (if it does not exist) ...*/" />
+                <marker date="1513099377212" expanded="false" signature="9008:9135" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="9655:9733" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="9745:10088" ph="/** Deletes the corresponding member from FmmlxClass and descendants, creates a new value and adds it to the class ...*/" />
+                <marker date="1513099377212" expanded="false" signature="10143:11393" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="10342:10564" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="10680:10819" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="10961:11267" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="11290:11367" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="11399:11638" ph="/** Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes up and downstream ...*/" />
+                <marker date="1513099377212" expanded="false" signature="11682:12505" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="11900:12020" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="12248:12378" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="12401:12478" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="12511:12596" ph="/** @param {Model.FmmlxClass} fmmlxClass ...*/" />
+                <marker date="1513099377212" expanded="false" signature="12654:14235" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="12713:12790" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="12827:12918" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="13101:13212" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="13466:13558" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="13643:14087" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="13945:14077" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="14110:14187" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="14285:15402" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="14320:14413" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="14849:15304" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="14937:15009" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="15323:15396" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="15408:15646" ph="/**  Changes the level of an FMMMLx member, if not possible throws an exception. returns true if successful, false otherwise ...*/" />
+                <marker date="1513099377212" expanded="false" signature="15703:16484" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="15885:16013" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="16101:16365" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="16238:16309" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="16384:16457" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="16490:16639" ph="/** Copies a member definition to the metaclass ...*/" />
+                <marker date="1513099377212" expanded="false" signature="16686:17037" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="16696:16747" ph="/** @type {Model.FmmlxClass} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="17043:17151" ph="/** Copies a member definition to the superclass ...*/" />
+                <marker date="1513099377212" expanded="false" signature="17198:17548" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="17208:17259" ph="/** @type {Model.FmmlxClass} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="17588:18111" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="17602:18007" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="18028:18105" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="18118:18368" ph="/** Given an association, creates an instance or a refinement of it ...*/" />
+                <marker date="1513099377212" expanded="false" signature="18462:19553" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="18565:19451" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="18620:18913" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="18931:19167" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="19472:19547" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="19559:19848" ph="/** Adds a new FMMLX Class to the diagram ...*/" />
+                <marker date="1513099377212" expanded="false" signature="19950:21091" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="20190:20281" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="20598:20938" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="21097:21489" ph="/** Creates an FMMLx class member and associates it to an fmmlx class ...*/" />
+                <marker date="1513099377212" expanded="false" signature="21617:22059" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="21720:21777" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="21981:22053" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="22065:22164" ph="/** Deletes and FMMLx Association ...*/" />
+                <marker date="1513099377212" expanded="false" signature="22200:22879" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="22304:22777" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="22798:22873" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="22885:22989" ph="/** Deletes an Fmmlx Class and its references ...*/" />
+                <marker date="1513099377212" expanded="false" signature="23023:24168" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="23121:24020" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="23221:23284" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="23341:23405" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="23651:23728" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="23781:23851" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="24043:24120" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="24174:24535" ph="/** Deletes &lt;Property&gt; (and/or its corresponding &lt;Value&gt;) from &lt;fmmlxClass&gt;, its predecessors (`upstream`) and descendants (`downstream`) ...*/" />
+                <marker date="1513099377212" expanded="false" signature="24634:26901" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="25060:25193" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="25301:26761" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="25543:25668" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="25700:25907" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="25808:25893" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="25967:26327" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="26028:26140" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="26201:26313" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="26382:26751" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="26436:26561" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="26613:26737" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="26780:26853" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="26907:27041" ph="/** Deletes a Class' Metaclass. Returns true if successful, false otherwise ...*/" />
+                <marker date="1513099377212" expanded="false" signature="27074:27809" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="27120:27157" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="27266:27661" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="27459:27529" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="27684:27761" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="27815:28069" ph="/** Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link ...*/" />
+                <marker date="1513099377212" expanded="false" signature="28105:28832" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="28366:28426" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="28519:28765" ph="{&quot;from&quot;: subclass.id...}" />
+                <marker date="1513099377212" expanded="false" signature="28838:28983" ph="/** Deletes (if exists) &lt;Value&gt; from FmmlxClass ...*/" />
+                <marker date="1513099377212" expanded="false" signature="29028:29902" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="29249:29349" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="29431:29746" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="29769:29853" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="30043:31044" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="30053:30121" ph="/** @type {Model.FmmlxAssociation} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="30267:30936" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="30959:31036" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="31050:31296" ph="/** Edits an FMMLx Class and recalculates its properties ...*/" />
+                <marker date="1513099377212" expanded="false" signature="31421:33159" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="31432:31494" ph="/** @type {Model.FmmlxClass} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="31742:31839" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="31919:33011" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="32143:32253" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="32322:32434" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="32448:32583" ph="//..." />
+                <marker date="1513099377212" expanded="false" signature="32643:32858" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="32704:32844" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="33034:33111" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="33165:33494" ph="/** Edits an FMmlx Attribute/ Operation / *Value ...*/" />
+                <marker date="1513099377212" expanded="false" signature="33603:35053" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="33672:33734" ph="/** @type {Model.FmmlxClass} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="33965:34019" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="34111:34912" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="34159:34366" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="34221:34270" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="34454:34540" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="34584:34855" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="34697:34841" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="34931:35005" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="35078:37842" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="35156:37740" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="35253:35584" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="35347:35570" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="35393:35552" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="35630:37684" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="35703:35960" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="36037:37670" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="36663:37120" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="36689:36778" ph="/** @type {Model.FmmlxAssociation} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="36917:37098" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="37183:37652" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="37209:37298" ph="/** @type {Model.FmmlxAssociation} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="37443:37630" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="37761:37836" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="37848:37964" ph="/** Finds all classes that are level +1 ...*/" />
+                <marker date="1513099377212" expanded="false" signature="37994:38138" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="38144:38253" ph="/** Inflates an Fmmlx Class that was deflated ...*/" />
+                <marker date="1513099377212" expanded="false" signature="38282:39571" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="38373:39473" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="38387:38446" ph="/** @type {Model.FmmlxClass} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="38682:38852" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="38906:39272" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="38924:39013" ph="/** @type {Model.FmmlxProperty} ...*/" />
+                <marker date="1513099377212" expanded="false" signature="39492:39565" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="39577:40074" ph="/** Checks what to do with a member in a class: ...*/" />
+                <marker date="1513099377212" expanded="false" signature="40913:41046" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="41118:41341" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="42511:42647" ph="/** Changes the visibility of all nodes ...*/" />
+                <marker date="1513099377212" expanded="false" signature="42680:42997" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="42768:42895" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="42916:42991" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="43003:43263" ph="/** Makes the instances and subclasses of fmmlxClass and their descendants visible if they have &lt;level&gt; level ...*/" />
+                <marker date="1513099377212" expanded="false" signature="43312:43868" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="43366:43587" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="43641:43862" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="43874:43920" ph="/** Exports the diagram as JSON ...*/" />
+                <marker date="1513099377212" expanded="false" signature="43934:44525" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="44026:44363" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="44123:44353" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="44410:44475" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="44539:44694" ph="{...}" />
+                <marker date="1513099377212" expanded="false" signature="44584:44686" ph="{...}" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="FormController.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="FmmlxProperty.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/js/models/FmmlxProperty.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="180">
+              <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="FmmlxClass.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/js/models/FmmlxClass.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="627">
+              <caret line="278" column="4" lean-forward="false" selection-start-line="278" selection-start-column="4" selection-end-line="278" selection-end-column="4" />
+              <folding>
+                <element signature="e#9477#9699#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="FormController.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/js/controllers/FormController.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="543">
-              <caret line="443" column="21" lean-forward="true" selection-start-line="443" selection-start-column="21" selection-end-line="443" selection-end-column="21" />
+            <state relative-caret-position="141">
+              <caret line="332" column="0" lean-forward="false" selection-start-line="332" selection-start-column="0" selection-end-line="332" selection-end-column="0" />
               <folding>
-                <element signature="e#170#356#0" expanded="true" />
-                <element signature="e#7670#8275#0" expanded="true" />
-                <element signature="e#7741#7809#0" expanded="true" />
-                <element signature="e#7849#8200#0" expanded="true" />
-                <element signature="e#8281#8404#0" expanded="true" />
-                <element signature="e#8483#9951#0" expanded="true" />
-                <element signature="e#8493#8561#0" expanded="true" />
-                <element signature="e#8829#9865#0" expanded="true" />
-                <element signature="e#9300#9754#0" expanded="true" />
-                <element signature="e#9992#10498#0" expanded="true" />
-                <element signature="e#10091#10423#0" expanded="true" />
-                <element signature="e#10536#10687#0" expanded="true" />
-                <element signature="e#10693#10785#0" expanded="true" />
-                <element signature="e#10821#10951#0" expanded="true" />
-                <element signature="e#10957#11104#0" expanded="true" />
-                <element signature="e#11149#11296#0" expanded="true" />
-                <element signature="e#11302#11486#0" expanded="true" />
-                <element signature="e#11539#11687#0" expanded="true" />
-                <element signature="e#11725#11877#0" expanded="true" />
-                <element signature="e#11925#12950#0" expanded="true" />
-                <element signature="e#13265#13813#0" expanded="true" />
-                <element signature="e#17013#17127#0" expanded="true" />
-                <element signature="e#17574#17830#0" expanded="true" />
-                <element signature="e#18249#18659#0" expanded="true" />
-                <element signature="e#20581#20792#0" expanded="true" />
-                <element signature="e#20890#20974#0" expanded="true" />
-                <marker date="1507155661000" expanded="true" signature="538:544" ph=" " />
+                <element signature="e#11726#11878#0" expanded="false" />
+                <element signature="e#11926#12951#0" expanded="false" />
+                <element signature="e#13007#14294#0" expanded="false" />
+                <element signature="e#14448#17278#0" expanded="false" />
+                <element signature="e#17321#19455#0" expanded="false" />
+                <element signature="e#19682#20587#0" expanded="false" />
+                <marker date="1513095415567" expanded="true" signature="538:544" ph=" " />
               </folding>
             </state>
           </provider>
@@ -245,10 +289,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>jquery</find>
-      <find>FmmlxShapes.FmmlxAssociation.</find>
-      <find>this._$</find>
-      <find>routing</find>
       <find>parse</find>
       <find>_</find>
       <find>todo</find>
@@ -275,6 +315,10 @@
       <find>deflate</find>
       <find>choose</find>
       <find>refine</find>
+      <find>fmmlxClass</find>
+      <find>fmmlxProperty</find>
+      <find>adding</find>
+      <find>intrinsicness = &quot;?&quot;;</find>
     </findStrings>
     <replaceStrings>
       <replace>$</replace>
@@ -363,7 +407,6 @@
         <option value="$PROJECT_DIR$/js/FmmlxShapes/FmmlxProperty.js" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_1.html" />
         <option value="$PROJECT_DIR$/js/models/FmmlxValue.js" />
-        <option value="$PROJECT_DIR$/js/models/FmmlxProperty.js" />
         <option value="$PROJECT_DIR$/js/loader.js" />
         <option value="$PROJECT_DIR$/js/loader.js" />
         <option value="$PROJECT_DIR$/js/models/FmmlxInheritance.js" />
@@ -372,10 +415,11 @@
         <option value="$PROJECT_DIR$/js/FmmlxShapes/FmmlxAssociation.js" />
         <option value="$PROJECT_DIR$/js/FmmlxShapes/FmmlxInheritance.js" />
         <option value="$PROJECT_DIR$/js/models/FmmlxAssociation.js" />
-        <option value="$PROJECT_DIR$/js/controllers/StudioController.js" />
+        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/js/models/FmmlxProperty.js" />
         <option value="$PROJECT_DIR$/js/controllers/FormController.js" />
-        <option value="$PROJECT_DIR$/index.html" />
-        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/js/controllers/StudioController.js" />
       </list>
     </option>
   </component>
@@ -392,7 +436,7 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="y" value="23" />
     <option name="width" value="1680" />
     <option name="height" value="1023" />
@@ -441,39 +485,27 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
-              <item name="FMMLxStudio" type="b2602c69:ProjectViewProjectNode" />
-              <item name="FMMLxStudio" type="462c0819:PsiDirectoryNode" />
+              <item name="Fmmlx-Studio" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Fmmlx-Studio" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
-              <item name="FMMLxStudio" type="b2602c69:ProjectViewProjectNode" />
-              <item name="FMMLxStudio" type="462c0819:PsiDirectoryNode" />
-              <item name="css" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="FMMLxStudio" type="b2602c69:ProjectViewProjectNode" />
-              <item name="FMMLxStudio" type="462c0819:PsiDirectoryNode" />
+              <item name="Fmmlx-Studio" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Fmmlx-Studio" type="462c0819:PsiDirectoryNode" />
               <item name="js" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
-              <item name="FMMLxStudio" type="b2602c69:ProjectViewProjectNode" />
-              <item name="FMMLxStudio" type="462c0819:PsiDirectoryNode" />
+              <item name="Fmmlx-Studio" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Fmmlx-Studio" type="462c0819:PsiDirectoryNode" />
               <item name="js" type="462c0819:PsiDirectoryNode" />
               <item name="controllers" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
-              <item name="FMMLxStudio" type="b2602c69:ProjectViewProjectNode" />
-              <item name="FMMLxStudio" type="462c0819:PsiDirectoryNode" />
-              <item name="js" type="462c0819:PsiDirectoryNode" />
-              <item name="FmmlxShapes" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="FMMLxStudio" type="b2602c69:ProjectViewProjectNode" />
-              <item name="FMMLxStudio" type="462c0819:PsiDirectoryNode" />
+              <item name="Fmmlx-Studio" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Fmmlx-Studio" type="462c0819:PsiDirectoryNode" />
               <item name="js" type="462c0819:PsiDirectoryNode" />
               <item name="models" type="462c0819:PsiDirectoryNode" />
             </path>
@@ -482,16 +514,17 @@
         </subPane>
       </pane>
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
-    <property name="settings.editor.selected.configurable" value="Settings.JavaScript" />
+    <property name="settings.editor.selected.configurable" value="vcs.Git" />
     <property name="JavaScriptPreferStrict" value="true" />
     <property name="JavaScriptWeakerCompletionTypeGuess" value="true" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$2/Languages" value="HTML&#10;EJS" />
-    <property name="last_opened_file_path" value="$APPLICATION_HOME_DIR$/bin/PortableGit/cmd/git.exe" />
+    <property name="last_opened_file_path" value="$APPLICATION_HOME_DIR$/git/cmd/git.exe" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="node.js.path.for.package.stylelint" value="project" />
@@ -531,7 +564,7 @@
         <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_Chromium" />
       </method>
     </configuration>
-    <configuration name="index.html" type="JavascriptDebugType" factoryName="JavaScript Debug" nameIsGenerated="true" uri="http://localhost:63342/FMMLxStudio/index.html" />
+    <configuration name="index.html" type="JavascriptDebugType" factoryName="JavaScript Debug" nameIsGenerated="true" uri="http://localhost:63342/FMMLx-Studio/index.html" />
   </component>
   <component name="ShelveChangesManager" show_recycled="false">
     <option name="remove_strategy" value="false" />
@@ -613,6 +646,9 @@
       <workItem from="1506089451879" duration="9365000" />
       <workItem from="1506616516775" duration="8036000" />
       <workItem from="1506701435608" duration="52746000" />
+      <workItem from="1513004803137" duration="8792000" />
+      <workItem from="1513016706642" duration="2597000" />
+      <workItem from="1513091664635" duration="9109000" />
     </task>
     <task id="LOCAL-00001" summary="No more Set, everything with arrays.">
       <created>1503503360355</created>
@@ -737,7 +773,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="716560000" />
+    <option name="totallyTimeSpent" value="737058000" />
   </component>
   <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
@@ -749,18 +785,19 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1680" height="1023" extended-state="0" />
+    <frame x="-11" y="-11" width="3862" height="2122" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26039782" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.110906705" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32958034" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15840517" sideWeight="0.5030223" order="10" side_tool="true" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3265086" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32603025" sideWeight="0.50197107" order="10" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32603025" sideWeight="0.4980289" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.15840517" sideWeight="0.49697766" order="13" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21518987" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40946123" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32968178" sideWeight="0.49908015" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3265086" sideWeight="0.49908015" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5089577" sideWeight="0.49663365" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -841,7 +878,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="55" />
+      <option name="time" value="60" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -859,13 +896,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/models/FmmlxRelationshipEndpoint.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="5" column="34" lean-forward="true" selection-start-line="5" selection-start-column="34" selection-end-line="5" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/js/models/FmmlxRelationshipEndpoint.js" />
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.es6" />
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_1.es6" />
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_2.es6" />
@@ -944,11 +975,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="120">
           <caret line="4" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-          <folding>
-            <element signature="e#1285#1369#0" expanded="true" />
-            <element signature="e#1713#2003#0" expanded="false" />
-            <element signature="e#1753#1893#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -974,13 +1000,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$APPLICATION_CONFIG_DIR$/javascript/extLibs/https_gojs.net_latest_release_go.d.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="301">
-          <caret line="7573" column="8" lean-forward="false" selection-start-line="7573" selection-start-column="8" selection-end-line="7573" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/javascript/extLibs/https_gojs.net_latest_release_go.d.ts" />
     <entry file="file://$PROJECT_DIR$/js/helpers/Helper.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="135">
@@ -1003,23 +1023,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_1.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="98" lean-forward="false" selection-start-line="9" selection-start-column="98" selection-end-line="9" selection-end-column="98" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/models/FmmlxValue.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="32" column="36" lean-forward="true" selection-start-line="32" selection-start-column="36" selection-end-line="32" selection-end-column="36" />
-          <folding>
-            <element signature="e#2260#2735#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_1.html" />
     <entry file="file://$PROJECT_DIR$/js/FmmlxShapes/FmmlxProperty.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="150">
@@ -1028,54 +1032,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/loader.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="3" column="627" lean-forward="false" selection-start-line="3" selection-start-column="627" selection-end-line="3" selection-end-column="627" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/models/FmmlxProperty.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="27" column="7" lean-forward="true" selection-start-line="27" selection-start-column="7" selection-end-line="27" selection-end-column="7" />
-          <folding>
-            <element signature="e#707#1120#0" expanded="true" />
-            <element signature="e#2141#2563#0" expanded="true" />
-            <element signature="e#3738#4054#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/models/FmmlxClass.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="746">
-          <caret line="199" column="34" lean-forward="false" selection-start-line="199" selection-start-column="34" selection-end-line="199" selection-end-column="34" />
-          <folding>
-            <element signature="e#9477#9699#0" expanded="true" />
-            <element signature="e#10712#10713#0" expanded="true" />
-            <element signature="e#10772#10773#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/FmmlxShapes/FmmlxClass.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="750">
           <caret line="96" column="24" lean-forward="false" selection-start-line="96" selection-start-column="24" selection-end-line="96" selection-end-column="24" />
-          <folding>
-            <element signature="e#272#979#0" expanded="true" />
-            <element signature="e#313#432#0" expanded="true" />
-            <element signature="e#514#553#0" expanded="true" />
-            <element signature="e#620#970#0" expanded="true" />
-            <element signature="e#852#894#0" expanded="true" />
-            <element signature="e#1244#1688#0" expanded="true" />
-            <element signature="e#1285#1369#0" expanded="true" />
-            <element signature="e#1624#1679#0" expanded="true" />
-            <element signature="e#2469#2583#0" expanded="true" />
-            <element signature="e#3926#4075#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1084,45 +1044,20 @@
         <state relative-caret-position="330">
           <caret line="24" column="23" lean-forward="false" selection-start-line="24" selection-start-column="23" selection-end-line="24" selection-end-column="23" />
           <folding>
-            <element signature="e#111#215#0" expanded="true" />
-            <element signature="e#254#374#0" expanded="true" />
-            <element signature="e#402#403#0" expanded="true" />
-            <element signature="e#443#444#0" expanded="true" />
+            <element signature="e#111#215#0" expanded="false" />
+            <element signature="e#254#374#0" expanded="false" />
+            <element signature="e#402#403#0" expanded="false" />
+            <element signature="e#443#444#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../moodler/js/moodler/erd_templates.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="671">
-          <caret line="137" column="0" lean-forward="false" selection-start-line="135" selection-start-column="0" selection-end-line="137" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../moodler/js/moodler/moodler.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="645">
-          <caret line="239" column="5" lean-forward="true" selection-start-line="224" selection-start-column="0" selection-end-line="239" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../moodler/js/moodler/erd_templates.js" />
+    <entry file="file://$PROJECT_DIR$/../moodler/js/moodler/moodler.js" />
     <entry file="file://$PROJECT_DIR$/js/FmmlxShapes/FmmlxAssociation.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="596">
           <caret line="56" column="54" lean-forward="false" selection-start-line="56" selection-start-column="54" selection-end-line="56" selection-end-column="54" />
-          <folding>
-            <element signature="e#397#636#0" expanded="true" />
-            <element signature="e#691#692#0" expanded="true" />
-            <element signature="e#1173#1174#0" expanded="true" />
-            <element signature="e#1285#1435#0" expanded="true" />
-            <element signature="e#1772#1923#0" expanded="true" />
-            <element signature="e#2024#2174#0" expanded="true" />
-            <element signature="e#2232#2333#0" expanded="true" />
-            <element signature="e#2435#2492#0" expanded="true" />
-            <element signature="e#3219#3270#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1131,182 +1066,24 @@
         <state relative-caret-position="-25">
           <caret line="44" column="25" lean-forward="true" selection-start-line="44" selection-start-column="25" selection-end-line="44" selection-end-column="25" />
           <folding>
-            <element signature="e#77#579#0" expanded="true" />
-            <element signature="e#636#1118#0" expanded="true" />
-            <element signature="e#1847#2036#0" expanded="true" />
-            <marker date="1507157943000" expanded="true" signature="3424:7872" ph="..." />
+            <element signature="e#77#579#0" expanded="false" />
+            <element signature="e#636#1118#0" expanded="false" />
+            <element signature="e#1847#2036#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/FmmlxShapes/FmmlxInheritance.js">
+    <entry file="file://$PROJECT_DIR$/js/models/FmmlxValue.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="54" lean-forward="false" selection-start-line="8" selection-start-column="54" selection-end-line="8" selection-end-column="54" />
+        <state relative-caret-position="-1485">
+          <caret line="32" column="36" lean-forward="true" selection-start-line="32" selection-start-column="36" selection-end-line="32" selection-end-column="36" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/controllers/StudioController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="654">
-          <caret line="460" column="25" lean-forward="false" selection-start-line="460" selection-start-column="25" selection-end-line="460" selection-end-column="25" />
-          <folding>
-            <element signature="e#145#290#0" expanded="true" />
-            <element signature="e#312#1771#0" expanded="true" />
-            <element signature="e#839#1001#0" expanded="true" />
-            <element signature="e#1722#1723#0" expanded="true" />
-            <element signature="e#1763#1764#0" expanded="true" />
-            <element signature="e#5540#5744#0" expanded="true" />
-            <element signature="e#6189#7176#0" expanded="true" />
-            <element signature="e#15576#15627#0" expanded="true" />
-            <element signature="e#16088#16139#0" expanded="true" />
-            <element signature="e#16989#17239#0" expanded="true" />
-            <marker date="1507155923000" expanded="true" signature="122:43122" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="17333:18404" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="17436:18310" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="17491:17784" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="17790:18026" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="18323:18398" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="18410:18699" ph="/** Adds a new FMMLX Class to the diagram ...*/" />
-            <marker date="1507155923000" expanded="false" signature="18801:19942" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="19041:19132" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="19449:19789" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="19948:20340" ph="/** Creates an FMMLx class member and associates it to an fmmlx class ...*/" />
-            <marker date="1507155923000" expanded="false" signature="20468:20910" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="20571:20628" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="20832:20904" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="20916:21015" ph="/** Deletes and FMMLx Association ...*/" />
-            <marker date="1507155923000" expanded="true" signature="21051:21722" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="21155:21628" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="21641:21716" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="21728:21832" ph="/** Deletes an Fmmlx Class and its references ...*/" />
-            <marker date="1507155923000" expanded="false" signature="21866:23002" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="21964:22862" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="22064:22127" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="22184:22247" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="22493:22570" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="22623:22693" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="22877:22954" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="23008:23369" ph="/** Deletes &lt;Property&gt; (and/or its corresponding &lt;Value&gt;) from &lt;fmmlxClass&gt;, its predecessors (`upstream`) and descendants (`downstream`) ...*/" />
-            <marker date="1507155923000" expanded="false" signature="23468:25726" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="23894:24027" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="24135:25594" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="24377:24502" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="24534:24740" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="24642:24726" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="24800:25160" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="24861:24973" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="25034:25146" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="25215:25584" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="25269:25394" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="25446:25570" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="25605:25678" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="25732:25866" ph="/** Deletes a Class' Metaclass. Returns true if successful, false otherwise ...*/" />
-            <marker date="1507155923000" expanded="false" signature="25899:26626" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="25945:25982" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="26091:26486" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="26284:26354" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="26501:26578" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="26632:26886" ph="/** Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link ...*/" />
-            <marker date="1507155923000" expanded="false" signature="26922:27471" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="27183:27243" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="27477:27622" ph="/** Deletes (if exists) &lt;Value&gt; from FmmlxClass ...*/" />
-            <marker date="1507155923000" expanded="false" signature="27667:28533" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="27888:27988" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="28070:28385" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="28400:28484" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="28674:29667" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="28684:28752" ph="/** @type {Model.FmmlxAssociation} ...*/" />
-            <marker date="1507155923000" expanded="true" signature="28898:29567" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="29582:29659" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="29673:29919" ph="/** Edits an FMMLx Class and recalculates its properties ...*/" />
-            <marker date="1507155923000" expanded="false" signature="30044:31774" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="30055:30117" ph="/** @type {Model.FmmlxClass} ...*/" />
-            <marker date="1507155923000" expanded="true" signature="30365:30462" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="30542:31634" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="30766:30876" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="30945:31057" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="31071:31206" ph="//..." />
-            <marker date="1507155923000" expanded="true" signature="31266:31481" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="31327:31467" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="31649:31726" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="31780:32109" ph="/** Edits an FMmlx Attribute/ Operation / *Value ...*/" />
-            <marker date="1507155923000" expanded="false" signature="32218:33647" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="32287:32349" ph="/** @type {Model.FmmlxClass} ...*/" />
-            <marker date="1507155923000" expanded="true" signature="32580:32634" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="32726:33515" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="32774:32981" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="32836:32885" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="33069:33155" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="33199:33470" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="33312:33456" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="33526:33599" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="33672:36412" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="33750:36318" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="33847:34178" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="33941:34164" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="33987:34146" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="34224:36262" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="34297:34554" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="34615:36248" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="35241:35698" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="35267:35356" ph="/** @type {Model.FmmlxAssociation} ...*/" />
-            <marker date="1507155923000" expanded="true" signature="35495:35676" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="35761:36230" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="35787:35876" ph="/** @type {Model.FmmlxAssociation} ...*/" />
-            <marker date="1507155923000" expanded="true" signature="36021:36208" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="36331:36406" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="36418:36534" ph="/** Finds all classes that are level +1 ...*/" />
-            <marker date="1507155923000" expanded="false" signature="36564:36708" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="36714:36823" ph="/** Inflates an Fmmlx Class that was deflated ...*/" />
-            <marker date="1507155923000" expanded="false" signature="36852:38133" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="36943:38043" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="36957:37016" ph="/** @type {Model.FmmlxClass} ...*/" />
-            <marker date="1507155923000" expanded="true" signature="37252:37422" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="37476:37842" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="37494:37583" ph="/** @type {Model.FmmlxProperty} ...*/" />
-            <marker date="1507155923000" expanded="true" signature="38054:38127" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="38139:38636" ph="/** Checks what to do with a member in a class: ...*/" />
-            <marker date="1507155923000" expanded="false" signature="38691:41011" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="38757:38910" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="38916:39016" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="39030:40870" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="39135:39252" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="39467:39600" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="39660:39883" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="39889:40432" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="40048:40147" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="40153:40240" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="40276:40359" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="40551:40629" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="40687:40765" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="40795:40860" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="40881:41004" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="40912:40972" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="41017:41153" ph="/** Changes the visibility of all nodes ...*/" />
-            <marker date="1507155923000" expanded="false" signature="41186:41494" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="41274:41400" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="41413:41488" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="41500:41760" ph="/** Makes the instances and subclasses of fmmlxClass and their descendants visible if they have &lt;level&gt; level ...*/" />
-            <marker date="1507155923000" expanded="false" signature="41809:42365" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="41863:42084" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="42138:42359" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="42371:42417" ph="/** Exports the diagram as JSON ...*/" />
-            <marker date="1507155923000" expanded="false" signature="42431:43021" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="42523:42860" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="42620:42850" ph="{...}" />
-            <marker date="1507155923000" expanded="false" signature="42906:42921" ph=" { " />
-            <marker date="1507155923000" expanded="false" signature="42961:42971" ph=" }" />
-            <marker date="1507155923000" expanded="false" signature="43035:43120" ph="{...}" />
-            <marker date="1507155923000" expanded="true" signature="43080:43112" ph="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="644">
+        <state relative-caret-position="1454">
           <caret line="97" column="85" lean-forward="false" selection-start-line="97" selection-start-column="85" selection-end-line="97" selection-end-column="85" />
           <folding>
             <element signature="n#nav#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="false" />
@@ -1320,39 +1097,270 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/js/loader.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="3" column="656" lean-forward="false" selection-start-line="3" selection-start-column="640" selection-end-line="3" selection-end-column="656" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/FmmlxShapes/FmmlxInheritance.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="8" column="54" lean-forward="false" selection-start-line="8" selection-start-column="54" selection-end-line="8" selection-end-column="54" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/models/FmmlxClass.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="627">
+          <caret line="278" column="4" lean-forward="false" selection-start-line="278" selection-start-column="4" selection-end-line="278" selection-end-column="4" />
+          <folding>
+            <element signature="e#9477#9699#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/js/controllers/FormController.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="543">
-          <caret line="443" column="21" lean-forward="true" selection-start-line="443" selection-start-column="21" selection-end-line="443" selection-end-column="21" />
+        <state relative-caret-position="141">
+          <caret line="332" column="0" lean-forward="false" selection-start-line="332" selection-start-column="0" selection-end-line="332" selection-end-column="0" />
           <folding>
-            <element signature="e#170#356#0" expanded="true" />
-            <element signature="e#7670#8275#0" expanded="true" />
-            <element signature="e#7741#7809#0" expanded="true" />
-            <element signature="e#7849#8200#0" expanded="true" />
-            <element signature="e#8281#8404#0" expanded="true" />
-            <element signature="e#8483#9951#0" expanded="true" />
-            <element signature="e#8493#8561#0" expanded="true" />
-            <element signature="e#8829#9865#0" expanded="true" />
-            <element signature="e#9300#9754#0" expanded="true" />
-            <element signature="e#9992#10498#0" expanded="true" />
-            <element signature="e#10091#10423#0" expanded="true" />
-            <element signature="e#10536#10687#0" expanded="true" />
-            <element signature="e#10693#10785#0" expanded="true" />
-            <element signature="e#10821#10951#0" expanded="true" />
-            <element signature="e#10957#11104#0" expanded="true" />
-            <element signature="e#11149#11296#0" expanded="true" />
-            <element signature="e#11302#11486#0" expanded="true" />
-            <element signature="e#11539#11687#0" expanded="true" />
-            <element signature="e#11725#11877#0" expanded="true" />
-            <element signature="e#11925#12950#0" expanded="true" />
-            <element signature="e#13265#13813#0" expanded="true" />
-            <element signature="e#17013#17127#0" expanded="true" />
-            <element signature="e#17574#17830#0" expanded="true" />
-            <element signature="e#18249#18659#0" expanded="true" />
-            <element signature="e#20581#20792#0" expanded="true" />
-            <element signature="e#20890#20974#0" expanded="true" />
-            <marker date="1507155661000" expanded="true" signature="538:544" ph=" " />
+            <element signature="e#11726#11878#0" expanded="false" />
+            <element signature="e#11926#12951#0" expanded="false" />
+            <element signature="e#13007#14294#0" expanded="false" />
+            <element signature="e#14448#17278#0" expanded="false" />
+            <element signature="e#17321#19455#0" expanded="false" />
+            <element signature="e#19682#20587#0" expanded="false" />
+            <marker date="1513095415567" expanded="true" signature="538:544" ph=" " />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/controllers/StudioController.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="379">
+          <caret line="65" column="63" lean-forward="false" selection-start-line="65" selection-start-column="63" selection-end-line="65" selection-end-column="63" />
+          <folding>
+            <element signature="e#53#84#0" expanded="false" />
+            <element signature="e#145#290#0" expanded="false" />
+            <element signature="e#312#1773#0" expanded="false" />
+            <element signature="e#354#393#0" expanded="false" />
+            <element signature="e#716#776#0" expanded="false" />
+            <element signature="e#839#1001#0" expanded="false" />
+            <element signature="e#1537#1610#0" expanded="false" />
+            <element signature="e#1722#1765#0" expanded="false" />
+            <element signature="e#1779#1905#0" expanded="false" />
+            <element signature="e#1933#2106#0" expanded="false" />
+            <element signature="e#2112#2412#0" expanded="false" />
+            <element signature="e#2476#4353#0" expanded="false" />
+            <element signature="e#2759#2847#0" expanded="false" />
+            <element signature="e#2945#3438#0" expanded="false" />
+            <element signature="e#2994#3185#0" expanded="false" />
+            <element signature="e#3234#3428#0" expanded="false" />
+            <element signature="e#3877#4087#0" expanded="false" />
+            <element signature="e#3986#4077#0" expanded="false" />
+            <element signature="e#4135#4347#0" expanded="false" />
+            <element signature="e#4247#4337#0" expanded="false" />
+            <element signature="e#4387#4534#0" expanded="false" />
+            <element signature="e#4540#4832#0" expanded="false" />
+            <marker date="1513099377212" expanded="false" signature="5462:5618" ph="/** returns a list of fmmlx classes that meets each of &lt;filters&gt; criteria ...*/" />
+            <marker date="1513099377212" expanded="false" signature="5652:6110" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="5764:6101" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="5837:6064" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="5928:5977" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="6116:6221" ph="/** @param {go.Part[]} parts ...*/" />
+            <marker date="1513099377212" expanded="false" signature="6252:6738" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="6314:6367" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="6377:6439" ph="/** @type {Model.FmmlxClass} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="6525:6730" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="6594:6693" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="6767:6971" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="6995:8445" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="7175:8175" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="7364:8029" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="7496:7595" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="7656:7963" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="7724:7845" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="8056:8165" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="8451:8706" ph="/** Adds &lt;Property&gt; to &lt;fmmlxClass&gt; and its descendants (if it does not exist) ...*/" />
+            <marker date="1513099377212" expanded="false" signature="9008:9135" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="9655:9733" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="9745:10088" ph="/** Deletes the corresponding member from FmmlxClass and descendants, creates a new value and adds it to the class ...*/" />
+            <marker date="1513099377212" expanded="false" signature="10143:11393" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="10342:10564" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="10680:10819" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="10961:11267" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="11290:11367" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="11399:11638" ph="/** Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes up and downstream ...*/" />
+            <marker date="1513099377212" expanded="false" signature="11682:12505" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="11900:12020" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="12248:12378" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="12401:12478" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="12511:12596" ph="/** @param {Model.FmmlxClass} fmmlxClass ...*/" />
+            <marker date="1513099377212" expanded="false" signature="12654:14235" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="12713:12790" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="12827:12918" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="13101:13212" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="13466:13558" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="13643:14087" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="13945:14077" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="14110:14187" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="14285:15402" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="14320:14413" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="14849:15304" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="14937:15009" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="15323:15396" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="15408:15646" ph="/**  Changes the level of an FMMMLx member, if not possible throws an exception. returns true if successful, false otherwise ...*/" />
+            <marker date="1513099377212" expanded="false" signature="15703:16484" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="15885:16013" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="16101:16365" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="16238:16309" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="16384:16457" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="16490:16639" ph="/** Copies a member definition to the metaclass ...*/" />
+            <marker date="1513099377212" expanded="false" signature="16686:17037" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="16696:16747" ph="/** @type {Model.FmmlxClass} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="17043:17151" ph="/** Copies a member definition to the superclass ...*/" />
+            <marker date="1513099377212" expanded="false" signature="17198:17548" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="17208:17259" ph="/** @type {Model.FmmlxClass} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="17588:18111" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="17602:18007" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="18028:18105" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="18118:18368" ph="/** Given an association, creates an instance or a refinement of it ...*/" />
+            <marker date="1513099377212" expanded="false" signature="18462:19553" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="18565:19451" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="18620:18913" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="18931:19167" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="19472:19547" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="19559:19848" ph="/** Adds a new FMMLX Class to the diagram ...*/" />
+            <marker date="1513099377212" expanded="false" signature="19950:21091" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="20190:20281" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="20598:20938" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="21097:21489" ph="/** Creates an FMMLx class member and associates it to an fmmlx class ...*/" />
+            <marker date="1513099377212" expanded="false" signature="21617:22059" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="21720:21777" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="21981:22053" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="22065:22164" ph="/** Deletes and FMMLx Association ...*/" />
+            <marker date="1513099377212" expanded="false" signature="22200:22879" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="22304:22777" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="22798:22873" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="22885:22989" ph="/** Deletes an Fmmlx Class and its references ...*/" />
+            <marker date="1513099377212" expanded="false" signature="23023:24168" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="23121:24020" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="23221:23284" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="23341:23405" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="23651:23728" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="23781:23851" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="24043:24120" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="24174:24535" ph="/** Deletes &lt;Property&gt; (and/or its corresponding &lt;Value&gt;) from &lt;fmmlxClass&gt;, its predecessors (`upstream`) and descendants (`downstream`) ...*/" />
+            <marker date="1513099377212" expanded="false" signature="24634:26901" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="25060:25193" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="25301:26761" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="25543:25668" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="25700:25907" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="25808:25893" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="25967:26327" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="26028:26140" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="26201:26313" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="26382:26751" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="26436:26561" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="26613:26737" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="26780:26853" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="26907:27041" ph="/** Deletes a Class' Metaclass. Returns true if successful, false otherwise ...*/" />
+            <marker date="1513099377212" expanded="false" signature="27074:27809" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="27120:27157" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="27266:27661" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="27459:27529" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="27684:27761" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="27815:28069" ph="/** Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link ...*/" />
+            <marker date="1513099377212" expanded="false" signature="28105:28832" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="28366:28426" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="28519:28765" ph="{&quot;from&quot;: subclass.id...}" />
+            <marker date="1513099377212" expanded="false" signature="28838:28983" ph="/** Deletes (if exists) &lt;Value&gt; from FmmlxClass ...*/" />
+            <marker date="1513099377212" expanded="false" signature="29028:29902" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="29249:29349" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="29431:29746" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="29769:29853" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="30043:31044" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="30053:30121" ph="/** @type {Model.FmmlxAssociation} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="30267:30936" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="30959:31036" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="31050:31296" ph="/** Edits an FMMLx Class and recalculates its properties ...*/" />
+            <marker date="1513099377212" expanded="false" signature="31421:33159" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="31432:31494" ph="/** @type {Model.FmmlxClass} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="31742:31839" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="31919:33011" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="32143:32253" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="32322:32434" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="32448:32583" ph="//..." />
+            <marker date="1513099377212" expanded="false" signature="32643:32858" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="32704:32844" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="33034:33111" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="33165:33494" ph="/** Edits an FMmlx Attribute/ Operation / *Value ...*/" />
+            <marker date="1513099377212" expanded="false" signature="33603:35053" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="33672:33734" ph="/** @type {Model.FmmlxClass} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="33965:34019" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="34111:34912" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="34159:34366" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="34221:34270" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="34454:34540" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="34584:34855" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="34697:34841" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="34931:35005" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="35078:37842" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="35156:37740" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="35253:35584" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="35347:35570" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="35393:35552" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="35630:37684" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="35703:35960" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="36037:37670" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="36663:37120" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="36689:36778" ph="/** @type {Model.FmmlxAssociation} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="36917:37098" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="37183:37652" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="37209:37298" ph="/** @type {Model.FmmlxAssociation} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="37443:37630" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="37761:37836" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="37848:37964" ph="/** Finds all classes that are level +1 ...*/" />
+            <marker date="1513099377212" expanded="false" signature="37994:38138" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="38144:38253" ph="/** Inflates an Fmmlx Class that was deflated ...*/" />
+            <marker date="1513099377212" expanded="false" signature="38282:39571" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="38373:39473" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="38387:38446" ph="/** @type {Model.FmmlxClass} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="38682:38852" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="38906:39272" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="38924:39013" ph="/** @type {Model.FmmlxProperty} ...*/" />
+            <marker date="1513099377212" expanded="false" signature="39492:39565" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="39577:40074" ph="/** Checks what to do with a member in a class: ...*/" />
+            <marker date="1513099377212" expanded="false" signature="40913:41046" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="41118:41341" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="42511:42647" ph="/** Changes the visibility of all nodes ...*/" />
+            <marker date="1513099377212" expanded="false" signature="42680:42997" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="42768:42895" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="42916:42991" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="43003:43263" ph="/** Makes the instances and subclasses of fmmlxClass and their descendants visible if they have &lt;level&gt; level ...*/" />
+            <marker date="1513099377212" expanded="false" signature="43312:43868" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="43366:43587" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="43641:43862" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="43874:43920" ph="/** Exports the diagram as JSON ...*/" />
+            <marker date="1513099377212" expanded="false" signature="43934:44525" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="44026:44363" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="44123:44353" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="44410:44475" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="44539:44694" ph="{...}" />
+            <marker date="1513099377212" expanded="false" signature="44584:44686" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/models/FmmlxProperty.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+          <folding />
         </state>
       </provider>
     </entry>

@@ -29,7 +29,7 @@ Model.FmmlxProperty = class {
     constructor(name = "", type = "", intrinsicness = 0, isOperation = false, behaviors = [], operationBody = null) {
         this.values = new Helper.Set();
         this.classes = new Helper.Set();
-        this.id = Helper.Helper.uuid4();
+        this.id = Math.random().toString(36).substring(7);//Helper.Helper.uuid4();
         this.maxIntrinsicness = Infinity;
         this.name = name;
         this.type = type;
@@ -45,17 +45,6 @@ Model.FmmlxProperty = class {
      */
     addClass(fmmlxClass) {
         this.classes.add(fmmlxClass);
-
-        if (fmmlxClass.level === "?") {
-            this.maxIntrinsicness = "?";
-            this.intrinsicness = "?";
-        } else {
-            let level = Number.parseInt(fmmlxClass.level);
-            if (this.maxIntrinsicness === Infinity || this.maxIntrinsicness < level) {
-                this.maxIntrinsicness = level - 1;
-            }
-        }
-
         return this;
     }
 

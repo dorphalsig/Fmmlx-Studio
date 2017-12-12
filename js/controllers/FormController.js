@@ -471,6 +471,7 @@ Controller.FormController = class {
     static displayMemberForm(event, obj) {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
+        console.log(obj.data);
         modal.find("form").replaceWith(window._propertyForm.clone());
         self.__setupExtraDataFields(modal);
 
