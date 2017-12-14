@@ -210,7 +210,7 @@ Model.FmmlxClass = class {
 
         if (this.isExternal) {
             val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        } else if (typeof this.metaclass !== null) {
+        } else if (typeof this.metaclass !== "undefined" && this.metaclass !== null) {
             val = val && this.metaclass.id === obj.metaclass.id;
         }
 

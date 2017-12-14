@@ -263,11 +263,12 @@ Controller.StudioController = class {
      * returns the value or null if nothing was done
      * @param {Model.FmmlxClass}  fmmlxClass
      * @param {Model.FmmlxProperty} member
-     * @param {string|Null} value
+     * @param {string} [value]
+     * @param {boolean} [overwrite] determines if the value should be overwritten, false by default
      * @return {Model.FmmlxValue|null}
      */
     addValueToClass(fmmlxClass, member, value = null) {
-        console.log(`Adding a value of ${member.name} to ${fmmlxClass.name}`);
+        console.log(`Adding a value (${value}) of ${member.name} to ${fmmlxClass.name}`);
 
         if ((member.intrinsicness === "?" && fmmlxClass.level === "?") || member.intrinsicness !== fmmlxClass.level) {
             console.log(`Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the member's (${member.name}) intrinsicness (${member.intrinsicness}). Doing nothing`);
@@ -275,9 +276,15 @@ Controller.StudioController = class {
         }
 
         let val = member.createValue(fmmlxClass, value);
+        let valIndex = fmmlxClass.findIndexForValue(val);
+        if (valIndex !== null) {
+            if (fmmlxClass.memberValues[valIndex].value === null) {
+                console.log(`Assigning value...`);
+                fmmlxClass.memberValues[valIndex].value = value
+            }
+            else
+                console.log(`A value of ${val.name} already exists in ${fmmlxClass.name}. doing Nothing`);
 
-        if (fmmlxClass.findIndexForValue(val) !== null) {
-            console.log(`A value of ${val.name} already exists in ${fmmlxClass.name}. doing Nothing`);
             return null;
         }
 
@@ -335,22 +342,21 @@ Controller.StudioController = class {
             return;
         }
 
+        let metaclass = this._model.findNodeDataForKey(metaclassId);
+
+        if (fmmlxClass.metaclass !== null && fmmlxClass.metaclass.equals(metaclass)) {
+            console.log(`Old and new metaclasses are the same. Doing nothing.`);
+            return false;
+        }
         if (fmmlxClass.isExternal) {
             throw new Error(`External classes can not have a local metaclass`);
         }
-
-        let metaclass = this._model.findNodeDataForKey(metaclassId);
 
         if ((metaclass.level !== `?` && fmmlxClass.level === `?`) && metaclass.level !== fmmlxClass.level + 1) {
             throw new Error(`Metaclass (${metaclass.name}) level must be ${fmmlxClass.level + 1}`);
         }
 
         console.log(`Change ${fmmlxClass.name}'s metaclass from  ${(fmmlxClass.metaclass === null) ? "Metaclass" : fmmlxClass.metaclass.name} to ${metaclass.name}`);
-
-        if (fmmlxClass.metaclass !== null && fmmlxClass.metaclass.equals(metaclass)) {
-            console.log(`Old and new metaclasses are the same. Doing nothing.`);
-        }
-
         let transId = this._beginTransaction("Changing Metaclass...");
         try {
             this.deleteMetaclass(fmmlxClass);
@@ -740,9 +746,9 @@ Controller.StudioController = class {
         }
         subclass.superclass = null;
         let linkData = this._diagram.findLinksByExample({
-                                                            from: subclass.id, to: superclass.id,
-                                                            category: "fmmlxInheritance"
-                                                        }).first().data;
+            from: subclass.id, to: superclass.id,
+            category: "fmmlxInheritance"
+        }).first().data;
         this._model.removeLinkData(linkData);
     }
 
@@ -824,7 +830,7 @@ Controller.StudioController = class {
         metaclassId = (metaclassId === "") ? null : metaclassId;
 
         if (isAbstract && fmmlxClass.instances.size > 0) {
-            throw new Error("Can not$make class abstract because it has instances.");
+            throw new Error("Can not make class abstract because it has instances.");
         }
 
         let transId = this._beginTransaction("Editing Class...");
@@ -859,7 +865,7 @@ Controller.StudioController = class {
     }
 
     /**
-     * Edits an FMmlx Attribute/ Operation / *Value
+     * Edits an FMMLx Attribute/ Operation / Value
      * @param {String} classId
      * @param {String} memberId
      * @param {String} name
@@ -882,7 +888,6 @@ Controller.StudioController = class {
         if (member.isValue) {
             otherAttributes.value = value;
         }
-
 
         let transId = this._beginTransaction(`Edit Member ${member.name}`);
 
@@ -1004,15 +1009,14 @@ Controller.StudioController = class {
                 this.changeClassSuperclass(superclass, fmmlxClass);
             }
 
-            for (let flatValue of flatClass.values) {
-                /**
-                 *
-                 * @type {Model.FmmlxProperty}
-                 */
-                let member = Model.FmmlxProperty.inflate(flatValue);
+            for (let flatMember of flatClass.members) {
+                let member = Model.FmmlxProperty.inflate(flatMember)
                 this.addMemberToClass(fmmlxClass, member);
-                let value = fmmlxClass.findValueFromProperty(member);
-                value.value = flatValue.value;
+            }
+
+            for (let flatValue of flatClass.values) {
+                let member = Model.FmmlxProperty.inflate(flatValue);
+                this.addValueToClass(fmmlxClass, member, flatValue.value)
             }
 
             this._diagram.findNodeForKey(fmmlxClass.id).updateTargetBindings();
@@ -1163,7 +1167,7 @@ Controller.StudioController = class {
 
     toPNG() {
         return this._diagram.makeImageData({
-                                               scale: 1
-                                           });
+            scale: 1
+        });
     }
 };

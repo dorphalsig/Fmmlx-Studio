@@ -39,6 +39,22 @@ Model.FmmlxProperty = class {
         this.operationBody = operationBody;
     }
 
+    get intrinsicness() {
+        return this._intrinsicness;
+    };
+
+    set intrinsicness(val) {
+        let numberVal = Number.parseInt(val);
+        if ((val !== "?" && isNaN(numberVal)) || numberVal > Number.parseInt(this.maxIntrinsicness)) {
+            throw new Error(`Invalid intrinsicness ${val} for property ${this.name}`);
+        }
+        this._intrinsicness = (val === "?") ? "?" : numberVal;
+    };
+
+    get isValue() {
+        return false;
+    }
+
     /**
      * Adds an FMMLx Class to the set. Recalculates max intrinsicness
      * @param {Model.FmmlxClass} fmmlxClass
@@ -111,22 +127,6 @@ Model.FmmlxProperty = class {
         let partial = new Model.FmmlxProperty(flatMember.name, flatMember.type, flatMember.intrinsicness, flatMember.isOperation, flatMember.behaviors, flatMember.operationBody);
         partial.id = flatMember.id;
         return partial;
-    }
-
-    get intrinsicness() {
-        return this._intrinsicness;
-    };
-
-    set intrinsicness(val) {
-        let numberVal = Number.parseInt(val);
-        if ((val !== "?" && isNaN(numberVal)) || numberVal > Number.parseInt(this.maxIntrinsicness)) {
-            throw new Error(`Invalid intrinsicness ${val} for property ${this.name}`);
-        }
-        this._intrinsicness = (val === "?") ? "?" : numberVal;
-    };
-
-    get isValue() {
-        return false;
     }
 
 
