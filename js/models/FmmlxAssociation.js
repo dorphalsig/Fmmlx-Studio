@@ -120,7 +120,9 @@ Model.FmmlxAssociation = class {
      */
     deflate() {
         let clone = Object.assign({}, this);
+        // noinspection JSAnnotator
         delete clone.from;
+        // noinspection JSAnnotator
         delete clone.to;
         clone.source = this.source.id;
         clone.target = this.target.id;
@@ -136,13 +138,13 @@ Model.FmmlxAssociation = class {
         clone.targetCardinality = this.targetCardinality;
 
         let refinements = [];
-        for (let i = 0; i < this.refinements.length;) {
-            refinements.push(this.refinements[i].id);
+        for (let refinement of this.refinements) {
+            refinements.push(refinement.id);
         }
         clone.refinements = refinements;
         let instances = [];
-        for (let i = 0; i < this.instances.length;) {
-            instances.push(this.instances[i].id);
+        for (let instance of this.instances) {
+            instances.push(instance.id);
         }
         clone.instances = instances;
         delete clone.category;

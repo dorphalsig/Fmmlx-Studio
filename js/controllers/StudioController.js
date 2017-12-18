@@ -118,29 +118,6 @@ Controller.StudioController = class {
     }
 
     /**
-     * Calculates a new value of maxIntrinsicness based on Class
-     * if fmmlxClass.level - 1 > fmmlxProperty.maxIntrinsicness => fmmlxProperty.maxIntrinsicness =  fmmlxClass.level - 1
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Model.FmmlxProperty} fmmlxProperty
-     */
-    calculatePropertyMaxIntrinsicness(fmmlxProperty) {
-        fmmlxProperty.maxIntrinsicness = -1;
-        for (let tmp of fmmlxProperty.classes) {
-            if (tmp.level === "?") {
-                fmmlxProperty.maxIntrinsicness = "?";
-                fmmlxProperty.intrinsicness = "?";
-                break;
-            }
-            else {
-                let level = Number.parseInt(tmp.level);
-                if (fmmlxProperty.maxIntrinsicness === Infinity || fmmlxProperty.maxIntrinsicness < level) {
-                    fmmlxProperty.maxIntrinsicness = level - 1;
-                }
-            }
-        }
-    }
-
-    /**
      * returns a list of fmmlx classes that meets each of <filters> criteria
      * @param {Object} filters
      * @returns {Model.FmmlxClass[]}
@@ -302,6 +279,29 @@ Controller.StudioController = class {
             throw error;
         }
         return val;
+    }
+
+    /**
+     * Calculates a new value of maxIntrinsicness based on Class
+     * if fmmlxClass.level - 1 > fmmlxProperty.maxIntrinsicness => fmmlxProperty.maxIntrinsicness =  fmmlxClass.level - 1
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {Model.FmmlxProperty} fmmlxProperty
+     */
+    calculatePropertyMaxIntrinsicness(fmmlxProperty) {
+        fmmlxProperty.maxIntrinsicness = -1;
+        for (let tmp of fmmlxProperty.classes) {
+            if (tmp.level === "?") {
+                fmmlxProperty.maxIntrinsicness = "?";
+                fmmlxProperty.intrinsicness = "?";
+                break;
+            }
+            else {
+                let level = Number.parseInt(tmp.level);
+                if (fmmlxProperty.maxIntrinsicness === Infinity || fmmlxProperty.maxIntrinsicness < level) {
+                    fmmlxProperty.maxIntrinsicness = level - 1;
+                }
+            }
+        }
     }
 
     /**
@@ -500,7 +500,14 @@ Controller.StudioController = class {
             source.addAssociation(assoc);
             target.addAssociation(assoc);
 
-            (isRefinement) ? association.addRefinement(assoc) : association.addInstance(assoc);
+            if(isRefinement){
+                association.addRefinement(assoc);
+                assoc.primitive = association;
+            }
+            else{
+                association.addInstance(assoc);
+                assoc.metaAssociation = association;
+            }
 
             this._commitTransaction(transId);
         }
@@ -943,8 +950,8 @@ Controller.StudioController = class {
 
                     let source = this._model.findNodeDataForKey(link.source);
                     let target = this._model.findNodeDataForKey(link.target);
-                    let primitive = (link.primitive !== null) ? this._model.findNodeDataForKey(link.primitive) : null;
-                    let metaAssoc = (link.metaAssociation !== null) ? this._model.findNodeDataForKey(link.metaAssociation) : null;
+                    let primitive = (link.primitive !== null) ? this._model.findLinkDataForKey(link.primitive) : null;
+                    let metaAssoc = (link.metaAssociation !== null) ? this._model.findLinkDataForKey(link.metaAssociation) : null;
                     let assoc = Model.FmmlxAssociation.inflate(link, source, target, primitive, metaAssoc);
                     this._model.addLinkData(assoc);
                     for (let instance of link.instances) {

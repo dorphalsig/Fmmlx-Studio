@@ -361,8 +361,8 @@ Controller.FormController = class {
         }
 
         if (obj.data.isInstance) {
-            $("#association_sourceIntrinsicness").prop('disabled', 'disabled');
-            $("#association_targetIntrinsicness").prop('disabled', 'disabled');
+            modal.find("#association_sourceIntrinsicness").prop('disabled', 'disabled').parent().hide();
+            modal.find("#association_targetIntrinsicness").prop('disabled', 'disabled').parent().hide();
         }
 
         let submitBtn = modal.find(".btn-flat");
