@@ -36,14 +36,13 @@ FmmlxShapes.FmmlxAssociation = class {
 
     static get shape() {
 
-
         let sourceRole = gMake(go.Panel, "Horizontal", {
                 segmentIndex: 0,
                 segmentOffset: new go.Point(NaN, -15),
                 segmentOrientation: go.Link.OrientUpright
-            }, this.intrinsicnessBlock("sourceIntrinsicness", {margin: new go.Margin(0, 3, 0, 15)}),
-            gMake(go.TextBlock, new go.Binding("text", "sourceRole")/*, {margin: new go.Margin(0, 5)}*/
-            )
+            },
+            gMake(go.TextBlock, new go.Binding("text", "sourceRole"), {margin: new go.Margin(0, 3)}),
+            this.intrinsicnessBlock("sourceIntrinsicness", {margin: new go.Margin(0, 15, 0, 0)}),
         );
 
         let sourceCardinality = gMake(go.Panel, "Auto", {
@@ -58,9 +57,9 @@ FmmlxShapes.FmmlxAssociation = class {
                 segmentIndex: -1,
                 segmentOffset: new go.Point(NaN, -15),
                 segmentOrientation: go.Link.OrientUpright,
-            }, this.intrinsicnessBlock("targetIntrinsicness", {margin: new go.Margin(0, 10, 0, 0)}),
-            gMake(go.TextBlock, new go.Binding("text", "targetRole") //,  {margin: new go.Margin(0, 5, 0, 0)}
-            )
+            },
+            this.intrinsicnessBlock("targetIntrinsicness", {margin: new go.Margin(0, 15, 0, 0)}),
+            gMake(go.TextBlock, {margin: new go.Margin(0, 3)}, new go.Binding("text", "targetRole")),
         );
 
         let targetCardinality = gMake(go.TextBlock, new go.Binding("text", "targetCardinality"), {

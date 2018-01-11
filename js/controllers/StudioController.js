@@ -173,6 +173,23 @@ Controller.StudioController = class {
 
     }
 
+    /**
+     * Gets collection of tags used in Classes and Associations
+     * @Return Set
+     */
+    getTags() {
+        let tags = new Set();
+        for (let nodeData of this._model.nodeDataArray) {
+            tags = new Set([...tags, ...nodeData.tags])
+        }
+        for (let associationData of this._model.linkDataArray) {
+            if (associationData.constructor !== Model.FmmlxAssociation) continue;
+            tags = new Set([...tags, ...associationData.tags])
+        }
+
+        return tags;
+    }
+
     abstractClasses() {
         let fmmlxClassNodes = this._diagram.selection.toArray();
         let classLevel = fmmlxClassNodes[0].data.level;
@@ -500,11 +517,11 @@ Controller.StudioController = class {
             source.addAssociation(assoc);
             target.addAssociation(assoc);
 
-            if(isRefinement){
+            if (isRefinement) {
                 association.addRefinement(assoc);
                 assoc.primitive = association;
             }
-            else{
+            else {
                 association.addInstance(assoc);
                 assoc.metaAssociation = association;
             }

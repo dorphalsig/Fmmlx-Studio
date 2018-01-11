@@ -67,8 +67,7 @@
                     <a id="image" onclick="Controller.FormController.downloadImage()" href="#"><i
                             class="fa fa-picture-o fa-2x"></i></a>
                 </li>
-                <li><a href="#" onclick="$('.tap-target').tapTarget('open');"><i class="fa fa-question fa-2x"></i></a>
-                </li>
+                <li><a class="modal-trigger" href="#filterModal"><i class="fa fa-filter fa-2x"></i></a></li>
 
             </ul>
         </div>
@@ -102,6 +101,8 @@
         <a class="collection-item" href="#" id="refineAssociation">Refine Association</a>
     </div>
     <!-- End Context Menus -->
+
+
 </div>
 
 
@@ -111,14 +112,7 @@
             onclick="Controller.FormController.displayClassForm();">
         <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
 </div>
-
-<div class="tap-target" data-activates="addClass">
-    <div class="tap-target-content">
-        <h5>Help</h5>
-        <p>To add an FMMLx Class, just hit the + button, or press <code>CTRL (COMMAND) + I</code>,<br/>
-            everything else is accessible via context (right-click) menu.</p>
-    </div>
-</div>
+<!-- End floating button -->
 
 <!-- Add / Edit Class Modal -->
 <div id="fmmlxClassModal" class="modal bottom-sheet">
@@ -321,17 +315,62 @@
         <a href="#" class="modal-action waves-effect waves-green btn-flat">Proceed</a>
     </div>
 </div>
-<!--  End Add / Edit Association -->
-<!--
-<div>
-    <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup>
-        Association</h4>
-    <form id="associationForm">
-        <input id="associationId" type="hidden">
 
 
+<!-- Search Modal -->
+
+
+<div id="filterModal" class="modal modal-fixed-footer">
+    <div class="modal-content">
+        <div class="filterRow">
+            <div class="row filterOperators">
+                <div class="col s4">
+                    <hr>
+                </div>
+                <div class="col s4 center-align">
+                        <input type="radio" name="operator" value="AND" id="filterAnd">
+                        <label for="filterAnd">AND</label>
+                        <input type="radio" name="operator" value="OR" id="filterOr">
+                        <label for="filterOr">OR</label>
+                </div>
+                <div class="col s4">
+                    <hr>
+                </div>
+            </div>
+            <div class="filter row valign-wrapper center-align">
+                <div class="input-field col s3">
+                    <select id="filterBy">
+                        <option value="class">Classes</option>
+                        <option value="level">Level</option>
+                        <option value="tag">Tag</option>
+                    </select>
+                    <label for="filterBy">Filter By</label>
+                </div>
+
+                <div class="input-field col s6">
+                    <input id="filterData" type="text">
+                    <label for="filterData">Blah</label>
+                </div>
+
+                <div class="col s3">
+                    <i class="fa fa-plus"></i>
+                    <i class="fa fa-minus"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Agree</a>
+    </div>
 </div>
--->
+
+<!-- End Search Modal-->
+
+
+<script>
+
+
+</script>
 
 </body>
 </html>
