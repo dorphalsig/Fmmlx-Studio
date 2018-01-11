@@ -15,8 +15,9 @@ Model.FmmlxClass = class {
      * @param {boolean} isAbstract
      * @param {string} externalLanguage
      * @param {string} externalMetaclass
+     * @params {Array} tags
      */
-    constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null) {
+    constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null, tags = []) {
 
         /**
          * @type Number|String
@@ -78,7 +79,9 @@ Model.FmmlxClass = class {
          * @type String
          */
         Object.defineProperty(this, "metaclassName", {
-            configurable: true, enumerable: true, get: () => this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name,
+            configurable: true,
+            enumerable: true,
+            get: () => this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name,
         });
 
         /**
@@ -89,6 +92,10 @@ Model.FmmlxClass = class {
         });
 
         this.metaclass = null;
+        this.tags = new Set();
+        tags = Array.isArray(tags)?tags:[tags];
+        tags.forEach(tag=>this.tags.add(tag));
+
         this._distanceFromRoot = 0;
         this._instances = new Helper.Set();
         this.subclasses = new Helper.Set();
