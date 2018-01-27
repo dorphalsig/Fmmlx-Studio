@@ -173,23 +173,6 @@ Controller.StudioController = class {
 
     }
 
-    /**
-     * Gets collection of tags used in Classes and Associations
-     * @Return Set
-     */
-    getTags() {
-        let tags = new Set();
-        for (let nodeData of this._model.nodeDataArray) {
-            tags = new Set([...tags, ...nodeData.tags])
-        }
-        for (let associationData of this._model.linkDataArray) {
-            if (associationData.constructor !== Model.FmmlxAssociation) continue;
-            tags = new Set([...tags, ...associationData.tags])
-        }
-
-        return tags;
-    }
-
     abstractClasses() {
         let fmmlxClassNodes = this._diagram.selection.toArray();
         let classLevel = fmmlxClassNodes[0].data.level;
@@ -944,6 +927,47 @@ Controller.StudioController = class {
         this._commitTransaction(transId);
     }
 
+    /**
+     * Finds the parent of each class in classes and hides all the rest
+     * @param {Model.FmmlxClass[]} selectedClasses
+     */
+    filterModelByTrees(selectedClasses) {
+        this.setNodesVisibility(false); // hides all classes
+        for (let selectedClass of selectedClasses) {
+            let root = this.findRoot(selectedClass);
+            this.showDescendantsOf(root)
+        }
+    }
+
+    /**
+     * Finds the possible Root classes of fmmlxClass and returns the ids in a set
+     * The root is defined as the class with highest abstraction level that has metaclass === null
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @returns {FmmlxClass}
+     */
+    findRoot(fmmlxClass) {
+        let roots = new Helper.Set();
+
+        let metaRoot = (fmmlxClass.metaclass === null) ? fmmlxClass: this.findRoot(fmmlxClass.metaclass);
+        roots.add(metaRoot);
+
+        if (fmmlxClass.superclass !== null) {
+            let superRoots = this.findRoot(fmmlxClass.superclass);
+            for(let superRoot of superRoots){
+                roots.add(superRoot);
+            }
+        }
+
+        let rootClass = null;
+        for (let possibleRoot of roots) {
+            //let tmpClass = this._model.findNodeDataForKey(id);
+            if (rootClass === null || parseInt(possibleRoot.level) > parseInt(rootClass.level))
+                rootClass = possibleRoot;
+        }
+
+        return rootClass;
+    }
+
     fromJSON(jsonData) {
         let transId = this._beginTransaction("Importing JSON");
         try {
@@ -1011,6 +1035,24 @@ Controller.StudioController = class {
 
         let targetLevel = (level !== "?") ? Number.parseInt(level) + 1 : "?";
         return this._filterClasses({level: targetLevel});
+    }
+
+    getDataForFilters() {
+        let tags = new Set();
+        let levels = new Set();
+
+        for (let nodeData of this._model.nodeDataArray) {
+            tags = new Set([...tags, ...nodeData.tags])
+            levels.add(nodeData.level);
+        }
+
+        for (let associationData of this._model.linkDataArray) {
+            if (associationData.constructor !== Model.FmmlxAssociation) continue;
+            tags = new Set([...tags, ...associationData.tags])
+        }
+
+        return tags;
+
     }
 
     /**
@@ -1156,6 +1198,7 @@ Controller.StudioController = class {
      */
     showDescendantsOf(fmmlxClass, level = null) {
 
+        this._diagram.findNodeForKey(fmmlxClass.id).visible = true;
         for (let instance of fmmlxClass.instances) {
             let node = this._diagram.findNodeForKey(instance.id);
             if (level === null || instance.level === Number.parseInt(level)) node.visible = true;

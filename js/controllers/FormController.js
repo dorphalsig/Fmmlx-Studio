@@ -1,8 +1,5 @@
 "use strict";
-
-if (typeof Controller === "undefined") {
-    window.Controller = {};
-}
+(typeof Controller === "undefined") ? window.Controller = {} : "";
 
 Controller.FormController = class {
 
@@ -87,7 +84,7 @@ Controller.FormController = class {
             /*rfield = $(field)*/
             let name = field.name;
             if (name !== "") {
-                fieldData[`${name}`] = ( (field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
+                fieldData[`${name}`] = ((field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
             } else {
                 fieldData[`${name}`] = field.value;
             }
@@ -374,8 +371,8 @@ Controller.FormController = class {
     }
 
     static displayClassForm(event = null, obj = null) {
-        const modal = $("#fmmlxClassModal");
-        const self = Controller.FormController;
+        let modal = $("#fmmlxClassModal");
+        let self = Controller.FormController;
 
         modal.find("form").replaceWith(window._classForm.clone());
         self.__setupExtraDataFields(modal);
@@ -426,6 +423,7 @@ Controller.FormController = class {
                 $("#deleteClass").off("click").one("click", () => self.deleteClass(target.data));
                 $("#abstractClass").off("click").one("click", () => self.abstractClass());
                 $("#addMember").off("click").one("click", () => self.displayMemberForm(inputEvent, target.data));
+                $("#filterChain").off("click").one("click", () => self.filterChains(inputEvent.targetDiagram.selection));
                 break;
 
             case Model.FmmlxProperty:
@@ -449,7 +447,7 @@ Controller.FormController = class {
                 }
                 $("#deleteAssociation").off("click").one("click", () => self.deleteAssociation(target.part.data));
                 instantiate.off("click").one("click", () => self.createAssociationInstanceOrRefinement(target.part.data, false));
-                refine.off("click").one("click", () => self.createAssociationInstanceOrRefinement(target.part.data, true));
+                refine.off("click").one("click", () => self.filterChains(target.diagram.selection));
                 break;
 
             default: // Inheritance has no model because its just a plain link
@@ -465,6 +463,39 @@ Controller.FormController = class {
         $("body,canvas").one("click", () => contextMenus.hide());
 
         inputEvent.handled = true;
+
+    }
+
+    /**
+     * Sets up and displays the filters
+     */
+    static displayFilterForm() {
+        let modal = $("#filterModal");
+        let data = "";
+        modal.show();
+        modal.find(".more").off().click(e => {
+            let filterRow = $(e.target).parents(".filterRow");
+            let newRow = filterRow.clone(true, true);
+            let newId = `_${Helper.Helper.uuid4()}`;
+
+            for (let input of newRow.find("input")) {
+                //let newId = `_${Helper.Helper.uuid4()}`;
+                if (input.id !== "") {
+                    let label = newRow.find(`[for=${input.id}]`);
+                    label.prop("for", label.prop("for").replace(/(_.*|$)/, newId));
+                    input.name = input.name.replace(/(_.*|$)/, newId)
+                    input.id = input.id.replace(/(_.*|$)/, newId)
+                }
+            }
+
+            newRow.insertAfter(filterRow);
+            modal.find("select").material_select();
+        });
+        modal.find(".less").off().click(e => {
+            let filterRow = $(e.target).parents(".filterRow");
+            filterRow.remove();
+        });
+        modal.modal("open");
 
     }
 
@@ -552,6 +583,39 @@ Controller.FormController = class {
         let fileType = "txt";
         let anchor = $("#export");
         return this.__download(anchor, data, fileType);
+    }
+
+    /**
+     * Shows only the inheritance trees of the selected classes
+     * @param {Set<go.Part>} selection
+     */
+    static filterChains(selection) {
+        const self = Controller.FormController;
+        self.showFilterToast();
+        let classes = [];
+        selection.each((part) => {
+            classes.push(part.data);
+        });
+        studio.filterModelByTrees(classes);
+    }
+
+    static showFilterToast() {
+        let toastContent = "Filters Updated!", timeOut = 6000;
+
+        if ($('.filterMessage').length === 0) {
+            toastContent = $(`<span class="filterMessage">There are active Filters</span>`).add($(`<button class="btn-flat toast-action" onclick="Controller.FormController.resetFilters()">Reset Filters</button>`));
+            timeOut = Infinity;
+        }
+        Materialize.toast(toastContent, timeOut);
+    }
+
+    /**
+     * Resets all filters, showing all classes
+     */
+    static resetFilters() {
+        studio.setNodesVisibility(true); // Show Everything
+        $('.filterMessage').parent()[0].M_Toast.remove(); //delete filter toast
+        Materialize.toast("All filters have been reset", 6000);
     }
 
     static importJson() {
