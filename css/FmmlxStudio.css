@@ -92,3 +92,7 @@ body {
 .horizontal-separator:after {
     content: "|";
 }
+
+#fmmlxClassModal .dropdown-content{
+    max-height: 150px;
+}
