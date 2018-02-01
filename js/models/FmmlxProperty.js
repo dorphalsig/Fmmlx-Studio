@@ -25,8 +25,9 @@ Model.FmmlxProperty = class {
      * @param {Boolean} isOperation
      * @param {String[]} behaviors
      * @param {String} operationBody
+     * @param {string[]} tags
      */
-    constructor(name = "", type = "", intrinsicness = 0, isOperation = false, behaviors = [], operationBody = null) {
+    constructor(name = "", type = "", intrinsicness = 0, isOperation = false, behaviors = [], operationBody = null, tags = []) {
         this.values = new Helper.Set();
         this.classes = new Helper.Set();
         this.id = Helper.Helper.uuid4();
@@ -37,6 +38,7 @@ Model.FmmlxProperty = class {
         this.isOperation = isOperation;
         this.behaviors = behaviors === null ? [] : behaviors;
         this.operationBody = operationBody;
+        this.tags = new Set(tags);
     }
 
     get intrinsicness() {

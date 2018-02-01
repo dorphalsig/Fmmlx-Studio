@@ -40,12 +40,13 @@
                 Controller.FormController.__error(error)
             };
             $(document)
-                .keydown((event) => ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "i" && !event.shiftKey) ? Controller.FormController.displayClassForm() : true)
+                .on("keydown", (event) => ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "i" && !event.shiftKey) ? Controller.FormController.displayClassForm() : true)
         });
     </script>
 
 </head>
 <body>
+
 <div class="mainContainer">
     <!-- Top Menu -->
     <nav>
@@ -105,21 +106,13 @@
     <!-- End Context Menus -->
 </div>
 
-
 <!-- Floating + button to add Class -->
 <div class="fixed-action-btn">
     <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse"
             onclick="Controller.FormController.displayClassForm();">
         <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
 </div>
-
-<div class="tap-target" data-activates="addClass">
-    <div class="tap-target-content">
-        <h5>Help</h5>
-        <p>To add an FMMLx Class, just hit the + button, or press <code>CTRL (COMMAND) + I</code>,<br/>
-            everything else is accessible via context (right-click) menu.</p>
-    </div>
-</div>
+<!-- End Floating + button to add Class -->
 
 <!-- Add / Edit Class Modal -->
 <div id="fmmlxClassModal" class="modal bottom-sheet">
@@ -153,23 +146,24 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col s6 center-align">
+                <div class="col s6 input-field">
+                    <div class="chips class_tags"></div>
+                </div>
+                <div class="col s5 offset-s1 input-field hide">
+                        <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
+                               pattern="^[\w\.,]+$" required/>
+                        <label for="class_externalLanguage" data-wrong="Only Alphanumeric or &quot;. , _&quot;">External
+                            Language</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12 center-align">
                     <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
                     <label for="class_isAbstract">Mark as Abstract</label> &nbsp;
                     <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox" name="isExternal"
                            data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass"/>
                     <label for="class_isExternal">From External Language</label>
                 </div>
-                <div class="col s5 offset-s1">
-                    <div class="input-field hide">
-                        <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
-                               pattern="^[\w\.,]+$" required/>
-                        <label for="class_externalLanguage" data-wrong="Only Alphanumeric or &quot;. , _&quot;">External
-                            Language</label>
-                    </div>
-                </div>
-
-
             </div>
         </form>
     </div>
@@ -182,7 +176,6 @@
 <!-- End Add / Edit Class Modal -->
 
 <!-- Add / Edit Class Member Modal -->
-
 <div id="fmmlxAttributeModal" class="modal bottom-sheet">
     <div class="modal-content">
         <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMMLx Class
@@ -246,7 +239,6 @@
     </div>
 </div>
 <!-- End Add / Edit Class Member Modal -->
-
 
 <!-- Add / Edit Association -->
 <div id="fmmlxAssociationModal" class="modal bottom-sheet">
@@ -322,11 +314,9 @@
         <a href="#" class="modal-action waves-effect waves-green btn-flat">Proceed</a>
     </div>
 </div>
-
+<!-- End Add / Edit Association -->
 
 <!-- Search Modal -->
-
-
 <div id="filterModal" class="modal z-depth-5">
     <div class="modal-content">
         <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Filter Model</h4><br/>
@@ -368,14 +358,6 @@
         <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
     </div>
 </div>
-
 <!-- End Search Modal-->
-
-
-<script>
-
-
-</script>
-
 </body>
 </html>

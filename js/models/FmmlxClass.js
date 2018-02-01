@@ -15,7 +15,7 @@ Model.FmmlxClass = class {
      * @param {boolean} isAbstract
      * @param {string} externalLanguage
      * @param {string} externalMetaclass
-     * @params {Array} tags
+     * @params {string[]} tags
      */
     constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null, tags = []) {
 
@@ -92,10 +92,6 @@ Model.FmmlxClass = class {
         });
 
         this.metaclass = null;
-        this.tags = new Set();
-        tags = Array.isArray(tags)?tags:[tags];
-        tags.forEach(tag=>this.tags.add(tag));
-
         this._distanceFromRoot = 0;
         this._instances = new Helper.Set();
         this.subclasses = new Helper.Set();
@@ -123,11 +119,11 @@ Model.FmmlxClass = class {
          */
         this.operationValues = [];
         this.associations = new Helper.Set();
-        this.tags = [];
         this.externalLanguage = externalLanguage;
         this.externalMetaclass = externalMetaclass;
         this.level = level;
         this.isAbstract = isAbstract;
+        this.tags = new Set(tags);
         //let d = new Date(Date.now());
         this.id = Helper.Helper.uuid4();
 
@@ -162,12 +158,11 @@ Model.FmmlxClass = class {
     }
 
     get category() {
-        return "FmmlxClass";
+        return this.constructor.category;
     }
 
     /**
      * Returns a flattened copy of the object
-     * @todo process associations
      * @return {Model.FmmlxClass}
      */
     deflate() {

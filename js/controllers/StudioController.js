@@ -37,10 +37,15 @@ Controller.StudioController = class {
          * @private
          */
         this._model = this._diagram.model;
+        this.tags = new Set();
 
         this._diagram.addDiagramListener("PartRotated", (event) => {
             console.log(event);
         });
+    }
+
+    _updateTags(tags) {
+        tags.forEach(tag => this.tags.add(tag));
     }
 
     /**
@@ -404,7 +409,7 @@ Controller.StudioController = class {
     }
 
     /**
-     *  Changes the level of an FMMMLx member, if not possible throws an exception. returns true if successful, false otherwise
+     * Changes the level of an FMMMLx member, if not possible throws an exception. returns true if successful, false otherwise
      * @param {Model.FmmlxProperty} member
      * @param newIntrinsicness
      * @return {Boolean}
@@ -462,6 +467,11 @@ Controller.StudioController = class {
         this.addMemberToClass(fmmlxClass.superclass, member);
     }
 
+    /**
+     * Creates an association from source to target
+     * @param source
+     * @param target
+     */
     createAssociation(source, target) {
         try {
             let transId = this._beginTransaction(`Associating ${source.name} and ${target.name}`);
@@ -525,17 +535,19 @@ Controller.StudioController = class {
      * @param {string} level
      * @param {string} externalLanguage
      * @param {string} externalMetaclass
+     * @param {string[]} tags
      * @returns undefined
      */
-    createFmmlxClass(name, level, isAbstract, metaclassId = "", externalLanguage, externalMetaclass) {
+    createFmmlxClass(name, level, isAbstract, metaclassId = "", externalLanguage, externalMetaclass, tags = []) {
 
         //Step 1 Search for dupes
 
-        let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass);
+        let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass, tags);
         let dupe = this._model.findNodeDataForKey(fmmlxClass.id);
         if (dupe !== null) {
             throw  new Error(`An equivalent class definition already exists.`);
         }
+        this._updateTags(tags);
         console.log(`Add Class ${name}`);
 
         //The next click on the diagram will insert the class
@@ -568,18 +580,21 @@ Controller.StudioController = class {
      * @param {String} isValue
      * @param {String} value
      * @param {String} operationBody
+     * @param {string[]} tags
      */
-    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, behaviors, isValue, value = null, operationBody = null) {
+    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, behaviors, isValue, value = null, operationBody = null, tags = []) {
         let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
         if (Boolean(isValue)) {
             intrinsicness = fmmlxClass.level;
         }
 
-        let member = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors, operationBody);
+        let member = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors, operationBody, tags);
+
         this.addMemberToClass(fmmlxClass, member);
         if (Boolean(isValue)) {
             this.addValueToClass(fmmlxClass, member, value);
         }
+        this._updateTags(tags);
     }
 
     /**
@@ -824,8 +839,9 @@ Controller.StudioController = class {
      * @param metaclassId
      * @param externalLanguage
      * @param externalMetaclass
+     * @param {string[]} tags
      */
-    editFmmlxClass(classId, name, level, isAbstract, metaclassId = null, externalLanguage = null, externalMetaclass = null) {
+    editFmmlxClass(classId, name, level, isAbstract, metaclassId = null, externalLanguage = null, externalMetaclass = null, tags = []) {
 
         /**
          *
@@ -862,6 +878,10 @@ Controller.StudioController = class {
             }
 
             this.changeClassMetaclass(fmmlxClass, metaclassId);
+            if (!(tags === null || tags.length === 0)) {
+                fmmlxClass.tags = new Set(tags);
+                tags.forEach(tag => this.tags.add(tag));
+            }
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
         }
         catch (error) {
@@ -881,8 +901,9 @@ Controller.StudioController = class {
      * @param {String[]}behaviors
      * @param {String|Null} value
      * @param {String|Null} operationBody
+     * @param {string[]} tags
      */
-    editMember(classId, memberId, name, type, intrinsicness, behaviors, value = null, operationBody = null) {
+    editMember(classId, memberId, name, type, intrinsicness, behaviors, value = null, operationBody = null, tags = []) {
 
         let node = this._diagram.findNodeForKey(classId);
         /**
@@ -910,6 +931,9 @@ Controller.StudioController = class {
                 this.changeMemberIntrinsicness(member, intrinsicness);
             }
 
+            member.tags = new Set(tags);
+
+
             if (!Boolean(member.isValue)) {
                 //refresh all classes that contain this
                 for (let fmmlxClass of member.classes) {
@@ -924,6 +948,7 @@ Controller.StudioController = class {
             this._rollbackTransaction(e);
             throw e;
         }
+        this._updateTags(tags)
         this._commitTransaction(transId);
     }
 
@@ -948,12 +973,12 @@ Controller.StudioController = class {
     findRoot(fmmlxClass) {
         let roots = new Helper.Set();
 
-        let metaRoot = (fmmlxClass.metaclass === null) ? fmmlxClass: this.findRoot(fmmlxClass.metaclass);
+        let metaRoot = (fmmlxClass.metaclass === null) ? fmmlxClass : this.findRoot(fmmlxClass.metaclass);
         roots.add(metaRoot);
 
         if (fmmlxClass.superclass !== null) {
             let superRoots = this.findRoot(fmmlxClass.superclass);
-            for(let superRoot of superRoots){
+            for (let superRoot of superRoots) {
                 roots.add(superRoot);
             }
         }

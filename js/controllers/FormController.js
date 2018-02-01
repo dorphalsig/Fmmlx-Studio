@@ -28,6 +28,9 @@ Controller.FormController = class {
      * @private
      */
     static __fillForm(modal, data) {
+        if (data === null)
+            return;
+
         let fields = modal.find(":input");
         for (let field of fields) {
             field = $(field);
@@ -89,6 +92,9 @@ Controller.FormController = class {
                 fieldData[`${name}`] = field.value;
             }
         }
+        fieldData.tags = [];
+        form.find(".chips").material_chip('data').forEach(tag => fieldData.tags.push(tag.tag));
+
         return fieldData;
     }
 
@@ -114,6 +120,31 @@ Controller.FormController = class {
             }
         });
     }
+
+    static __setupChips(form, tags = []) {
+        let currentTags = [];
+        let tagsData = {};
+        tags.forEach(tag => currentTags.push({tag: tag}));
+
+        studio.tags.forEach(item => Object.defineProperty(tagsData, item, {
+            value: null,
+            writable: false,
+            enumerable: true
+        }));
+
+        form.find('.chips').material_chip({
+            placeholder: 'Enter a tag',
+            secondaryPlaceholder: '+Tag',
+            data: currentTags,
+            autocompleteOptions: {
+                data: tagsData,
+                limit: Infinity,
+                minLength: 1
+            }
+        });
+
+    }
+
 
     /**
      * Shows and enables field and its form-group
@@ -141,23 +172,21 @@ Controller.FormController = class {
         const modal = $("#fmmlxClassModal");
         const form = modal.find("form");
 
-
         try {
             if (!form[0].checkValidity()) throw new Error("Invalid input. Check the highlighted fields and try again.");
 
             let formVals = self.__readForm(form);
-
             if (formVals.id === "") {
-                studio.createFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
+                studio.createFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass, formVals.tags);
                 Materialize.toast("Click on the canvas to insert the class", 4000);
             } else {
-                studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass);
+                studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass, formVals.tags);
             }
 
         } catch (error) {
             let submitBtn = modal.find(".btn-flat");
             submitBtn.one("click", self.addEditFmmlxClass);
-            modal.find(':input').keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+            //modal.find(':input').keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
             self.__error(error);
             return false;
         }
@@ -373,12 +402,9 @@ Controller.FormController = class {
     static displayClassForm(event = null, obj = null) {
         let modal = $("#fmmlxClassModal");
         let self = Controller.FormController;
-
         modal.find("form").replaceWith(window._classForm.clone());
         self.__setupExtraDataFields(modal);
-
-
-        $("#class_level").change(function (event) {
+        $("#class_level").on("change", function (event) {
             let metaClassSelect = $("#class_metaclass");
             if (!metaClassSelect.prop("disabled")) {
                 let level = event.target.value;
@@ -391,17 +417,19 @@ Controller.FormController = class {
                 self.__fillSelect(metaClassSelect, options);
             }
         });
-
+        let tags = [];
         if (obj !== null && obj.data !== null) {
             self.__fillForm(modal, obj.data);
+            tags = obj.data.tags;
         }
+        self.__setupChips(modal, tags);
 
         $("#addClass").removeClass('pulse');
         let submitBtn = modal.find(".btn-flat");
         submitBtn.off("click", self.addEditFmmlxClass).one("click", self.addEditFmmlxClass);
-        modal.find(':input')
-            .remove("keydown")
-            .keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+        /*modal.find(':input')
+            //.remove("keydown");
+           //.on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);*/
         modal.modal("open");
     }
 
@@ -632,7 +660,7 @@ Controller.FormController = class {
         window._classForm = $("#fmmlxClassModal").find("form").clone();
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
         window._associationForm = $("#fmmlxAssociationModal").find("form").clone();
+
         $(".modal").modal();
     }
-
 };

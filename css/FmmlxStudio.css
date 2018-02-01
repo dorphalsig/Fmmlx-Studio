@@ -111,5 +111,5 @@ body {
 
 #fmmlxClassModal .dropdown-content{
     max-height: 150px;
-    overflow-y: visible;
+    overflow-y: auto;
 }
