@@ -40,7 +40,7 @@
                 Controller.FormController.__error(error)
             };
             $(document)
-                .keydown((event) => ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "i") ? Controller.FormController.displayClassForm() : true)
+                .keydown((event) => ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "i" && !event.shiftKey) ? Controller.FormController.displayClassForm() : true)
         });
     </script>
 
@@ -51,7 +51,7 @@
     <nav>
         <div class="nav-wrapper light-blue darken-4">
 
-            <span class="mainTitle">FMML<sup>x</sup> Studio</span>
+            <span class="mainTitle">FMML<sup>X</sup> Studio</span>
             <ul id="nav-mobile" class="right">
                 <li>
                     <a id="export" onclick="Controller.FormController.exportJson()" href="#"><i
@@ -67,7 +67,8 @@
                     <a id="image" onclick="Controller.FormController.downloadImage()" href="#"><i
                             class="fa fa-picture-o fa-2x"></i></a>
                 </li>
-                <li><a class="modal-trigger" href="#filterModal"><i class="fa fa-filter fa-2x"></i></a></li>
+                <li><a href="#" onclick="Controller.FormController.displayFilterForm()"><i
+                        class="fa fa-filter fa-2x"></i></a></li>
 
             </ul>
         </div>
@@ -82,9 +83,10 @@
     <div class="contextMenu highlight collection" id="classMenu">
         <a class="collection-item" href="#" id="addMember">Add Member</a>
         <a class="collection-item" href="#" id="abstractClass">Abstract Class</a>
-        <a class="collection-item" href="#" id="deleteClass">Delete Class</a>
+        <a class="collection-item" href="#" id="deleteClass">Delete Selected Classes</a>
         <a class="collection-item" href="#" id="associate">Associate to another Class</a>
         <a class="collection-item" href="#" id="inherit">Inherit from another Class</a>
+        <a class="collection-item" href="#" id="filterChain">Hide Other Chains</a>
     </div>
     <div class="contextMenu highlight collection" id="propertyMenu">
         <a class="collection-item" href="#" id="deleteMemberUpstream">Delete Member Upstream</a>
@@ -101,8 +103,6 @@
         <a class="collection-item" href="#" id="refineAssociation">Refine Association</a>
     </div>
     <!-- End Context Menus -->
-
-
 </div>
 
 
@@ -112,7 +112,14 @@
             onclick="Controller.FormController.displayClassForm();">
         <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
 </div>
-<!-- End floating button -->
+
+<div class="tap-target" data-activates="addClass">
+    <div class="tap-target-content">
+        <h5>Help</h5>
+        <p>To add an FMMLx Class, just hit the + button, or press <code>CTRL (COMMAND) + I</code>,<br/>
+            everything else is accessible via context (right-click) menu.</p>
+    </div>
+</div>
 
 <!-- Add / Edit Class Modal -->
 <div id="fmmlxClassModal" class="modal bottom-sheet">
@@ -320,47 +327,45 @@
 <!-- Search Modal -->
 
 
-<div id="filterModal" class="modal modal-fixed-footer">
+<div id="filterModal" class="modal z-depth-5">
     <div class="modal-content">
+        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Filter Model</h4><br/>
+
         <div class="filterRow">
             <div class="row filterOperators">
-                <div class="col s4">
-                    <hr>
-                </div>
-                <div class="col s4 center-align">
-                        <input type="radio" name="operator" value="AND" id="filterAnd">
-                        <label for="filterAnd">AND</label>
-                        <input type="radio" name="operator" value="OR" id="filterOr">
-                        <label for="filterOr">OR</label>
-                </div>
-                <div class="col s4">
-                    <hr>
+                <div class="col s12 center-align">
+                    <input type="radio" name="operator" value="AND" id="filterAnd">
+                    <label for="filterAnd">AND</label>
+                    <input type="radio" name="operator" value="OR" id="filterOr">
+                    <label for="filterOr">OR</label>
                 </div>
             </div>
-            <div class="filter row valign-wrapper center-align">
+            <div class="filter row valign-wrapper center">
                 <div class="input-field col s3">
                     <select id="filterBy">
-                        <option value="class">Classes</option>
                         <option value="level">Level</option>
                         <option value="tag">Tag</option>
                     </select>
                     <label for="filterBy">Filter By</label>
                 </div>
 
-                <div class="input-field col s6">
-                    <input id="filterData" type="text">
-                    <label for="filterData">Blah</label>
+                <div class="col s6 input-field" id="tokenField">
+                    <input name="filterData" type="text">
+                </div>
+                <div class="col s3 l2 input-field" id="minMaxField">
+                    <input name="filterDataMin">
+                    <input name="filterDataMax">
                 </div>
 
-                <div class="col s3">
-                    <i class="fa fa-plus"></i>
-                    <i class="fa fa-minus"></i>
+                <div class="col s3 left-align">
+                    <i class="fa fa-plus more"></i>
+                    <i class="fa fa-minus less"></i>
                 </div>
             </div>
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Agree</a>
+        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
     </div>
 </div>
 
