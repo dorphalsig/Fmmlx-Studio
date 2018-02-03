@@ -84,7 +84,6 @@ Controller.FormController = class {
         let fields = form.find(":input:not([disabled])");
         let fieldData = {};
         for (let field of fields) {
-            /*rfield = $(field)*/
             let name = field.name;
             if (name !== "") {
                 fieldData[`${name}`] = ((field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
@@ -93,8 +92,10 @@ Controller.FormController = class {
             }
         }
         fieldData.tags = [];
-        form.find(".chips").material_chip('data').forEach(tag => fieldData.tags.push(tag.tag));
-
+        let chipField = form.find(".chips");
+        if (chipField.length > 0) {
+            chipField.material_chip('data').forEach(tag => fieldData.tags.push(tag.tag));
+        }
         return fieldData;
     }
 
@@ -422,14 +423,15 @@ Controller.FormController = class {
             self.__fillForm(modal, obj.data);
             tags = obj.data.tags;
         }
-        self.__setupChips(modal, tags);
 
         $("#addClass").removeClass('pulse');
         let submitBtn = modal.find(".btn-flat");
         submitBtn.off("click", self.addEditFmmlxClass).one("click", self.addEditFmmlxClass);
-        /*modal.find(':input')
-            //.remove("keydown");
-           //.on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);*/
+        modal.find(':input')
+            .remove("keydown")
+            .on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
+
+        self.__setupChips(modal, tags);
         modal.modal("open");
     }
 
@@ -530,8 +532,8 @@ Controller.FormController = class {
     static displayMemberForm(event, obj) {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
-        console.log(obj.data);
         modal.find("form").replaceWith(window._propertyForm.clone());
+
         self.__setupExtraDataFields(modal);
 
         let opBodyManager = function () {
@@ -540,14 +542,14 @@ Controller.FormController = class {
                 .prop("checked")) ? self.__showField(opBody) : self.__hideField(opBody);
         };
 
-        $("[name=isOperation]").change(opBodyManager);
-        modal.find("[name=isValue]").change(opBodyManager);
+        $("[name=isOperation]").on("change", opBodyManager);
+        modal.find("[name=isValue]").on("change", opBodyManager);
+        let tags = [];
 
         if (obj.constructor === Model.FmmlxClass) { /*new property,it was right click on  the Class*/
             modal.find("[name=fmmlxClassId]").val(obj.id);
             /* id of the Fmmlx Class that will hold the property+*/
         } else {
-
             obj.data.behaviors.forEach((behavior) => {
                 switch (behavior) {
                     case "O":
@@ -562,10 +564,11 @@ Controller.FormController = class {
                 }
             });
             obj.data.fmmlxClassId = obj.part.data.id;
-
             self.__fillForm(modal, obj.data);
-            $("#attribute_isValue").click(() => false);
-            $("#attribute_isOperation").click(() => false);
+            tags = obj.data.tags;
+
+            $("#attribute_isValue").on("click", () => false);
+            $("#attribute_isOperation").on("click", () => false);
             delete obj.data.isObtainable;
             delete obj.data.isDerivable;
             delete obj.data.isSimulation;
@@ -575,7 +578,8 @@ Controller.FormController = class {
         submitBtn.off("click", self.addEditFmmlxClassMember).one("click", self.addEditFmmlxClassMember);
         modal.find(':input')
             .remove("keydown")
-            .keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+            .on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
+        self.__setupChips(modal, tags);
         modal.modal("open");
         event.handled = true;
     }
@@ -660,7 +664,6 @@ Controller.FormController = class {
         window._classForm = $("#fmmlxClassModal").find("form").clone();
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
         window._associationForm = $("#fmmlxAssociationModal").find("form").clone();
-
         $(".modal").modal();
     }
 };

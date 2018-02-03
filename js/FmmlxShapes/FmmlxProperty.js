@@ -9,6 +9,16 @@ gMake = go.GraphObject.make;
 
 
 FmmlxShapes.FmmlxProperty = class {
+    static get ellipsis() {
+        return gMake(go.TextBlock, {
+            stretch: GraphObject.Fill,
+            minSize: new go.Size(100, 20),
+            text: "…",
+            font: "bold 14px monospace",
+            textAlign: "center"
+        });
+    }
+
     static get shape() {
         let _behaviourBlock = gMake(go.Panel, "Horizontal", {
             minSize: new go.Size(48, 20), alignment: go.Spot.Left, margin: 0,
@@ -27,19 +37,18 @@ FmmlxShapes.FmmlxProperty = class {
         });
 
         let _assignmentBlock = gMake(go.TextBlock, new go.Binding("text", "", (prop) => {
-            return (Boolean(prop.isValue)) ? (prop.isOperation ? "→" : "=" ) : ":";
+            return (Boolean(prop.isValue)) ? (prop.isOperation ? "→" : "=") : ":";
         }), {margin: new go.Margin(0, 2, 0, 2), font: "bold 14px monospace",});
 
         let _typeBlock = gMake(go.TextBlock, new go.Binding("text", "", (prop) => (prop.isValue) ? prop.value : prop.type), {
             margin: new go.Margin(0, 5, 0, 0),
         });
 
-        return gMake(go.Panel, "Auto", {
-            stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20), name: "member", alignment: go.Spot.Left, contextClick: Controller.FormController.displayContextMenu, doubleClick: Controller.FormController.displayMemberForm,
-        }, gMake(go.Panel, "Horizontal", {
-            name: "FMMLxProperty", minSize: new go.Size(100, 20), padding: new go.Margin(0, 2, 2, 2),
-
-        }, _behaviourBlock, _nameBlock, _assignmentBlock, _typeBlock));
+        return gMake(go.Panel, "Horizontal", /*new go.Binding("name", "id"),*/ {
+            contextClick: Controller.FormController.displayContextMenu,
+            doubleClick: Controller.FormController.displayMemberForm,
+            minSize: new go.Size(100, 20), padding: new go.Margin(0, 2, 2, 2),
+        }, _behaviourBlock, _nameBlock, _assignmentBlock, _typeBlock);
     }
 };
 

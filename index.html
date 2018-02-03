@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" manifest="manifest.appcache">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -146,30 +146,28 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col s6 input-field">
+                <div class="col s5 input-field">
                     <div class="chips class_tags"></div>
                 </div>
-                <div class="col s5 offset-s1 input-field hide">
-                        <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
-                               pattern="^[\w\.,]+$" required/>
-                        <label for="class_externalLanguage" data-wrong="Only Alphanumeric or &quot;. , _&quot;">External
-                            Language</label>
+                <div class="col s5 input-field hide">
+                    <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
+                           pattern="^[\w\.,]+$" required/>
+                    <label for="class_externalLanguage" data-wrong="Only Alphanumeric or &quot;. , _&quot;">External
+                        Language</label>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col s12 center-align">
+                <div class="col s2 center-align">
                     <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
-                    <label for="class_isAbstract">Mark as Abstract</label> &nbsp;
+                    <label for="class_isAbstract">Abstract</label> &nbsp;
                     <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox" name="isExternal"
                            data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass"/>
-                    <label for="class_isExternal">From External Language</label>
+                    <label for="class_isExternal">Ext. Lang.</label>
                 </div>
             </div>
         </form>
-    </div>
+        <!--    </div>
 
-    <div class="modal-footer">
-        <a href="#" class="modal-action waves-effect waves-green btn-flat">Proceed</a>
+            <div class="modal-footer"> -->
+        <a href="#" class="modal-action waves-effect waves-green btn-flat right">Proceed</a>
     </div>
 </div>
 
@@ -206,7 +204,10 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col s6 offset-s3 center-align">
+                <div class="col s5 input-field">
+                    <div class="chips class_tags"></div>
+                </div>
+                <div class="col s6 offset-s1 left-align">
                     <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo"
                            data-show="attribute_operationBody" value="true" type="checkbox"/>
                     <label for="attribute_isOperation">Is Operation?</label>&nbsp;

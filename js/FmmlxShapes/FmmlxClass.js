@@ -12,11 +12,18 @@ if (typeof gMake === "undefined") {
 FmmlxShapes.FmmlxClass = class {
     static get _externalLanguageBlock() {
         return gMake(go.Panel, "Auto", {
-            stretch: go.GraphObject.Fill, alignment: new go.Spot(1, 0), maxSize: new go.Size(54, Infinity),
+            stretch: go.GraphObject.Fill,
+            alignment: new go.Spot(1, 0),
+            maxSize: new go.Size(54, Infinity),
+            name: "externalLanguageBlock"
         }, new go.Binding("visible", "", this.getIsExternal), gMake(go.Shape, "Rectangle", {
             fill: "orange",
         }), gMake(go.TextBlock, new go.Binding("text", "externalLanguage"), {
-            margin: 2, wrap: go.TextBlock.None, stroke: "black", overflow: go.TextBlock.OverflowEllipsis, toolTip: gMake(go.Adornment, "Auto", gMake(go.Shape, {
+            margin: 2,
+            wrap: go.TextBlock.None,
+            stroke: "black",
+            overflow: go.TextBlock.OverflowEllipsis,
+            toolTip: gMake(go.Adornment, "Auto", gMake(go.Shape, {
                 fill: "#FFFFCC",
             }), gMake(go.TextBlock, {
                 margin: 4,
@@ -25,12 +32,12 @@ FmmlxShapes.FmmlxClass = class {
     }
 
     static get _mainBlock() {
-        return gMake(go.Panel, "Vertical", this._nameBlock, this.genericBlock("attributes"), this.genericBlock("operations"), this.genericBlock("slotValues"), this.genericBlock("operationValues"));
+        return gMake(go.Panel, "Vertical", {name: "mainBlock"}, this._nameBlock, this.genericBlock("attributes"), this.genericBlock("operations"), this.genericBlock("slotValues"), this.genericBlock("operationValues"));
     }
 
     static get _nameBlock() {
         return gMake(go.Panel, "Auto", {
-            stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20),
+            stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20), name: "nameBlock"
         }, gMake(go.Shape, "Rectangle", new go.Binding("fill", "level", this.getBgColor)), gMake(go.TextBlock, new go.Binding("text", "", this.getName), new go.Binding("font", "isAbstract", this.getFontStyle), new go.Binding("stroke", "level", this.getFontColor), {
             textAlign: "center", margin: 7,
         }));
@@ -38,20 +45,21 @@ FmmlxShapes.FmmlxClass = class {
 
     static get shape() {
         return gMake(go.Node, "Spot", {
-            doubleClick: Controller.FormController.displayClassForm, contextClick: Controller.FormController.displayContextMenu,
+            doubleClick: Controller.FormController.displayClassForm,
+            contextClick: Controller.FormController.displayContextMenu,
         }, new go.Binding("location", "location", go.Point.parse), this._mainBlock, this._externalLanguageBlock);
     }
 
     static genericBlock(collectionName) {
         return gMake(go.Panel, "Auto", {
-            stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20),
+            stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20)
         }, gMake(go.Shape, "Rectangle", {
             fill: "white",
         }), gMake(go.Panel, "Vertical", {
-            margin: 4, defaultAlignment: go.Spot.Left,
+            margin: 4, defaultAlignment: go.Spot.Left, name: collectionName
         }, new go.Binding("itemArray", collectionName), {
             itemTemplate: FmmlxShapes.FmmlxProperty.shape,
-        }));
+        }))
     };
 
     /**

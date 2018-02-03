@@ -91,6 +91,14 @@ Model.FmmlxClass = class {
             configurable: true, enumerable: true, get: () => this.externalLanguage !== null,
         });
 
+        Object.defineProperty(this, "filteredAttributes", {
+            configurable: true,
+            enumerable: true,
+            get: () => {
+                let filtered = false;
+            }
+        });
+
         this.metaclass = null;
         this._distanceFromRoot = 0;
         this._instances = new Helper.Set();
