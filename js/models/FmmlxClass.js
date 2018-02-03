@@ -201,13 +201,14 @@ Model.FmmlxClass = class {
         for (let attributeName in clone) {
             if (attributeName[0] === "_") delete clone[attributeName];
         }
-
+        clone.tags = Array.from(this.tags);
 
         delete clone.attributes;
         delete clone.operations;
         delete clone.slotValues;
         delete clone.operationValues;
         delete clone.associations;
+
         return clone;
     }
 
@@ -325,7 +326,7 @@ Model.FmmlxClass = class {
      * @return Model.FmmlxClass
      */
     static inflate(flatClass) {
-        let partial = new Model.FmmlxClass(flatClass.name, flatClass.level, flatClass.isAbstract, flatClass.externalLanguage, flatClass.externalMetaclass);
+        let partial = new Model.FmmlxClass(flatClass.name, flatClass.level, flatClass.isAbstract, flatClass.externalLanguage, flatClass.externalMetaclass, flatClass.tags);
         partial.id = flatClass.id;
         return partial;
     }

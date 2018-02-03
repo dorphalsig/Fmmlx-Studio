@@ -93,6 +93,7 @@ Model.FmmlxProperty = class {
         delete clone.intrinsicness;
         clone.intrinsicness = clone._intrinsicness;
         clone.isValue = false;
+        clone.tags = Array.from(this.tags);
         delete clone._intrinsicness;
         delete clone.values;
         delete clone.classes;
@@ -126,7 +127,7 @@ Model.FmmlxProperty = class {
      * @return {Model.FmmlxProperty}
      */
     static inflate(flatMember) {
-        let partial = new Model.FmmlxProperty(flatMember.name, flatMember.type, flatMember.intrinsicness, flatMember.isOperation, flatMember.behaviors, flatMember.operationBody);
+        let partial = new Model.FmmlxProperty(flatMember.name, flatMember.type, flatMember.intrinsicness, flatMember.isOperation, flatMember.behaviors, flatMember.operationBody, flatMember.tags);
         partial.id = flatMember.id;
         return partial;
     }

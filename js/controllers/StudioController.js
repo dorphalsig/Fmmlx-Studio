@@ -38,7 +38,6 @@ Controller.StudioController = class {
          */
         this._model = this._diagram.model;
         this.tags = new Set();
-        this._diagram.addDiagramListener("SelectionMoved", () => this.movedHandler());
     }
 
     abstractClasses() {
@@ -417,7 +416,6 @@ Controller.StudioController = class {
             let transId = Helper.Helper.beginTransaction(`Associating ${source.name} and ${target.name}`);
             let assoc = new Model.FmmlxAssociation(source, target, "association", "0,*", "?", "src", "0,*", "?", "dst");
             this._model.addLinkData(assoc);
-            Helper.Helper.fixLabels(this._diagram.findLinkForData(assoc));
             source.addAssociation(assoc);
             target.addAssociation(assoc);
             Helper.Helper.commitTransaction(transId);
@@ -920,7 +918,7 @@ Controller.StudioController = class {
             Helper.Helper.rollbackTransaction(e);
             throw e;
         }
-        this._updateTags(tags)
+        this._updateTags(tags);
         Helper.Helper.commitTransaction(transId);
     }
 
@@ -969,6 +967,7 @@ Controller.StudioController = class {
         let transId = Helper.Helper.beginTransaction("Importing JSON");
         try {
             let flatData = JSON.parse(jsonData);
+
             while (flatData.nodes.length > 0) {
                 let level = flatData.nodes.pop();
                 if (Array.isArray(level)) {
@@ -1013,10 +1012,8 @@ Controller.StudioController = class {
                         }
                         ;
                     });
-                    Helper.Helper.fixLabels(this._diagram.findLinkForData(assoc));
                 }
             }
-
 
             Helper.Helper.commitTransaction(transId);
         }
@@ -1069,6 +1066,7 @@ Controller.StudioController = class {
             let fmmlxClass = Model.FmmlxClass.inflate(flatClass);
             this._model.addNodeData(fmmlxClass);
             this.changeClassMetaclass(fmmlxClass, flatClass.metaclass);
+            this._updateTags(flatClass.tags);
 
             if (flatClass.superclass !== null) {
                 let superclass = this._model.findNodeDataForKey(flatClass.superclass);
@@ -1076,8 +1074,9 @@ Controller.StudioController = class {
             }
 
             for (let flatMember of flatClass.members) {
-                let member = Model.FmmlxProperty.inflate(flatMember)
+                let member = Model.FmmlxProperty.inflate(flatMember);
                 this.addMemberToClass(fmmlxClass, member);
+                this._updateTags(Array.from(member.tags));
             }
 
             for (let flatValue of flatClass.values) {
@@ -1095,18 +1094,6 @@ Controller.StudioController = class {
         }
     }
 
-    movedHandler() {
-        this._diagram.addDiagramListener("SelectionMoved", () => {
-            let nodesIgnored = new Set();
-            this._diagram.selection.each(part => {
-                if (part.constructor === go.Node && !nodesIgnored.has(part) && part.linksConnected.count > 0) {
-                    nodesIgnored.add(part);
-                    part.findNodesConnected().each(node => nodesIgnored.add(node));
-                    part.linksConnected.each(link => Helper.Helper.fixLabels(link));
-                }
-            })
-        })
-    }
 
     /**
      * Checks what to do with a member in a class:

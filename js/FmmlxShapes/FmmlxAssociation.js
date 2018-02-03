@@ -6,7 +6,6 @@ if (typeof gMake === "undefined") {
     window.gMake = go.GraphObject.make;
 }
 
-
 FmmlxShapes.FmmlxAssociation = class {
 
     /**
@@ -75,7 +74,15 @@ FmmlxShapes.FmmlxAssociation = class {
             segmentOrientation: go.Link.OrientUpright
         });
 
-        return gMake(go.Link, {
+        let fmmlxAssociationLink = class extends go.Link {
+            computePoints() {
+                let result = super.computePoints();
+                Helper.Helper.fixLabels(this);
+                return result;
+            }
+        }
+
+        return gMake(fmmlxAssociationLink, {
                 routing: go.Link.Orthogonal,  // may be either Orthogonal or AvoidsNodes
                 reshapable: false,
                 resegmentable: false,
