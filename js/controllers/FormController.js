@@ -91,11 +91,12 @@ Controller.FormController = class {
                 fieldData[`${name}`] = field.value;
             }
         }
-        fieldData.tags = [];
-        let chipField = form.find(".chips");
-        if (chipField.length > 0) {
-            chipField.material_chip('data').forEach(tag => fieldData.tags.push(tag.tag));
-        }
+
+        let chipField = form.find(".chips").filter(":visible");
+        chipField.forEach(field => {
+            let name = field.prop("id");
+            field.material_chip('data').forEach(tag => fieldData[`${name}`].push(tag.tag));
+        })
         return fieldData;
     }
 
@@ -145,7 +146,6 @@ Controller.FormController = class {
         });
 
     }
-
 
     /**
      * Shows and enables field and its form-group
@@ -198,24 +198,24 @@ Controller.FormController = class {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
         const form = modal.find("form");
+        if (!form[0].checkValidity()) {
+            throw new Error("Invalid input. Check the highlighted fields and try again.");
+        }
+
+        let formVals = self.__readForm(form);
+        formVals.behaviors = [];
+
+        if (formVals.isObtainable.length > 0) {
+            formVals.behaviors.push(formVals.isObtainable);
+        }
+        if (formVals.isDerivable.length > 0) {
+            formVals.behaviors.push(formVals.isDerivable);
+        }
+        if (formVals.isSimulation.length > 0) {
+            formVals.behaviors.push(formVals.isSimulation);
+        }
+
         try {
-            if (!form[0].checkValidity()) {
-                throw new Error("Invalid input. Check the highlighted fields and try again.");
-            }
-
-            let formVals = self.__readForm(form);
-            formVals.behaviors = [];
-
-            if (formVals.isObtainable.length > 0) {
-                formVals.behaviors.push(formVals.isObtainable);
-            }
-            if (formVals.isDerivable.length > 0) {
-                formVals.behaviors.push(formVals.isDerivable);
-            }
-            if (formVals.isSimulation.length > 0) {
-                formVals.behaviors.push(formVals.isSimulation);
-            }
-
             if (formVals.id === "") {
                 studio.createMember(formVals.fmmlxClassId, formVals.name, formVals.type, formVals.intrinsicness, formVals.isOperation, formVals.behaviors, formVals.isValue, formVals.value, formVals.operationBody, formVals.tags);
             } else {
@@ -224,12 +224,16 @@ Controller.FormController = class {
         } catch (error) {
             let submitBtn = modal.find(".btn-flat");
             submitBtn.one("click", self.addEditFmmlxClassMember);
-            modal.find(":input").one('keydown', (e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+            modal.find(":input").one('keydown', (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
             self.__error(error);
             return;
         }
-
         modal.modal("close");
+        let another = modal.find(".addAnother").prop("checked");
+        if (another) {
+            window.setTimeout(() => self.displayMemberForm({}, null, formVals.fmmlxClassId), 500);
+        }
+
     }
 
     static copyMemberToMetaclass(fmmlxClass, member) {
@@ -501,16 +505,31 @@ Controller.FormController = class {
      */
     static displayFilterForm() {
         let modal = $("#filterModal");
-        let data = "";
+        let self = Controller.FormController;
         modal.show();
-        modal.find(".more").off().click(e => {
+        Controller.FormController.__setupChips(modal);
+
+        modal.find(".filterBy").off().on("change", e => {
             let filterRow = $(e.target).parents(".filterRow");
+            if (e.target.value === "level") {
+                filterRow.find(".minMaxField").removeClass("hide").find("input").prop("disabled", false);
+                filterRow.find(".tokenField").addClass("hide");
+            }
+            else {
+                filterRow.find(".minMaxField").addClass("hide").find("input").prop("disabled", true);
+                filterRow.find(".tokenField").removeClass("hide");
+            }
+        });
+
+        modal.find(".more").off().on("click", e => {
+            let filterRow = $(e.target).parents(".filterRow");
+            let chips = filterRow.find(".chips").data;
             let newRow = filterRow.clone(true, true);
-            let newId = `_${Helper.Helper.uuid4()}`;
+            let newId = `_${Helper.Helper.generateId()}`;
 
             for (let input of newRow.find("input")) {
-                //let newId = `_${Helper.Helper.uuid4()}`;
                 if (input.id !== "") {
+                    Controller.FormController.__setupChips(newRow);
                     let label = newRow.find(`[for=${input.id}]`);
                     label.prop("for", label.prop("for").replace(/(_.*|$)/, newId));
                     input.name = input.name.replace(/(_.*|$)/, newId)
@@ -521,15 +540,16 @@ Controller.FormController = class {
             newRow.insertAfter(filterRow);
             modal.find("select").material_select();
         });
-        modal.find(".less").off().click(e => {
+        modal.find(".less").off().on("click", e => {
             let filterRow = $(e.target).parents(".filterRow");
             filterRow.remove();
         });
+        modal.find(".modal-action").off().on("click", e => self.filterModel());
         modal.modal("open");
 
     }
 
-    static displayMemberForm(event, obj) {
+    static displayMemberForm(event, obj, id = null) {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
         modal.find("form").replaceWith(window._propertyForm.clone());
@@ -546,10 +566,12 @@ Controller.FormController = class {
         modal.find("[name=isValue]").on("change", opBodyManager);
         let tags = [];
 
-        if (obj.constructor === Model.FmmlxClass) { /*new property,it was right click on  the Class*/
-            modal.find("[name=fmmlxClassId]").val(obj.id);
+        if (obj === null || obj.constructor === Model.FmmlxClass) { /*new property,it was right click on  the Class*/
+            id = (id === null) ? obj.id : id;
+            modal.find("[name=fmmlxClassId]").val(id);
             /* id of the Fmmlx Class that will hold the property+*/
-        } else {
+        }
+        else {
             obj.data.behaviors.forEach((behavior) => {
                 switch (behavior) {
                     case "O":
@@ -574,6 +596,7 @@ Controller.FormController = class {
             delete obj.data.isSimulation;
             delete obj.data.fmmlxClassId;
         }
+
         let submitBtn = modal.find(".btn-flat");
         submitBtn.off("click", self.addEditFmmlxClassMember).one("click", self.addEditFmmlxClassMember);
         modal.find(':input')
@@ -582,6 +605,12 @@ Controller.FormController = class {
         self.__setupChips(modal, tags);
         modal.modal("open");
         event.handled = true;
+    }
+
+    static filterModel() {
+        let modal = $("#filterModal");
+        let self = Controller.FormController;
+
     }
 
     static downloadImage() {

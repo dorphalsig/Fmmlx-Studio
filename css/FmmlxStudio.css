@@ -26,9 +26,6 @@ body {
     display: none;
 }
 
-#minMaxField{
-    display: none;
-}
 #menuBtn ul {
     text-align: right;
     left: 64px;

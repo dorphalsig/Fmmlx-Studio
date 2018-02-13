@@ -30,7 +30,7 @@ Model.FmmlxProperty = class {
     constructor(name = "", type = "", intrinsicness = 0, isOperation = false, behaviors = [], operationBody = null, tags = []) {
         this.values = new Helper.Set();
         this.classes = new Helper.Set();
-        this.id = Helper.Helper.uuid4();
+        this.id = Helper.Helper.generateId();
         this.maxIntrinsicness = Infinity;
         this.name = name;
         this.type = type;

@@ -133,7 +133,7 @@ Model.FmmlxClass = class {
         this.isAbstract = isAbstract;
         this.tags = new Set(tags);
         //let d = new Date(Date.now());
-        this.id = Helper.Helper.uuid4();
+        this.id = Helper.Helper.generateId();
 
     };
 

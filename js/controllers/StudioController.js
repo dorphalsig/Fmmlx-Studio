@@ -1076,7 +1076,7 @@ Controller.StudioController = class {
             for (let flatMember of flatClass.members) {
                 let member = Model.FmmlxProperty.inflate(flatMember);
                 this.addMemberToClass(fmmlxClass, member);
-                this._updateTags(Array.from(member.tags));
+                if (flatMember.tags !== undefined && flatMember.tags.length > 0) this._updateTags(flatMember.tags)
             }
 
             for (let flatValue of flatClass.values) {
@@ -1197,7 +1197,6 @@ Controller.StudioController = class {
      * @param {Number} level
      */
     showDescendantsOf(fmmlxClass, level = null) {
-
         this._diagram.findNodeForKey(fmmlxClass.id).visible = true;
         for (let instance of fmmlxClass.instances) {
             let node = this._diagram.findNodeForKey(instance.id);
@@ -1234,7 +1233,8 @@ Controller.StudioController = class {
 
     toPNG() {
         return this._diagram.makeImageData({
-            scale: 1
+            scale: 1,
+            background: "rgba(255, 255, 255, 0.8)"
         });
     }
 };

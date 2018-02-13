@@ -22,7 +22,7 @@ Model.FmmlxValue = class {
 
         this.value = value;
         this.class = fmmlxClass;
-        this.id = Helper.Helper.uuid4();
+        this.id = Helper.Helper.generateId();
         return new Proxy(property, this);
     }
 
