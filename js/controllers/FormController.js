@@ -39,15 +39,25 @@ Controller.FormController = class {
             if (typeof value === "undefined") {
                 continue;
             }
-            if (field.prop("type") === "checkbox") {
-                if (field.val() === value.toString()) {
+
+            switch (field.prop("type")) {
+                case "checkbox":
+                    if (field.val() === value.toString()) {
+                        field.click();
+                        field.change();
+                    }
+                    break;
+
+                case "select-one":
+                    field.val(value);
+                    field.material_select();
+                    break;
+
+                default:
+                    field.val(value);
                     field.click();
                     field.change();
-                }
-            } else {
-                field.val(value);
-                field.click();
-                field.change();
+                    break;
             }
         }
     }
@@ -92,12 +102,37 @@ Controller.FormController = class {
             }
         }
 
-        let chipField = form.find(".chips").filter(":visible");
-        chipField.forEach(field => {
-            let name = field.prop("id");
-            field.material_chip('data').forEach(tag => fieldData[`${name}`].push(tag.tag));
-        })
+
+        for (let field of form.find(".chips").filter(":visible")) {
+            let name = field.dataset.name;
+            fieldData[name] = [];
+            $(field).material_chip('data').forEach(tag => fieldData[name].push(tag.tag));
+        }
         return fieldData;
+    }
+
+    static __setupChips(form, tags = []) {
+        let currentTags = [];
+        let tagsData = {};
+        tags.forEach(tag => currentTags.push({tag: tag}));
+
+        studio.tags.forEach(item => Object.defineProperty(tagsData, item, {
+            value: null,
+            writable: false,
+            enumerable: true
+        }));
+
+        form.find('.chips:not([data-initialized])').material_chip({
+            placeholder: 'Enter a tag',
+            secondaryPlaceholder: '+Tag',
+            data: currentTags,
+            autocompleteOptions: {
+                data: tagsData,
+                limit: Infinity,
+                minLength: 0
+            }
+        });
+
     }
 
     /**
@@ -121,30 +156,6 @@ Controller.FormController = class {
                 target.prop("checked") ? self.__showField(field) : self.__hideField(field);
             }
         });
-    }
-
-    static __setupChips(form, tags = []) {
-        let currentTags = [];
-        let tagsData = {};
-        tags.forEach(tag => currentTags.push({tag: tag}));
-
-        studio.tags.forEach(item => Object.defineProperty(tagsData, item, {
-            value: null,
-            writable: false,
-            enumerable: true
-        }));
-
-        form.find('.chips').material_chip({
-            placeholder: 'Enter a tag',
-            secondaryPlaceholder: '+Tag',
-            data: currentTags,
-            autocompleteOptions: {
-                data: tagsData,
-                limit: Infinity,
-                minLength: 1
-            }
-        });
-
     }
 
     /**
@@ -283,6 +294,7 @@ Controller.FormController = class {
          * @type {Model.FmmlxAssociation}
          */
         let instanceSrc, instanceTgt;
+        let self = Controller.FormController;
         Materialize.toast("Choose source", 4000);
         studio.setNodesVisibility(false);
         studio.showDescendantsOf(metaAssociation.source, metaAssociation.sourceIntrinsicness);
@@ -303,9 +315,13 @@ Controller.FormController = class {
                     }
                 };
                 studio._diagram.addDiagramListener("ObjectSingleClicked", handlerTgt);
+                $('.toast-action').one('click', studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt));
             }
         };
         studio._diagram.addDiagramListener("ObjectSingleClicked", handlerSrc);
+        self.showFilterToast();
+        $('.toast-action').one('click', studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc));
+
     }
 
     static createInheritance(subclass) {
@@ -400,7 +416,7 @@ Controller.FormController = class {
         submitBtn.off("click", self.editFmmlxAssociation).one("click", self.editFmmlxAssociation);
         modal.find(':input')
             .remove("keydown")
-            .keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+            .on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
         modal.modal("open");
     }
 
@@ -424,7 +440,7 @@ Controller.FormController = class {
         });
         let tags = [];
         if (obj !== null && obj.data !== null) {
-            self.__fillForm(modal, obj.data);
+            self.__fillForm(modal, obj.data.deflate()); //its called with deflate so no references are made, only ids are preserved and fields can be filled
             tags = obj.data.tags;
         }
 
@@ -506,38 +522,42 @@ Controller.FormController = class {
     static displayFilterForm() {
         let modal = $("#filterModal");
         let self = Controller.FormController;
+        let allowOnlyValidTokens = function (e, chip) {
+            if (studio.tags.has(chip.tag)) return;
+            let target = $(e.target);
+            let index = parseInt(target.material_chip('data').indexOf(chip)) + 1;
+            target.children(`.chip:nth-child(${index})`).remove()
+        };
+
         modal.show();
         Controller.FormController.__setupChips(modal);
 
-        modal.find(".filterBy").off().on("change", e => {
-            let filterRow = $(e.target).parents(".filterRow");
-            if (e.target.value === "level") {
-                filterRow.find(".minMaxField").removeClass("hide").find("input").prop("disabled", false);
-                filterRow.find(".tokenField").addClass("hide");
-            }
-            else {
-                filterRow.find(".minMaxField").addClass("hide").find("input").prop("disabled", true);
-                filterRow.find(".tokenField").removeClass("hide");
-            }
-        });
+        modal.off('chip.add').on('chip.add', allowOnlyValidTokens);
 
         modal.find(".more").off().on("click", e => {
             let filterRow = $(e.target).parents(".filterRow");
-            let chips = filterRow.find(".chips").data;
-            let newRow = filterRow.clone(true, true);
+            let newRow = filterRow.clone(true);
             let newId = `_${Helper.Helper.generateId()}`;
 
+            //rename of input fields
             for (let input of newRow.find("input")) {
                 if (input.id !== "") {
-                    Controller.FormController.__setupChips(newRow);
                     let label = newRow.find(`[for=${input.id}]`);
-                    label.prop("for", label.prop("for").replace(/(_.*|$)/, newId));
-                    input.name = input.name.replace(/(_.*|$)/, newId)
-                    input.id = input.id.replace(/(_.*|$)/, newId)
+                    if (label.length > 0) label.prop("for", label.prop("for").replace(/(_.*|$)/, newId));
+                    input.name = input.name.replace(/(_.*|$)/, newId);
+                    input.id = input.id.replace(/(_.*|$)/, newId);
                 }
             }
 
+            //rename of chip fields
+            for (let chip of newRow.find(".chips")) {
+                delete chip.dataset.initialized;
+                chip.dataset.name = chip.dataset.name.replace(/(_.*|$)/, newId);
+                $(chip).on('chip.add', allowOnlyValidTokens);
+            }
+
             newRow.insertAfter(filterRow);
+            Controller.FormController.__setupChips(newRow);
             modal.find("select").material_select();
         });
         modal.find(".less").off().on("click", e => {
@@ -607,12 +627,6 @@ Controller.FormController = class {
         event.handled = true;
     }
 
-    static filterModel() {
-        let modal = $("#filterModal");
-        let self = Controller.FormController;
-
-    }
-
     static downloadImage() {
         let data = studio.toPNG();
         let fileType = "png";
@@ -660,23 +674,19 @@ Controller.FormController = class {
         studio.filterModelByTrees(classes);
     }
 
-    static showFilterToast() {
-        let toastContent = "Filters Updated!", timeOut = 6000;
-
-        if ($('.filterMessage').length === 0) {
-            toastContent = $(`<span class="filterMessage">There are active Filters</span>`).add($(`<button class="btn-flat toast-action" onclick="Controller.FormController.resetFilters()">Reset Filters</button>`));
-            timeOut = Infinity;
-        }
-        Materialize.toast(toastContent, timeOut);
-    }
-
-    /**
-     * Resets all filters, showing all classes
-     */
-    static resetFilters() {
-        studio.setNodesVisibility(true); // Show Everything
-        $('.filterMessage').parent()[0].M_Toast.remove(); //delete filter toast
-        Materialize.toast("All filters have been reset", 6000);
+    static filterModel() {
+        let modal = $("#filterModal"), self = Controller.FormController, suffixes = new Set([""]), filters = [];
+        let data = self.__readForm(modal.find("form"));
+        Object.getOwnPropertyNames(data).filter(name => name.indexOf("_") !== -1).forEach(name => suffixes.add(name.slice(-10)));
+        suffixes.forEach(suffix => {
+            filters.push({
+                tags: data[`tags${suffix}`],
+                levels: data[`levels${suffix}`] === "" ? [] : data[`levels${suffix}`].split(/[^\d]+/),
+            });
+        });
+        self.showFilterToast();
+        studio.filterModel(filters);
+        modal.modal("close");
     }
 
     static importJson() {
@@ -694,5 +704,24 @@ Controller.FormController = class {
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
         window._associationForm = $("#fmmlxAssociationModal").find("form").clone();
         $(".modal").modal();
+    }
+
+    /**
+     * Resets all filters, showing all classes
+     */
+    static resetFilters() {
+        studio.setNodesVisibility(true); // Show Everything
+        $('.filterMessage').parent()[0].M_Toast.remove(); //delete filter toast
+        Materialize.toast("All filters have been reset", 6000);
+    }
+
+    static showFilterToast() {
+        let toastContent = "Filters Updated!", timeOut = 6000;
+
+        if ($('.filterMessage').length === 0) {
+            toastContent = $(`<span class="filterMessage">There are active Filters</span>`).add($(`<button class="btn-flat toast-action" onclick="Controller.FormController.resetFilters()">Reset Filters</button>`));
+            timeOut = Infinity;
+        }
+        Materialize.toast(toastContent, timeOut);
     }
 };

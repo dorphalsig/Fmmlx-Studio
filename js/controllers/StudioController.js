@@ -40,42 +40,6 @@ Controller.StudioController = class {
         this.tags = new Set();
     }
 
-    abstractClasses() {
-        let fmmlxClassNodes = this._diagram.selection.toArray();
-        let classLevel = fmmlxClassNodes[0].data.level;
-        let partCreatedHandler = function (diagramEvent) {
-            diagramEvent.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
-            let transId = Helper.Helper.beginTransaction("Abstracting Selection...");
-            try {
-                let commonMembers = studio._findCommonMembers(fmmlxClassNodes);
-                for (let member of commonMembers) {
-                    studio.addMemberToClass(diagramEvent.subject.data, member);
-                }
-                for (let fmmlxClassNode of fmmlxClassNodes) {
-                    if (fmmlxClassNode.data.level !== classLevel) {
-                        throw new Error("All classes to be abstracted must have the same level");
-                    }
-                    studio.changeClassMetaclass(fmmlxClassNode.data, diagramEvent.subject.data.id);
-                }
-                Helper.Helper.commitTransaction(transId);
-            }
-            catch (error) {
-                Helper.Helper.rollbackTransaction();
-                //                throw error;
-            }
-        };
-
-        let name = `AbstractClass ${parseInt(Math.random() * 100)}`;
-        let level = (classLevel === "?") ? "?" : classLevel + 1;
-        this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
-        this.createFmmlxClass(name, level, false);
-    }
-
-
-    _updateTags(tags) {
-        tags.forEach(tag => this.tags.add(tag));
-    }
-
     /**
      *  Changes the level of an FMMLx Class by delta, reevaluates its properties and propagates the changes downstream, and optionally upstream.
      * @param {Model.FmmlxClass} fmmlxClass
@@ -131,7 +95,6 @@ Controller.StudioController = class {
         }
     }
 
-
     /**
      * returns a list of fmmlx classes that meets each of <filters> criteria
      * @param {Object} filters
@@ -178,6 +141,41 @@ Controller.StudioController = class {
             }
             return common;
         });
+    }
+
+    _updateTags(tags) {
+        tags.forEach(tag => this.tags.add(tag));
+    }
+
+    abstractClasses() {
+        let fmmlxClassNodes = this._diagram.selection.toArray();
+        let classLevel = fmmlxClassNodes[0].data.level;
+        let partCreatedHandler = function (diagramEvent) {
+            diagramEvent.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
+            let transId = Helper.Helper.beginTransaction("Abstracting Selection...");
+            try {
+                let commonMembers = studio._findCommonMembers(fmmlxClassNodes);
+                for (let member of commonMembers) {
+                    studio.addMemberToClass(diagramEvent.subject.data, member);
+                }
+                for (let fmmlxClassNode of fmmlxClassNodes) {
+                    if (fmmlxClassNode.data.level !== classLevel) {
+                        throw new Error("All classes to be abstracted must have the same level");
+                    }
+                    studio.changeClassMetaclass(fmmlxClassNode.data, diagramEvent.subject.data.id);
+                }
+                Helper.Helper.commitTransaction(transId);
+            }
+            catch (error) {
+                Helper.Helper.rollbackTransaction();
+                //                throw error;
+            }
+        };
+
+        let name = `AbstractClass ${parseInt(Math.random() * 100)}`;
+        let level = (classLevel === "?") ? "?" : classLevel + 1;
+        this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
+        this.createFmmlxClass(name, level, false);
     }
 
     /**
@@ -407,26 +405,6 @@ Controller.StudioController = class {
     }
 
     /**
-     * Creates an association from source to target
-     * @param source
-     * @param target
-     */
-    createAssociation(source, target) {
-        try {
-            let transId = Helper.Helper.beginTransaction(`Associating ${source.name} and ${target.name}`);
-            let assoc = new Model.FmmlxAssociation(source, target, "association", "0,*", "?", "src", "0,*", "?", "dst");
-            this._model.addLinkData(assoc);
-            source.addAssociation(assoc);
-            target.addAssociation(assoc);
-            Helper.Helper.commitTransaction(transId);
-        }
-        catch (err) {
-            Helper.Helper.rollbackTransaction();
-            throw err;
-        }
-    }
-
-    /**
      * Copies a member definition to the metaclass
      * @param {Model.FmmlxClass} fmmlxClass
      * @param {Model.FmmlxProperty} member
@@ -456,6 +434,26 @@ Controller.StudioController = class {
 
         let member = fmmlxClass.findMemberById(memberId);
         this.addMemberToClass(fmmlxClass.superclass, member);
+    }
+
+    /**
+     * Creates an association from source to target
+     * @param source
+     * @param target
+     */
+    createAssociation(source, target) {
+        try {
+            let transId = Helper.Helper.beginTransaction(`Associating ${source.name} and ${target.name}`);
+            let assoc = new Model.FmmlxAssociation(source, target, "association", "0,*", "?", "src", "0,*", "?", "dst");
+            this._model.addLinkData(assoc);
+            source.addAssociation(assoc);
+            target.addAssociation(assoc);
+            Helper.Helper.commitTransaction(transId);
+        }
+        catch (err) {
+            Helper.Helper.rollbackTransaction();
+            throw err;
+        }
     }
 
     /**
@@ -489,26 +487,6 @@ Controller.StudioController = class {
                 assoc.metaAssociation = association;
             }
 
-            Helper.Helper.commitTransaction(transId);
-        }
-        catch (err) {
-            Helper.Helper.rollbackTransaction();
-            throw err;
-        }
-    }
-
-    /**
-     * Deletes and FMMLx Association
-     * @param {Model.FmmlxAssociation} association
-     */
-    deleteAssociation(association) {
-        let transId = Helper.Helper.beginTransaction(`Deleting association ${association.name}`);
-        try {
-            association.source.removeAssociation(association);
-            association.target.removeAssociation(association);
-            if (association.metaAssociation !== null) association.metaAssociation.deleteInstance(association);
-            if (association.primitive !== null) association.primitive.deleteRefinement(association);
-            this._diagram.remove(this._diagram.findLinkForData(association));
             Helper.Helper.commitTransaction(transId);
         }
         catch (err) {
@@ -585,6 +563,26 @@ Controller.StudioController = class {
             this.addValueToClass(fmmlxClass, member, value);
         }
         this._updateTags(tags);
+    }
+
+    /**
+     * Deletes and FMMLx Association
+     * @param {Model.FmmlxAssociation} association
+     */
+    deleteAssociation(association) {
+        let transId = Helper.Helper.beginTransaction(`Deleting association ${association.name}`);
+        try {
+            association.source.removeAssociation(association);
+            association.target.removeAssociation(association);
+            if (association.metaAssociation !== null) association.metaAssociation.deleteInstance(association);
+            if (association.primitive !== null) association.primitive.deleteRefinement(association);
+            this._diagram.remove(this._diagram.findLinkForData(association));
+            Helper.Helper.commitTransaction(transId);
+        }
+        catch (err) {
+            Helper.Helper.rollbackTransaction();
+            throw err;
+        }
     }
 
     /**
@@ -923,6 +921,38 @@ Controller.StudioController = class {
     }
 
     /**
+     * Given an array of filter objects, proceeds to apply them recursively to each node in the diagram.
+     * @param filters
+     */
+    filterModel(filters = []) {
+
+        filters.forEach(filter => {
+            let filterClass = {};
+
+            if (filter.levels.length > 0) {
+                filterClass.level = (level) => filter.levels.includes(`${level}`)
+            }
+            if (filter.tags.length > 0) {
+                filterClass.tags = classTags => {
+                    for (let tag of filter.tags) {
+                        if (classTags.has(tag))
+                            return true;
+                    }
+                    return false;
+                }
+            }
+
+            if (filter.tags.length > 0 || filter.levels.length > 0) {
+                this.setNodesVisibility(false);
+                let transId = Helper.Helper.beginTransaction("Filtering nodes...");
+                this._diagram.findNodesByExample(filterClass).each(node => node.visible = true);
+                Helper.Helper.commitTransaction(transId);
+
+            }
+        })
+    }
+
+    /**
      * Finds the parent of each class in classes and hides all the rest
      * @param {Model.FmmlxClass[]} selectedClasses
      */
@@ -1034,24 +1064,6 @@ Controller.StudioController = class {
         return this._filterClasses({level: targetLevel});
     }
 
-    getDataForFilters() {
-        let tags = new Set();
-        let levels = new Set();
-
-        for (let nodeData of this._model.nodeDataArray) {
-            tags = new Set([...tags, ...nodeData.tags])
-            levels.add(nodeData.level);
-        }
-
-        for (let associationData of this._model.linkDataArray) {
-            if (associationData.constructor !== Model.FmmlxAssociation) continue;
-            tags = new Set([...tags, ...associationData.tags])
-        }
-
-        return tags;
-
-    }
-
     /**
      * Inflates an Fmmlx Class that was deflated
      * @param flatClass
@@ -1093,7 +1105,6 @@ Controller.StudioController = class {
             throw e;
         }
     }
-
 
     /**
      * Checks what to do with a member in a class:
