@@ -13,7 +13,7 @@ Controller.FormController = class {
     static __error(error = undefined) {
 
         if (typeof error !== "undefined") {
-            Materialize.toast(`<h6 class="lime-text text-accent-1"><strong>ERROR!</strong></h6>&nbsp; ${error.message}`, 6000);
+            M.toast({html: `<h6 class="lime-text text-accent-1"><strong>ERROR!</strong></h6>&nbsp; ${error.message}`});
             console.log("\n***********************************");
             console.log(error);
             return;
@@ -50,7 +50,8 @@ Controller.FormController = class {
 
                 case "select-one":
                     field.val(value);
-                    field.material_select();
+                    //field.material_select();
+                    field.formSelect();
                     break;
 
                 default:
@@ -71,7 +72,7 @@ Controller.FormController = class {
     static __fillSelect(select, options) {
         select.find(":not([data-keep=true])").remove();
         select.append(options);
-        select.material_select();
+        select.formSelect();//.material_select();
     }
 
     /**
@@ -106,32 +107,44 @@ Controller.FormController = class {
         for (let field of form.find(".chips").filter(":visible")) {
             let name = field.dataset.name;
             fieldData[name] = [];
-            $(field).material_chip('data').forEach(tag => fieldData[name].push(tag.tag));
+            M.Chips.getInstance(field).chipsData.forEach(tag => fieldData[name].push(tag.tag));
         }
         return fieldData;
     }
 
     static __setupChips(form, tags = []) {
-        let currentTags = [];
-        let tagsData = {};
+        let currentTags = [], tagData = {};
+
         tags.forEach(tag => currentTags.push({tag: tag}));
+        for (let item of studio.tags) {
+            tagData[item] = null;
+        }
 
-        studio.tags.forEach(item => Object.defineProperty(tagsData, item, {
-            value: null,
-            writable: false,
-            enumerable: true
-        }));
+        //update chips data
+        for (let chipHolder of form.find('.chips[data-initialized]')) {
+            M.Chips.getInstance(chipHolder).autocomplete.updateData(tagData);
+        }
 
-        form.find('.chips:not([data-initialized])').material_chip({
+        //Initialize chips
+        let chipsOptions = {
             placeholder: 'Enter a tag',
             secondaryPlaceholder: '+Tag',
             data: currentTags,
             autocompleteOptions: {
-                data: tagsData,
+                data: tagData,
                 limit: Infinity,
-                minLength: 0
+                minLength: 1
             }
-        });
+        };
+
+        for (let chipHolder of form.find('.chips:not([data-initialized])')) {
+            M.Chips.init(chipHolder, chipsOptions);
+            chipHolder.dataset.initialized = "true";
+            $(chipHolder).children("input").on("blur", (event) => {
+                $(event.target).val("")
+            })
+        }
+
 
     }
 
@@ -159,6 +172,26 @@ Controller.FormController = class {
     }
 
     /**
+     * Hides all classes and shows only the ones in classArray
+     * @param classArray
+     * @private
+     */
+    static __showClasses(classArray) {
+        Helper.Helper.setNodesVisibility(false);
+        let transId = Helper.Helper.beginTransaction("Showing classes");
+        try {
+            classArray.forEach(fmmlxClass => diagram.findNodeForData(fmmlxClass).visible = true)
+        }
+        catch (e) {
+            Helper.Helper.rollbackTransaction(transId);
+            Helper.Helper.setNodesVisibility(true);
+            throw e;
+        }
+
+        Helper.Helper.commitTransaction(transId);
+    }
+
+    /**
      * Shows and enables field and its form-group
      * @param {JQuery} field
      * @private
@@ -172,7 +205,7 @@ Controller.FormController = class {
         let self = Controller.FormController;
         try {
             studio.abstractClasses();
-            Materialize.toast("Click on the canvas to insert the class", 4000);
+            M.toast({html: "Click on the canvas to insert the class"});
 
         } catch (e) {
             self.__error(e);
@@ -190,7 +223,7 @@ Controller.FormController = class {
             let formVals = self.__readForm(form);
             if (formVals.id === "") {
                 studio.createFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass, formVals.tags);
-                Materialize.toast("Click on the canvas to insert the class", 4000);
+                M.toast({html: "Click on the canvas to insert the class"});
             } else {
                 studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass, formVals.tags);
             }
@@ -264,7 +297,7 @@ Controller.FormController = class {
     }
 
     static createAssociation(source) {
-        Materialize.toast("Select the target class", 4000);
+        M.toast({html: "Select the target class"});
 
         /**
          *
@@ -276,7 +309,6 @@ Controller.FormController = class {
                 let target = event.subject.part.data;
                 studio.createAssociation(source, target);
             } catch (err) {
-                debugger;
                 Controller.FormController.__error(err)
             }
         };
@@ -284,48 +316,52 @@ Controller.FormController = class {
     }
 
     /**
-     * Given an association, creates an instance of it
-     * @param {go.Node} metaAssociation
-     * @param {}
+     * Given an association, creates an instance (refinement) of it
+     * @param {Model.FmmlxAssociation} fmmlxAssociation
+     * @param {boolean} refinement is this an instantiation or refinement?
      */
-    static createAssociationInstanceOrRefinement(metaAssociation, refinement) {
+    static createAssociationInstanceOrRefinement(fmmlxAssociation, refinement) {
         /**
          *
          * @type {Model.FmmlxAssociation}
          */
         let instanceSrc, instanceTgt;
         let self = Controller.FormController;
-        Materialize.toast("Choose source", 4000);
-        studio.setNodesVisibility(false);
-        studio.showDescendantsOf(metaAssociation.source, metaAssociation.sourceIntrinsicness);
+
+
+        let toast = M.toast({html: "Choose source"});
+        Helper.Helper.setNodesVisibility(false);
+        let validDescendants = studio.findValidRelationshipClasses(fmmlxAssociation.source, fmmlxAssociation.sourceIntrinsicness, refinement);
+        this.__showClasses(validDescendants);
         let handlerSrc = function (event) {
             if (event.subject.part.constructor === go.Node) {
-                studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc);
+                diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc);
+                toast.dismiss();
                 instanceSrc = event.subject.part.data;
-                Materialize.toast("Choose target", 4000);
-                studio.setNodesVisibility(false);
-                studio.showDescendantsOf(metaAssociation.target, metaAssociation.targetIntrinsicness);
-
+                toast = M.toast({html: "Choose target"});
+                Helper.Helper.setNodesVisibility(false);
+                let validDescendants = studio.findValidRelationshipClasses(fmmlxAssociation.target, fmmlxAssociation.targetIntrinsicness, refinement);
+                self.__showClasses(validDescendants);
                 let handlerTgt = function (event) {
                     if (event.subject.part.constructor === go.Node) {
                         studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt);
-                        studio.setNodesVisibility(true);
+                        Helper.Helper.setNodesVisibility(true);
                         instanceTgt = event.subject.part.data;
-                        studio.createAssociationInstanceOrRefinement(metaAssociation, instanceSrc, instanceTgt, refinement);
+                        studio.createAssociationInstanceOrRefinement(fmmlxAssociation, instanceSrc, instanceTgt, refinement);
                     }
                 };
-                studio._diagram.addDiagramListener("ObjectSingleClicked", handlerTgt);
-                $('.toast-action').one('click', studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt));
+                diagram.addDiagramListener("ObjectSingleClicked", handlerTgt);
+                $('.toast-action').one('click', () => studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt));
             }
         };
         studio._diagram.addDiagramListener("ObjectSingleClicked", handlerSrc);
         self.showFilterToast();
-        $('.toast-action').one('click', studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc));
+        $('.toast-action').one('click', () => studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc));
 
     }
 
     static createInheritance(subclass) {
-        Materialize.toast("Select the superclass", 4000);
+        M.toast({html: "Select the superclass"});
         let handler = function (event) {
             try {
                 diagram.removeDiagramListener("ObjectSingleClicked", handler);
@@ -497,7 +533,7 @@ Controller.FormController = class {
                 }
                 $("#deleteAssociation").off("click").one("click", () => self.deleteAssociation(target.part.data));
                 instantiate.off("click").one("click", () => self.createAssociationInstanceOrRefinement(target.part.data, false));
-                refine.off("click").one("click", () => self.filterChains(target.diagram.selection));
+                refine.off("click").one("click", () => self.createAssociationInstanceOrRefinement(target.part.data, true));
                 break;
 
             default: // Inheritance has no model because its just a plain link
@@ -523,16 +559,15 @@ Controller.FormController = class {
         let modal = $("#filterModal");
         let self = Controller.FormController;
         let allowOnlyValidTokens = function (e, chip) {
-            if (studio.tags.has(chip.tag)) return;
-            let target = $(e.target);
-            let index = parseInt(target.material_chip('data').indexOf(chip)) + 1;
-            target.children(`.chip:nth-child(${index})`).remove()
+            if (studio.tags.has(chip.firstChild.wholeText)) return;
+            let chipIndex = $(e).children(".chip").index(chip);
+            M.Chips.getInstance(e[0]).deleteChip(chipIndex);
         };
 
         modal.show();
         Controller.FormController.__setupChips(modal);
+        M.Chips.getInstance(modal.find(".chips")[0]).options.onChipAdd = allowOnlyValidTokens;
 
-        modal.off('chip.add').on('chip.add', allowOnlyValidTokens);
 
         modal.find(".more").off().on("click", e => {
             let filterRow = $(e.target).parents(".filterRow");
@@ -550,15 +585,16 @@ Controller.FormController = class {
             }
 
             //rename of chip fields
-            for (let chip of newRow.find(".chips")) {
-                delete chip.dataset.initialized;
-                chip.dataset.name = chip.dataset.name.replace(/(_.*|$)/, newId);
-                $(chip).on('chip.add', allowOnlyValidTokens);
+            for (let chipHolder of newRow.find(".chips")) {
+                delete chipHolder.dataset.initialized;
+                chipHolder.dataset.name = chipHolder.dataset.name.replace(/(_.*|$)/, newId);
+                M.Chips.getInstance(chipHolder).options.onChipAdd = allowOnlyValidTokens;
             }
 
             newRow.insertAfter(filterRow);
             Controller.FormController.__setupChips(newRow);
-            modal.find("select").material_select();
+            //modal.find("select").material_select();
+            modal.find("select").formSelect();
         });
         modal.find(".less").off().on("click", e => {
             let filterRow = $(e.target).parents(".filterRow");
@@ -662,16 +698,14 @@ Controller.FormController = class {
 
     /**
      * Shows only the inheritance trees of the selected classes
-     * @param {Set<go.Part>} selection
+     * @param {go.Set<go.Part>} selection
      */
     static filterChains(selection) {
         const self = Controller.FormController;
         self.showFilterToast();
         let classes = [];
-        selection.each((part) => {
-            classes.push(part.data);
-        });
-        studio.filterModelByTrees(classes);
+        selection.each((part) => classes.push(part.data));
+        self.__showClasses(studio.findTrees(classes));
     }
 
     static filterModel() {
@@ -699,10 +733,12 @@ Controller.FormController = class {
     }
 
     static init() {
-        $("select").material_select();
+        //$("select").material_select();
+        $("select").formSelect();
         window._classForm = $("#fmmlxClassModal").find("form").clone();
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
         window._associationForm = $("#fmmlxAssociationModal").find("form").clone();
+        $('.fixed-action-btn').floatingActionButton();
         $(".modal").modal();
     }
 
@@ -710,18 +746,19 @@ Controller.FormController = class {
      * Resets all filters, showing all classes
      */
     static resetFilters() {
-        studio.setNodesVisibility(true); // Show Everything
-        $('.filterMessage').parent()[0].M_Toast.remove(); //delete filter toast
-        Materialize.toast("All filters have been reset", 6000);
+        Helper.Helper.setNodesVisibility(true); // Show Everything
+        let toastElement = $('.filterMessage').parent()[0];
+        M.Toast.getInstance(toastElement).dismiss();
+        M.toast({html: "All filters have been reset"});
     }
 
     static showFilterToast() {
-        let toastContent = "Filters Updated!", timeOut = 6000;
+        let toastContent = "Filters Updated!", timeOut = 4000;
 
         if ($('.filterMessage').length === 0) {
-            toastContent = $(`<span class="filterMessage">There are active Filters</span>`).add($(`<button class="btn-flat toast-action" onclick="Controller.FormController.resetFilters()">Reset Filters</button>`));
+            toastContent = '<span class="filterMessage">There are active Filters</span><button class="btn-flat toast-action" onclick="Controller.FormController.resetFilters()">Reset Filters</button>';
             timeOut = Infinity;
         }
-        Materialize.toast(toastContent, timeOut);
+        M.toast({html: toastContent, displayLength: timeOut});
     }
 };

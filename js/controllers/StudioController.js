@@ -925,13 +925,15 @@ Controller.StudioController = class {
      * @param filters
      */
     filterModel(filters = []) {
+        debugger;
 
-        filters.forEach(filter => {
+        for (let filter of filters) {
             let filterClass = {};
 
             if (filter.levels.length > 0) {
                 filterClass.level = (level) => filter.levels.includes(`${level}`)
             }
+
             if (filter.tags.length > 0) {
                 filterClass.tags = classTags => {
                     for (let tag of filter.tags) {
@@ -943,32 +945,42 @@ Controller.StudioController = class {
             }
 
             if (filter.tags.length > 0 || filter.levels.length > 0) {
-                this.setNodesVisibility(false);
+                Helper.Helper.setNodesVisibility(false);
                 let transId = Helper.Helper.beginTransaction("Filtering nodes...");
                 this._diagram.findNodesByExample(filterClass).each(node => node.visible = true);
                 Helper.Helper.commitTransaction(transId);
 
             }
-        })
+        }
+
     }
 
     /**
-     * Finds the parent of each class in classes and hides all the rest
-     * @param {Model.FmmlxClass[]} selectedClasses
+     * Makes the instances and subclasses of fmmlxClass and their descendants visible if they have <level> level
+     * if <level> is not specified, all descendants are shown.
+     * @param {Model.FmmlxClass} fmmlxClass
      */
-    filterModelByTrees(selectedClasses) {
-        this.setNodesVisibility(false); // hides all classes
-        for (let selectedClass of selectedClasses) {
-            let root = this.findRoot(selectedClass);
-            this.showDescendantsOf(root)
+    findDescendants(fmmlxClass) {
+        let children = [];
+
+        for (let instance of fmmlxClass.instances) {
+            children.push(instance);
+            children = this.findDescendants(instance).concat(children);
         }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            let node = this._diagram.findNodeForKey(subclass.id);
+            if (validLevels === null || validLevels.includes(subclass.level)) node.visible = true;
+            children = this.findDescendants(subclass).concat(children);
+        }
+        return children;
     }
 
     /**
      * Finds the possible Root classes of fmmlxClass and returns the ids in a set
      * The root is defined as the class with highest abstraction level that has metaclass === null
      * @param {Model.FmmlxClass} fmmlxClass
-     * @returns {FmmlxClass}
+     * @returns {Model.FmmlxClass}
      */
     findRoot(fmmlxClass) {
         let roots = new Helper.Set();
@@ -991,6 +1003,46 @@ Controller.StudioController = class {
         }
 
         return rootClass;
+    }
+
+    /**
+     * Finds the parent of each class in classes and hides all the rest
+     * @param {Model.FmmlxClass[]} selectedClasses
+     */
+    findTrees(selectedClasses) {
+        let chain = [];
+        Helper.Helper.setNodesVisibility(false); // hides all classes
+        for (let selectedClass of selectedClasses) {
+            let root = this.findRoot(selectedClass);
+            chain.push(root);
+            this.findDescendants(root).concat(chain);
+        }
+    }
+
+    /**
+     * Returns an array of valid FmmlxClasses for refinement of a relationship.
+     * Valid endpoints for *REFINEMENT* are descendants of each endpoint with *minLevel > intrinsicness*
+     * Valid endpoints for *INSTANTIATION* are descendants of each endpoint with *minLevel <= intrinsicness*
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {string} intrinsicness
+     * @param {boolean} refinement
+     */
+    findValidRelationshipClasses(fmmlxClass, intrinsicness, refinement) {
+        let validClasses = [];
+
+        for (let instance of fmmlxClass.instances) {
+            if (intrinsicness === "?" || (refinement && Number.parseInt(instance.level) > Number.parseInt(intrinsicness)) || (!refinement && Number.parseInt(instance.level) <= Number.parseInt(intrinsicness)))
+                validClasses.push(instance);
+            validClasses = validClasses.concat(this.findValidRelationshipClasses(instance, intrinsicness, refinement));
+        }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            if (intrinsicness === "?" || (refinement && Number.parseInt(subclass.level) > Number.parseInt(intrinsicness)) || (!refinement && Number.parseInt(subclass.level) <= Number.parseInt(intrinsicness)))
+                validClasses.push(subclass);
+            validClasses = this.findValidRelationshipClasses(instance, intrinsicness, refinement).concat(validClasses);
+        }
+
+        return validClasses;
     }
 
     fromJSON(jsonData) {
@@ -1186,43 +1238,6 @@ Controller.StudioController = class {
     }
 
     /**
-     * Changes the visibility of all nodes
-     * @param {boolean} visible if true the nodes are visible, else they are not.
-     */
-    setNodesVisibility(visible) {
-        let transId = Helper.Helper.beginTransaction("Hiding/Showing all nodes");
-        try {
-            this._diagram.nodes.each(node => node.visible = visible);
-            Helper.Helper.commitTransaction(transId);
-        }
-        catch (err) {
-            Helper.Helper.rollbackTransaction();
-            throw err;
-        }
-    }
-
-    /**
-     * Makes the instances and subclasses of fmmlxClass and their descendants visible if they have <level> level
-     * if <level> is not specified, all descendants are shown.
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Number} level
-     */
-    showDescendantsOf(fmmlxClass, level = null) {
-        this._diagram.findNodeForKey(fmmlxClass.id).visible = true;
-        for (let instance of fmmlxClass.instances) {
-            let node = this._diagram.findNodeForKey(instance.id);
-            if (level === null || instance.level === Number.parseInt(level)) node.visible = true;
-            this.showDescendantsOf(instance);
-        }
-
-        for (let subclass of fmmlxClass.subclasses) {
-            let node = this._diagram.findNodeForKey(subclass.id);
-            if (level === null || subclass.level === Number.parseInt(level)) node.visible = true;
-            this.showDescendantsOf(subclass);
-        }
-    }
-
-    /**
      * Exports the diagram as JSON
      */
     toJSON() {
@@ -1248,4 +1263,5 @@ Controller.StudioController = class {
             background: "rgba(255, 255, 255, 0.8)"
         });
     }
-};
+}
+;

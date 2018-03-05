@@ -92,5 +92,21 @@ Helper.Helper = {
         console.groupEnd();
         console.log(`✅ ${transId} :: Transaction committed`);
     },
+
+    /**
+     * Changes the visibility of all nodes
+     * @param {boolean} visible if true the nodes are visible, else they are not.
+     */
+    setNodesVisibility: function (visible) {
+        let transId = this.beginTransaction("Hiding/Showing all nodes");
+        try {
+            diagram.nodes.each(node => node.visible = visible);
+            this.commitTransaction(transId);
+        }
+        catch (err) {
+            this.rollbackTransaction();
+            throw err;
+        }
+    },
 };
 

@@ -43,6 +43,19 @@ FmmlxShapes.FmmlxClass = class {
         }));
     }
 
+    static get ellipsis() {
+        return gMake(go.TextBlock, {
+            name: "ellipsis",
+            stretch: GraphObject.Fill,
+            minSize: new go.Size(100, 20),
+            text: "…",
+            font: "bold 14px monospace",
+            textAlign: "center"
+        });
+    }
+
+
+
     static get shape() {
         return gMake(go.Node, "Spot", {
             doubleClick: Controller.FormController.displayClassForm,

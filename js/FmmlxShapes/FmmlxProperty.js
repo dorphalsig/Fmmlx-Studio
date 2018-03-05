@@ -9,16 +9,6 @@ gMake = go.GraphObject.make;
 
 
 FmmlxShapes.FmmlxProperty = class {
-    static get ellipsis() {
-        return gMake(go.TextBlock, {
-            stretch: GraphObject.Fill,
-            minSize: new go.Size(100, 20),
-            text: "…",
-            font: "bold 14px monospace",
-            textAlign: "center"
-        });
-    }
-
     static get shape() {
         let _behaviourBlock = gMake(go.Panel, "Horizontal", {
             minSize: new go.Size(48, 20), alignment: go.Spot.Left, margin: 0,

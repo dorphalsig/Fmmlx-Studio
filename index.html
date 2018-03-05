@@ -127,10 +127,13 @@
                     <label for="class_name"
                            data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Class
                         Name</label>
+                    <span class="helper-text"
+                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
                 </div>
                 <div class="input-field col s2">
                     <input type="text" id="class_level" class="validate" name="level" pattern="^(\d+|\?)$" required/>
                     <label for="class_level" data-error="Only Numbers or &quot;?&quot;">Level</label>
+                    <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
                 </div>
                 <div class="input-field col s5">
                     <select id="class_metaclass" class="validate" name="metaclass">
@@ -140,9 +143,11 @@
                 </div>
                 <div class="input-field col s5 hide">
 
-                    <input type="text" id="class_externalMetaclass" data-wrong="Only Alphanumeric or &quot;. , _&quot;"
-                           class="validate" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
-                    <label for="class_externalMetaclass">Ext. Metaclass</label>
+                    <input type="text" id="class_externalMetaclass" class="validate" name="externalMetaclass"
+                           pattern="^[\w\.,]+$" disabled required/>
+                    <label for="class_externalMetaclass" data-error="Only Alphanumeric or &quot;. , _&quot;">Ext.
+                        Metaclass</label>
+                    <span class="helper-text" data-error="Only Alphanumeric or &quot;. , _&quot;"></span>
                 </div>
             </div>
             <div class="row">
@@ -152,15 +157,24 @@
                 <div class="col s5 input-field hide">
                     <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
                            pattern="^[\w\.,]+$" required/>
-                    <label for="class_externalLanguage" data-wrong="Only Alphanumeric or &quot;. , _&quot;">External
+                    <label for="class_externalLanguage" data-error="Only Alphanumeric or &quot;. , _&quot;">External
                         Language</label>
+                    <span class="helper-text" data-error="Only Alphanumeric or &quot;. , _&quot;"></span>
+
                 </div>
-                <div class="col s2 center-align">
-                    <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
-                    <label for="class_isAbstract">Abstract</label> &nbsp;
-                    <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox" name="isExternal"
-                           data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass"/>
-                    <label for="class_isExternal">Ext. Lang.</label>
+                <div class="col s1 center-align">
+                    <label>
+                        <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
+                        <span>Abstract</span>
+                    </label>
+                </div>
+                <div class="col s1 center-align">
+                    <label>
+                        <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox"
+                               name="isExternal"
+                               data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass"/>
+                        <span>Ext. Lang</span>
+                    </label>
                 </div>
             </div>
         </form>
@@ -186,11 +200,15 @@
                     <input type="text" id="attribute_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
                     <label for="attribute_name"
                            data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
+                    <span class="helper-text"
+                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
                 </div>
                 <div class="input-field col s4">
                     <input type="text" id="attribute_type" class="validate" name="type" pattern="^[\w\.,]+$" required/>
                     <label for="attribute_type"
                            data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Type</label>
+                    <span class="helper-text"
+                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
                 </div>
                 <div class="input-field col s3 hide">
                     <input type="text" id="attribute_value" class="validate" name="value" disabled/>
@@ -201,6 +219,8 @@
                            pattern="^(\d+|\?)$" required/>
                     <label for="attribute_intrinsicness"
                            data-error="Only Numbers or &quot;?&quot;">Intrinsicness</label>
+                    <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
+
                 </div>
             </div>
             <div class="row">
@@ -208,23 +228,37 @@
                     <div class="chips" data-name="tags"></div>
                 </div>
                 <div class="col s6 offset-s1 left-align">
-                    <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo"
-                           data-show="attribute_operationBody" value="true" type="checkbox"/>
-                    <label for="attribute_isOperation">Is Operation?</label>&nbsp;
-                    <span class="horizontal-separator"></span><input id="attribute_isValue" name="isValue"
-                                                                     class="needsExtraInfo" data-show="attribute_value"
-                                                                     data-hide="attribute_intrinsicness" value="true"
-                                                                     type="checkbox"/>
-                    <label for="attribute_isValue">Is Value?</label> &nbsp;
-                    <span class="horizontal-separator"></span><input id="attribute_isObtainable" name="isObtainable"
-                                                                     value="O" type="checkbox"/>
-                    <label for="attribute_isObtainable">Is Obtainable?</label> &nbsp;
-                    <span class="horizontal-separator"></span><input id="attribute_isDerivable" name="isDerivable"
-                                                                     value="D" type="checkbox"/>
-                    <label for="attribute_isDerivable">Is Derivable?</label>&nbsp;
+                    <label>
+                        <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo"
+                               data-show="attribute_operationBody" value="true" type="checkbox"/>
+                        <span>Is Operation?</span>&nbsp;
+                    </label>
+
                     <span class="horizontal-separator"></span>
-                    <input id="attribute_isSimulation" name="isSimulation" value="S" type="checkbox"/>
-                    <label for="attribute_isSimulation">Is Simulation?</label>
+                    <label>
+                        <input id="attribute_isValue" name="isValue"
+                               class="needsExtraInfo" data-show="attribute_value"
+                               data-hide="attribute_intrinsicness" value="true"
+                               type="checkbox"/>
+                        <span>Is Value?</span> &nbsp;
+                    </label>
+                    <span class="horizontal-separator"></span>
+                    <label>
+                        <input id="attribute_isObtainable" name="isObtainable"
+                               value="O" type="checkbox"/>
+                        <span>Is Obtainable?</span> &nbsp;
+                    </label>
+                    <span class="horizontal-separator"></span>
+                    <label>
+                        <input id="attribute_isDerivable" name="isDerivable"
+                               value="D" type="checkbox"/>
+                        <span>Is Derivable?</span>&nbsp;
+                    </label>
+                    <span class="horizontal-separator"></span>
+                    <label>
+                        <input id="attribute_isSimulation" name="isSimulation" value="S" type="checkbox"/>
+                        <span>Is Simulation?</span>
+                    </label>
                 </div>
             </div>
             <div class="row">
@@ -236,8 +270,10 @@
         </form>
     </div>
     <div class="modal-footer">
-        <input id="addAnother" class="addAnother" value="true" type="checkbox"/>
-        <label for="addAnother">Add another?</label>
+        <label>
+            <input id="addAnother" class="addAnother" value="true" type="checkbox"/>
+            <span>Add another?</span>
+        </label>
         <a href="#" class="modal-action waves-effect waves-green btn-flat">Add</a>
     </div>
 </div>
@@ -255,6 +291,8 @@
                            required/>
                     <label for="association_name"
                            data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
+                    <span class="helper-text"
+                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
                 </div>
                 <div class="input-field col s4">
                     <input id="association_source" name="src" type="text" readonly>
@@ -273,12 +311,16 @@
                     <label for="association_sourceRole"
                            data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Source
                         Role</label>
+                    <span class="helper-text"
+                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
                 </div>
                 <div class="input-field col s4">
                     <input pattern="[\d+|\*],[\d+|\*]" id="association_sourceCardinality" name="sourceCardinality"
                            class="validate" type="text" required>
                     <label for="association_sourceCardinality"
                            data-error="Must be #,# where # is a number or &quot;*&quot;">Source Cardinality</label>
+                    <span class="helper-text"
+                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
                 </div>
                 <div class="input-field col s4">
                     <input type="text" id="association_sourceIntrinsicness" class="validate"
@@ -286,6 +328,7 @@
                            pattern="^(\d+|\?)$" required/>
                     <label for="association_sourceIntrinsicness"
                            data-error="Only Numbers or &quot;?&quot;">Source Intrinsicness</label>
+                    <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
                 </div>
             </div>
             <div class="row">
@@ -295,6 +338,8 @@
                     <label for="association_targetRole"
                            data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Target
                         Role</label>
+                    <span class="helper-text"
+                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
                 </div>
                 <div class="input-field col s4">
                     <input pattern="[\d+|\*],[\d+|\*]" id="association_targetCardinality" name="targetCardinality"
@@ -302,6 +347,7 @@
                            class="validate" required>
                     <label for="association_targetCardinality"
                            data-error="Must be #,# where # is a number or &quot;*&quot;">Target Cardinality</label>
+                    <span class="helper-text" data-error="Must be #,# where # is a number or &quot;*&quot;"></span>
                 </div>
                 <div class="input-field col s4">
                     <input type="text" id="association_targetIntrinsicness" class="validate"
@@ -309,6 +355,7 @@
                            pattern="^(\d+|\?)$" required/>
                     <label for="association_targetIntrinsicness"
                            data-error="Only Numbers or &quot;?&quot;">Target Intrinsicness</label>
+                    <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
                 </div>
             </div>
         </form>
