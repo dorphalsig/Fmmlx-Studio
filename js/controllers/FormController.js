@@ -56,8 +56,7 @@ Controller.FormController = class {
 
                 default:
                     field.val(value);
-                    field.click();
-                    field.change();
+                    field[0].classList.add("active");
                     break;
             }
         }
