@@ -38,6 +38,7 @@ Model.FmmlxAssociation = class {
      * @param {String} role1
      * @param {Model.FmmlxAssociation} primitive
      * @param {Model.FmmlxAssociation} metaAssociation
+     * @param {String[]} tags
      */
     constructor(source, target, name, cardinality0, intrinsicness0, role0, cardinality1, intrinsicness1, role1, primitive = null, metaAssociation = null,tags=[]) {
         this.source = source;

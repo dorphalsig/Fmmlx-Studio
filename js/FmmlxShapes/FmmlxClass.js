@@ -46,14 +46,14 @@ FmmlxShapes.FmmlxClass = class {
     static get ellipsis() {
         return gMake(go.TextBlock, {
             name: "ellipsis",
-            stretch: GraphObject.Fill,
+            stretch: go.GraphObject.Fill,
             minSize: new go.Size(100, 20),
             text: "…",
-            font: "bold 14px monospace",
-            textAlign: "center"
+            font: "bold 20px monospace",
+            textAlign: "center",
+            visible: false
         });
     }
-
 
 
     static get shape() {
@@ -65,14 +65,23 @@ FmmlxShapes.FmmlxClass = class {
 
     static genericBlock(collectionName) {
         return gMake(go.Panel, "Auto", {
-            stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20)
-        }, gMake(go.Shape, "Rectangle", {
-            fill: "white",
-        }), gMake(go.Panel, "Vertical", {
-            margin: 4, defaultAlignment: go.Spot.Left, name: collectionName
-        }, new go.Binding("itemArray", collectionName), {
-            itemTemplate: FmmlxShapes.FmmlxProperty.shape,
-        }))
+                stretch: go.GraphObject.Fill, minSize: new go.Size(100, 20)
+            }, gMake(go.Shape, "Rectangle", {
+                fill: "white",
+            }),
+            gMake(go.Panel, "Vertical", {
+                    margin: 4,
+                    name: collectionName,
+                    defaultAlignment: go.Spot.Left,
+                },
+                gMake(go.Panel, "Vertical", {
+                        name: "items",
+                        defaultAlignment: go.Spot.Left,
+                        itemTemplate: FmmlxShapes.FmmlxProperty.shape,
+                    }, new go.Binding("itemArray", collectionName)
+                ),
+                this.ellipsis
+            ))
     };
 
     /**

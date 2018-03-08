@@ -111,24 +111,10 @@ Controller.FormController = class {
         return fieldData;
     }
 
-    static __setupChips(form, tags = []) {
-        let currentTags = [], tagData = {};
-
-        tags.forEach(tag => currentTags.push({tag: tag}));
-        for (let item of studio.tags) {
-            tagData[item] = null;
-        }
-
-        //update chips data
-        for (let chipHolder of form.find('.chips[data-initialized]')) {
-            M.Chips.getInstance(chipHolder).autocomplete.updateData(tagData);
-        }
-
-        //Initialize chips
-        let chipsOptions = {
-            placeholder: 'Enter a tag',
+    static __setupChip(div, tags = [], options = {}) {
+        let currentTags = [], tagData = {}, defaultOptions = {
+            placeHolder: 'Enter a tag',
             secondaryPlaceholder: '+Tag',
-            data: currentTags,
             autocompleteOptions: {
                 data: tagData,
                 limit: Infinity,
@@ -136,15 +122,24 @@ Controller.FormController = class {
             }
         };
 
-        for (let chipHolder of form.find('.chips:not([data-initialized])')) {
-            M.Chips.init(chipHolder, chipsOptions);
-            chipHolder.dataset.initialized = "true";
-            $(chipHolder).children("input").on("blur", (event) => {
+        if (div.constructor === $) div = div[0];
+        tags.forEach(tag => currentTags.push(tag));
+        studio.tags.forEach(item => tagData[item] = null);
+        options = Object.assign({}, defaultOptions, options);
+
+        if (typeof div.dataset.initialized === "undefined") {
+            M.Chips.init(div, options);
+            div.dataset.initialized = "true";
+            $(div).children("input").on("blur", (event) => {
                 $(event.target).val("")
             })
         }
+        else
+            M.Chips.getInstance(div).autocomplete.updateData(tagData);
+    }
 
-
+    static __setupChips(form, tags = [], options = {}) {
+        for (let chipHolder of form.find(".chips")) this.__setupChip(chipHolder, tags, options)
     }
 
     /**
@@ -277,6 +272,50 @@ Controller.FormController = class {
             window.setTimeout(() => self.displayMemberForm({}, null, formVals.fmmlxClassId), 500);
         }
 
+    }
+
+    static cloneFilterRow(filterRow) {
+        let data = [];
+        let self = Controller.FormController;
+        let currentChips = filterRow.find(".chips");
+
+        let newId = `_${Helper.Helper.generateId()}`;
+
+        //destroy filterRow Chips
+        for (let chipHolder of currentChips) {
+            delete chipHolder.dataset.initialized;
+            let instance = M.Chips.getInstance(chipHolder);
+            data.push(instance.chipsData);
+            instance.destroy();
+        }
+
+        let newRow = filterRow.clone(true);
+
+        //rename of input fields
+        for (let input of newRow.find("input")) {
+            if (input.id !== "") {
+                let label = newRow.find(`[for=${input.id}]`);
+                if (label.length > 0) label.prop("for", label.prop("for").replace(/(_.*|$)/, newId));
+                input.name = input.name.replace(/(_.*|$)/, newId);
+                input.id = input.id.replace(/(_.*|$)/, newId);
+            }
+        }
+
+        //setup new chips
+        for (let chipHolder of newRow.find(".chips")) {
+            chipHolder.dataset.name = chipHolder.dataset.name.replace(/(_.*|$)/, newId); //rename of chip fields
+            self.__setupChip(chipHolder, [], {autocompleteOnly: true});
+        }
+
+        //reinit previous chips
+        for (let i = 0; i < currentChips.length; i++) {
+            let chipHolder = currentChips[i];
+            let chips = typeof data[i] === "undefined" ? [] : data[i];
+            self.__setupChip(chipHolder, [], {autocompleteOnly: true, data: chips});
+        }
+
+
+        newRow.insertAfter(filterRow);
     }
 
     static copyMemberToMetaclass(fmmlxClass, member) {
@@ -557,44 +596,16 @@ Controller.FormController = class {
     static displayFilterForm() {
         let modal = $("#filterModal");
         let self = Controller.FormController;
-        let allowOnlyValidTokens = function (e, chip) {
-            if (studio.tags.has(chip.firstChild.wholeText)) return;
-            let chipIndex = $(e).children(".chip").index(chip);
-            M.Chips.getInstance(e[0]).deleteChip(chipIndex);
-        };
+
 
         modal.show();
-        Controller.FormController.__setupChips(modal);
-        M.Chips.getInstance(modal.find(".chips")[0]).options.onChipAdd = allowOnlyValidTokens;
-
+        Controller.FormController.__setupChips(modal, [], {autocompleteOnly: true});
 
         modal.find(".more").off().on("click", e => {
             let filterRow = $(e.target).parents(".filterRow");
-            let newRow = filterRow.clone(true);
-            let newId = `_${Helper.Helper.generateId()}`;
-
-            //rename of input fields
-            for (let input of newRow.find("input")) {
-                if (input.id !== "") {
-                    let label = newRow.find(`[for=${input.id}]`);
-                    if (label.length > 0) label.prop("for", label.prop("for").replace(/(_.*|$)/, newId));
-                    input.name = input.name.replace(/(_.*|$)/, newId);
-                    input.id = input.id.replace(/(_.*|$)/, newId);
-                }
-            }
-
-            //rename of chip fields
-            for (let chipHolder of newRow.find(".chips")) {
-                delete chipHolder.dataset.initialized;
-                chipHolder.dataset.name = chipHolder.dataset.name.replace(/(_.*|$)/, newId);
-                M.Chips.getInstance(chipHolder).options.onChipAdd = allowOnlyValidTokens;
-            }
-
-            newRow.insertAfter(filterRow);
-            Controller.FormController.__setupChips(newRow);
-            //modal.find("select").material_select();
-            modal.find("select").formSelect();
+            self.cloneFilterRow(filterRow);
         });
+
         modal.find(".less").off().on("click", e => {
             let filterRow = $(e.target).parents(".filterRow");
             filterRow.remove();
@@ -707,18 +718,67 @@ Controller.FormController = class {
         self.__showClasses(studio.findTrees(classes));
     }
 
+    static doFilter(matches) {
+        let transId = Helper.Helper.beginTransaction("Filtering Model...");
+
+        for (let association of matches.associations) {
+            diagram.findLinkForData(association).visible = false;
+        }
+
+        for (let fmmlxClass of matches.classes) {
+            diagram.findNodeForData(fmmlxClass).visible = false;
+        }
+
+        for (let fmmlxClass in matches.members) {
+            if (!matches.members.hasOwnProperty(fmmlxClass)) continue;
+            let node = diagram.findNodeForData(fmmlxClass);
+            if (node === null) throw Exception("")
+
+            for (let member of matches.members[fmmlxClass]) {
+                let section, valueSection;
+                if (member.isOperation) {
+                    section = node.findObject("operations");
+                    valueSection = node.findObject("operationValues")
+                }
+                else {
+                    section = node.findObject("attributes");
+                    valueSection = node.findObject("attributeValues");
+                }
+
+                section.findObject("ellipsis").visible = true;
+                let propertyShape = section.findObject("items").findItemPanelForData(member);
+                if (propertyShape !== null) propertyShape.visible = false;
+
+                let value = member.getValue(fmmlxClass);
+                if (value !== undefined) {
+                    let section = node.findObject("operationValues");
+                    let propertyShape = section.findObject("items").findItemPanelForData(value);
+                    if (propertyShape !== null) propertyShape.visible = false;
+                }
+
+            }
+
+        }
+        Helper.Helper.commitTransaction(transId);
+    }
+
     static filterModel() {
         let modal = $("#filterModal"), self = Controller.FormController, suffixes = new Set([""]), filters = [];
         let data = self.__readForm(modal.find("form"));
-        Object.getOwnPropertyNames(data).filter(name => name.indexOf("_") !== -1).forEach(name => suffixes.add(name.slice(-10)));
+        Object.getOwnPropertyNames(data).forEach(name => {
+            if (name.indexOf("_") !== -1)
+                suffixes.add("_" + name.split("_")[1]);
+        });
         suffixes.forEach(suffix => {
             filters.push({
+                operator: data [`operator${suffix}`],
                 tags: data[`tags${suffix}`],
                 levels: data[`levels${suffix}`] === "" ? [] : data[`levels${suffix}`].split(/[^\d]+/),
             });
         });
+        let matches = studio.filterModel(filters);
+        self.doFilter(matches);
         self.showFilterToast();
-        studio.filterModel(filters);
         modal.modal("close");
     }
 

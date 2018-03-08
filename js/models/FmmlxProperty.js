@@ -28,7 +28,7 @@ Model.FmmlxProperty = class {
      * @param {string[]} tags
      */
     constructor(name = "", type = "", intrinsicness = 0, isOperation = false, behaviors = [], operationBody = null, tags = []) {
-        this.values = new Helper.Set();
+        this.values = new Map();
         this.classes = new Helper.Set();
         this.id = Helper.Helper.generateId();
         this.maxIntrinsicness = Infinity;
@@ -74,8 +74,17 @@ Model.FmmlxProperty = class {
      */
     createValue(fmmlxClass, value = null) {
         let valObj = new Model.FmmlxValue(this, value, fmmlxClass);
-        this.values.add(valObj);
+        this.values.set(fmmlxClass, valObj);
         return valObj;
+    }
+
+    /**
+     * Returns the value instance if there exists for a specified FmmlxClass, if it does not exist, it returns undefined
+     * @param  {Model.FmmlxClass} fmmlxClass
+     * @return {V | undefined}
+     */
+    getValue(fmmlxClass) {
+        return this.values.get(fmmlxClass);
     }
 
     /**

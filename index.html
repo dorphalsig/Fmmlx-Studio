@@ -370,10 +370,10 @@
 <div id="filterModal" class="modal z-depth-5">
     <div class="modal-content">
         <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Filter Model</h4><br/>
-        <p>The model is filterable either by its level (they should be separated by commas and they only apply to
-            classes) or by its tags (classes and
+        <p>The model is filterable either by its level (classes only) or by its tags (classes and
             members).<br/>
-            These two criteria are combined with a logical AND.
+            These two criteria are combined with a logical AND. Each tag specified within the same field is also
+            combined as an AND.
         </p>
         <form>
 
@@ -399,7 +399,7 @@
                         <div class="chips" data-name="tags"></div>
                     </div>
                     <div class="input-field">
-                        <input id="levels" type="text" name="levels">
+                        <input id="levels" type="text" name="levels" placeholder="i.e 1,2,?">
                         <label for="levels">levels</label>
                     </div>
                 </div>

@@ -656,7 +656,7 @@ Controller.StudioController = class {
             let index = fmmlxClass.findIndexForMember(member);
             if (index !== null) {
                 this._model.removeArrayItem(array, index);
-                member.classes.remove(fmmlxClass);
+                member.deleteClass(fmmlxClass);
             }
 
             if (deleteValues) {
@@ -922,38 +922,67 @@ Controller.StudioController = class {
 
     /**
      * Given an array of filter objects, proceeds to apply them recursively to each node in the diagram.
-     * @param filters
+     * and return the matching ones
+     * filter = [{tags:["tag1","tag2"], levels:["1","2","?"]},...]
+     * @param filters {Object[]}
+     * @return {classes: Set(), associations: Set(), matchingMembers: {}}
      */
     filterModel(filters = []) {
         debugger;
+        let realFilters = [], matchingClasses = new Set(), matchingAssociations = new Set(), matchingMembers = {};
 
-        for (let filter of filters) {
-            let filterClass = {};
-
-            if (filter.levels.length > 0) {
-                filterClass.level = (level) => filter.levels.includes(`${level}`)
+        //consolidate filters
+        realFilters[0] = filters.shift();
+        filters.forEach(filter => {
+            if (filter.operator === "") {
+                // AND
+                let pos = realFilters.length - 1;
+                realFilters[pos].tags = realFilters[pos].concat(filter.tags);
+                realFilters[pos].levels = realFilters[pos].concat(filter.levels);
             }
+            else
+                realFilters.push(filter); //OR
+        });
 
-            if (filter.tags.length > 0) {
-                filterClass.tags = classTags => {
-                    for (let tag of filter.tags) {
-                        if (classTags.has(tag))
-                            return true;
+        //evaluate filters
+        for (let filter of filters) {
+            //Evaluate classes and members
+            for (let fmmlxClass of this._model.nodeDataArray) {
+                //Evaluate class match with filters
+                let match = filter.levels.includes(fmmlxClass.level.toString());
+                for (let tag of fmmlxClass.tags) {
+                    if (!match) break;
+                    match = match && filter.tags.includes(tag);
+                }
+                if (match) matchingClasses.add(fmmlxClass);
+
+                //Evaluate member match with filters
+                for (let member of fmmlxClass.members) {
+                    let match = true;
+                    for (let tag of member.tags) {
+                        if (!match) break;
+                        match = match && filter.tags.includes(tag);
                     }
-                    return false;
+                    if (match) {
+                        if (typeof matchingMembers[fmmlxClass] === "undefined") matchingMembers[fmmlxClass.id] = new Set();
+                        matchingMembers[fmmlxClass].add(member);
+                    }
                 }
             }
 
-            if (filter.tags.length > 0 || filter.levels.length > 0) {
-                Helper.Helper.setNodesVisibility(false);
-                let transId = Helper.Helper.beginTransaction("Filtering nodes...");
-                this._diagram.findNodesByExample(filterClass).each(node => node.visible = true);
-                Helper.Helper.commitTransaction(transId);
-
+            //Evaluate associations
+            for (let fmmlxAssociation of this._model.linkDataArray) {
+                let match = true;
+                for (let tag of fmmlxAssociation.tags) {
+                    if (!match) break;
+                    match = match && filter.tags.includes(tag);
+                }
+                if (match) matchingAssociations.add(fmmlxAssociation);
             }
         }
-
+        return {classes: matchingClasses, members: matchingMembers, associations: matchingAssociations}
     }
+
 
     /**
      * Makes the instances and subclasses of fmmlxClass and their descendants visible if they have <level> level
@@ -1004,6 +1033,7 @@ Controller.StudioController = class {
 
         return rootClass;
     }
+
 
     /**
      * Finds the parent of each class in classes and hides all the rest
@@ -1246,7 +1276,10 @@ Controller.StudioController = class {
             let data = node.data;
             if (data.category === Model.FmmlxClass.category) {
                 if (!Array.isArray(flatData.nodes[data.level])) flatData.nodes[data.level] = [];
-                flatData.nodes[data.level].push({data: data.deflate(), location: go.Point.stringify(node.location)});
+                flatData.nodes[data.level].push({
+                    data: data.deflate(),
+                    location: go.Point.stringify(node.location)
+                });
             }
         });
 
