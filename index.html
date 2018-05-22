@@ -150,11 +150,11 @@
                     <span class="helper-text" data-error="Only Alphanumeric or &quot;. , _&quot;"></span>
                 </div>
             </div>
-            <div class="row">
-                <div class="col s5 input-field">
-                    <div class="chips" data-name="tags"></div>
+            <div class="row valign-wrapper">
+                <div class="col s6">
+                    <div class="chips"></div>
                 </div>
-                <div class="col s5 input-field hide">
+                <div class="col s6 input-field hide">
                     <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
                            pattern="^[\w\.,]+$" required/>
                     <label for="class_externalLanguage" data-error="Only Alphanumeric or &quot;. , _&quot;">External
@@ -162,13 +162,13 @@
                     <span class="helper-text" data-error="Only Alphanumeric or &quot;. , _&quot;"></span>
 
                 </div>
-                <div class="col s1 center-align">
+                <div class="col s3 right-align">
                     <label>
                         <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
                         <span>Abstract</span>
                     </label>
                 </div>
-                <div class="col s1 center-align">
+                <div class="col s3 left-align">
                     <label>
                         <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox"
                                name="isExternal"
@@ -223,11 +223,11 @@
 
                 </div>
             </div>
-            <div class="row">
+            <div class="row valign-wrapper">
                 <div class="col s5 input-field">
-                    <div class="chips" data-name="tags"></div>
+                    <div class="chips" id="attributeTag"></div>
                 </div>
-                <div class="col s6 offset-s1 left-align">
+                <div class="col s7 left-align">
                     <label>
                         <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo"
                                data-show="attribute_operationBody" value="true" type="checkbox"/>

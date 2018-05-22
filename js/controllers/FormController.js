@@ -28,6 +28,7 @@ Controller.FormController = class {
      * @private
      */
     static __fillForm(modal, data) {
+
         if (data === null)
             return;
 
@@ -50,13 +51,12 @@ Controller.FormController = class {
 
                 case "select-one":
                     field.val(value);
-                    //field.material_select();
-                    field.formSelect();
                     break;
 
                 default:
                     field.val(value);
-                    field[0].classList.add("active");
+                    field.next("label").addClass("active")
+                    field.change();
                     break;
             }
         }
@@ -69,8 +69,11 @@ Controller.FormController = class {
      * @private
      */
     static __fillSelect(select, options) {
+        let instance = M.FormSelect.getInstance(select);
         select.find(":not([data-keep=true])").remove();
         select.append(options);
+
+        if (instance !== undefined) instance.destroy();
         select.formSelect();//.material_select();
     }
 
@@ -112,30 +115,38 @@ Controller.FormController = class {
     }
 
     static __setupChip(div, tags = [], options = {}) {
-        let currentTags = [], tagData = {}, defaultOptions = {
-            placeHolder: 'Enter a tag',
+        let tokens = [], autoCompleteData = {};
+        let defaultOptions = {
+            placeholder: 'Enter a tag',
             secondaryPlaceholder: '+Tag',
+            limit: Infinity,
             autocompleteOptions: {
-                data: tagData,
                 limit: Infinity,
-                minLength: 1
+                minLength: 1,
+                data: autoCompleteData
             }
         };
 
-        if (div.constructor === $) div = div[0];
-        tags.forEach(tag => currentTags.push(tag));
-        studio.tags.forEach(item => tagData[item] = null);
-        options = Object.assign({}, defaultOptions, options);
+        studio.tags.forEach(tag => autoCompleteData[tag] = null) // formats all the existing tags for the autocomplete
 
-        if (typeof div.dataset.initialized === "undefined") {
-            M.Chips.init(div, options);
-            div.dataset.initialized = "true";
-            $(div).children("input").on("blur", (event) => {
+        tags.forEach(tag => {
+            studio.tags.add(tag);
+            tokens.push({tag: tag}) // formats the tokens
+            autoCompleteData[tag] = null // formats the autoselect options
+        });
+
+        options = Object.assign({}, defaultOptions, options);
+        let chipsInstance = M.Chips.getInstance(div);
+
+        if (chipsInstance === undefined) {
+            chipsInstance = M.Chips.init(div, options);
+            $(div).children("input").on("blur", (event) => { //non-committed text is removed
                 $(event.target).val("")
             })
         }
-        else
-            M.Chips.getInstance(div).autocomplete.updateData(tagData);
+        tokens.forEach(token => chipsInstance.addChip(token));
+
+
     }
 
     static __setupChips(form, tags = [], options = {}) {
@@ -471,7 +482,9 @@ Controller.FormController = class {
         let self = Controller.FormController;
 
         modal.find("form").replaceWith(window._associationForm.clone());
-        //self.__setupExtraDataFields(modal);
+        modal.find("select").formSelect();
+        self.__setupExtraDataFields(modal);
+
 
         if (obj !== null && obj.data !== null) {
             obj.data.src = obj.data.source.name;
@@ -497,8 +510,11 @@ Controller.FormController = class {
     static displayClassForm(event = null, obj = null) {
         let modal = $("#fmmlxClassModal");
         let self = Controller.FormController;
-        modal.find("form").replaceWith(window._classForm.clone());
+        modal.find("form").replaceWith(window._classForm.clone(true));
+        modal.find("select").formSelect();
         self.__setupExtraDataFields(modal);
+
+
         $("#class_level").on("change", function (event) {
             let metaClassSelect = $("#class_metaclass");
             if (!metaClassSelect.prop("disabled")) {
@@ -512,11 +528,13 @@ Controller.FormController = class {
                 self.__fillSelect(metaClassSelect, options);
             }
         });
+
         let tags = [];
         if (obj !== null && obj.data !== null) {
             self.__fillForm(modal, obj.data.deflate()); //its called with deflate so no references are made, only ids are preserved and fields can be filled
             tags = obj.data.tags;
         }
+        self.__setupChips(modal, tags);
 
         $("#addClass").removeClass('pulse');
         let submitBtn = modal.find(".btn-flat");
@@ -525,7 +543,7 @@ Controller.FormController = class {
             .remove("keydown")
             .on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
 
-        self.__setupChips(modal, tags);
+
         modal.modal("open");
     }
 
@@ -597,7 +615,6 @@ Controller.FormController = class {
         let modal = $("#filterModal");
         let self = Controller.FormController;
 
-
         modal.show();
         Controller.FormController.__setupChips(modal, [], {autocompleteOnly: true});
 
@@ -621,6 +638,8 @@ Controller.FormController = class {
         modal.find("form").replaceWith(window._propertyForm.clone());
 
         self.__setupExtraDataFields(modal);
+        modal.find("select").formSelect();
+
 
         let opBodyManager = function () {
             let opBody = modal.find("[name=operationBody]");
@@ -792,11 +811,10 @@ Controller.FormController = class {
     }
 
     static init() {
-        //$("select").material_select();
-        $("select").formSelect();
         window._classForm = $("#fmmlxClassModal").find("form").clone();
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
         window._associationForm = $("#fmmlxAssociationModal").find("form").clone();
+        $("#filterModal").find("select").formSelect(); //just setting up selects for filter modal, every other select is done when showing the modal
         $('.fixed-action-btn').floatingActionButton();
         $(".modal").modal();
     }

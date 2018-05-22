@@ -55,6 +55,7 @@ body {
     cursor: auto;
 }
 
+
 #canvas {
     /*position: relative;*/
     overflow-y: hidden;
