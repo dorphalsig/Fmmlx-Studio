@@ -97,7 +97,7 @@ Controller.FormController = class {
         let fields = form.find(":input:not([disabled])");
         let fieldData = {};
         for (let field of fields) {
-            let name = field.name;
+            let name = field.getAttribute("name");
             if (name !== "") {
                 fieldData[`${name}`] = ((field.type === "checkbox" && field.checked) || field.type !== "checkbox") ? field.value : "";
             } else {
@@ -107,7 +107,7 @@ Controller.FormController = class {
 
 
         for (let field of form.find(".chips").filter(":visible")) {
-            let name = field.dataset.name;
+            let name = field.getAttribute("name");       
             fieldData[name] = [];
             M.Chips.getInstance(field).chipsData.forEach(tag => fieldData[name].push(tag.tag));
         }
@@ -137,6 +137,7 @@ Controller.FormController = class {
 
         options = Object.assign({}, defaultOptions, options);
         let chipsInstance = M.Chips.getInstance(div);
+        div.dataset.initialized = "true";
 
         if (chipsInstance === undefined) {
             chipsInstance = M.Chips.init(div, options);
@@ -292,15 +293,18 @@ Controller.FormController = class {
 
         let newId = `_${Helper.Helper.generateId()}`;
 
-        //destroy filterRow Chips
-        for (let chipHolder of currentChips) {
-            delete chipHolder.dataset.initialized;
-            let instance = M.Chips.getInstance(chipHolder);
-            data.push(instance.chipsData);
-            instance.destroy();
-        }
 
         let newRow = filterRow.clone(true);
+
+        //replace old chips
+        for (let chipHolder of newRow.find(".chips")) {
+            let name = chipHolder.getAttribute("name").replace(/(_.*|$)/, newId); //rename of chip fields
+            let newHolder = document.createElement("DIV");
+            newHolder.setAttribute("name",name)
+            newHolder.classList.add("chips");
+            chipHolder.replaceWith(newHolder);
+        }
+
 
         //rename of input fields
         for (let input of newRow.find("input")) {
@@ -312,21 +316,8 @@ Controller.FormController = class {
             }
         }
 
-        //setup new chips
-        for (let chipHolder of newRow.find(".chips")) {
-            chipHolder.dataset.name = chipHolder.dataset.name.replace(/(_.*|$)/, newId); //rename of chip fields
-            self.__setupChip(chipHolder, [], {autocompleteOnly: true});
-        }
-
-        //reinit previous chips
-        for (let i = 0; i < currentChips.length; i++) {
-            let chipHolder = currentChips[i];
-            let chips = typeof data[i] === "undefined" ? [] : data[i];
-            self.__setupChip(chipHolder, [], {autocompleteOnly: true, data: chips});
-        }
-
-
         newRow.insertAfter(filterRow);
+        self.__setupChips(newRow,[],{autocompleteOnly: true})
     }
 
     static copyMemberToMetaclass(fmmlxClass, member) {
@@ -541,7 +532,7 @@ Controller.FormController = class {
         submitBtn.off("click", self.addEditFmmlxClass).one("click", self.addEditFmmlxClass);
         modal.find(':input')
             .remove("keydown")
-            .on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
+            .on("keydown", (e) => e.key.toLowerCase() === "enter" && $(".chips.focus").length === 0 ? submitBtn.trigger("click") : true);
 
 
         modal.modal("open");
@@ -686,7 +677,7 @@ Controller.FormController = class {
         submitBtn.off("click", self.addEditFmmlxClassMember).one("click", self.addEditFmmlxClassMember);
         modal.find(':input')
             .remove("keydown")
-            .on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
+            .on("keydown", (e) => e.key.toLowerCase() === "enter" && $(".chips.focus").length === 0 ? submitBtn.trigger("click") : true);
         self.__setupChips(modal, tags);
         modal.modal("open");
         event.handled = true;

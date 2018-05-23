@@ -230,7 +230,6 @@ Controller.StudioController = class {
         let valIndex = fmmlxClass.findIndexForValue(val);
         if (valIndex !== null) {
             if (fmmlxClass.memberValues[valIndex].value === null) {
-                console.log(`Assigning value...`);
                 fmmlxClass.memberValues[valIndex].value = value
             }
             else
@@ -928,7 +927,7 @@ Controller.StudioController = class {
      * @return {classes: Set(), associations: Set(), matchingMembers: {}}
      */
     filterModel(filters = []) {
-        debugger;
+        
         let realFilters = [], matchingClasses = new Set(), matchingAssociations = new Set(), matchingMembers = {};
 
         //consolidate filters
@@ -945,26 +944,32 @@ Controller.StudioController = class {
         });
 
         //evaluate filters
-        for (let filter of filters) {
+
+        for (let filter of realFilters) {
             //Evaluate classes and members
             for (let fmmlxClass of this._model.nodeDataArray) {
+                
                 //Evaluate class match with filters
-                let match = filter.levels.includes(fmmlxClass.level.toString());
+                let levelMatch = filter.levels.length === 0 || filter.levels.includes(fmmlxClass.level.toString());
+                let tagMatch = filter.tags.length > 0 && fmmlxClass.tags.size > 0;
+
                 for (let tag of fmmlxClass.tags) {
-                    if (!match) break;
-                    match = match && filter.tags.includes(tag);
+                    if (!tagMatch) break;                                        
+                    tagMatch = tagMatch && filter.tags.includes(tag);
                 }
-                if (match) matchingClasses.add(fmmlxClass);
+
+                if (tagMatch && levelMatch) matchingClasses.add(fmmlxClass);
 
                 //Evaluate member match with filters
                 for (let member of fmmlxClass.members) {
-                    let match = true;
+                    let tagMatch = filter.tags.length > 0 && member.tags.size > 0;
+
                     for (let tag of member.tags) {
-                        if (!match) break;
-                        match = match && filter.tags.includes(tag);
+                        if (!tagMatch) break;
+                        tagMatch = tagMatch && filter.tags.includes(tag);
                     }
-                    if (match) {
-                        if (typeof matchingMembers[fmmlxClass] === "undefined") matchingMembers[fmmlxClass.id] = new Set();
+                    if (tagMatch) {
+                        if (typeof matchingMembers[fmmlxClass] === "undefined") matchingMembers[fmmlxClass.id] = new Set();                        
                         matchingMembers[fmmlxClass].add(member);
                     }
                 }
@@ -972,12 +977,14 @@ Controller.StudioController = class {
 
             //Evaluate associations
             for (let fmmlxAssociation of this._model.linkDataArray) {
-                let match = true;
+                let tagMatch = filter.tags.length > 0 && fmmlxAssociation.tags.length > 0;
+
                 for (let tag of fmmlxAssociation.tags) {
-                    if (!match) break;
-                    match = match && filter.tags.includes(tag);
+                    if (!tagMatch) break;
+                    tagMatch = tagMatch && filter.tags.includes(tag);
                 }
-                if (match) matchingAssociations.add(fmmlxAssociation);
+                
+                if (tagMatch) matchingAssociations.add(fmmlxAssociation);
             }
         }
         return {classes: matchingClasses, members: matchingMembers, associations: matchingAssociations}
