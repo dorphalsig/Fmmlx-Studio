@@ -73,15 +73,16 @@ Helper.Helper = {
      * @param {String} msg
      * @return {String}
      */
-    beginTransaction: function (msg) {
-        let id = this.generateId();
+    beginTransaction: function (msg,baseName="") {
+        let id = `${baseName}-${this.generateId()}`;
         diagram.startTransaction(id);
         console.group(`👉 ${id} :: Begin Transaction ${msg}`);
         return id;
     },
 
     rollbackTransaction: function () {
-        let id = diagram.undoManager.currentTransaction;
+        let txs = diagram.undoManager.nestedTransactionNames;
+        let id = txs.get(txs.length-1);
         diagram.rollbackTransaction();
         console.groupEnd();
         console.warn(`❌ ${id} :: Rolled-back Transaction`);

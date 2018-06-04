@@ -10,10 +10,12 @@ Controller.FormController = class {
         return true;
     }
 
-    static __error(error = undefined) {
+    static __error(error=undefined) {
 
         if (typeof error !== "undefined") {
-            M.toast({html: `<h6 class="lime-text text-accent-1"><strong>ERROR!</strong></h6>&nbsp; ${error.message}`});
+            M.toast({
+                html: `<h6 class="lime-text text-accent-1"><strong>ERROR!</strong></h6>&nbsp; ${error.message}`
+            });
             console.log("\n***********************************");
             console.log(error);
             return;
@@ -42,22 +44,22 @@ Controller.FormController = class {
             }
 
             switch (field.prop("type")) {
-                case "checkbox":
-                    if (field.val() === value.toString()) {
-                        field.click();
-                        field.change();
-                    }
-                    break;
-
-                case "select-one":
-                    field.val(value);
-                    break;
-
-                default:
-                    field.val(value);
-                    field.next("label").addClass("active")
+            case "checkbox":
+                if (field.val() === value.toString()) {
+                    field.click();
                     field.change();
-                    break;
+                }
+                break;
+
+            case "select-one":
+                field.val(value);
+                break;
+
+            default:
+                field.val(value);
+                field.next("label").addClass("active")
+                field.change();
+                break;
             }
         }
     }
@@ -73,8 +75,10 @@ Controller.FormController = class {
         select.find(":not([data-keep=true])").remove();
         select.append(options);
 
-        if (instance !== undefined) instance.destroy();
-        select.formSelect();//.material_select();
+        if (instance !== undefined)
+            instance.destroy();
+        select.formSelect();
+        //.material_select();
     }
 
     /**
@@ -105,17 +109,17 @@ Controller.FormController = class {
             }
         }
 
-
         for (let field of form.find(".chips").filter(":visible")) {
-            let name = field.getAttribute("name");       
+            let name = field.getAttribute("name");
             fieldData[name] = [];
-            M.Chips.getInstance(field).chipsData.forEach(tag => fieldData[name].push(tag.tag));
+            M.Chips.getInstance(field).chipsData.forEach(tag=>fieldData[name].push(tag.tag));
         }
         return fieldData;
     }
 
-    static __setupChip(div, tags = [], options = {}) {
-        let tokens = [], autoCompleteData = {};
+    static __setupChip(div, tags=[], options={}) {
+        let tokens = []
+          , autoCompleteData = {};
         let defaultOptions = {
             placeholder: 'Enter a tag',
             secondaryPlaceholder: '+Tag',
@@ -127,13 +131,19 @@ Controller.FormController = class {
             }
         };
 
-        studio.tags.forEach(tag => autoCompleteData[tag] = null) // formats all the existing tags for the autocomplete
+        studio.tags.forEach(tag=>autoCompleteData[tag] = null)
+        // formats all the existing tags for the autocomplete
 
-        tags.forEach(tag => {
+        tags.forEach(tag=>{
             studio.tags.add(tag);
-            tokens.push({tag: tag}) // formats the tokens
-            autoCompleteData[tag] = null // formats the autoselect options
-        });
+            tokens.push({
+                tag: tag
+            })
+            // formats the tokens
+            autoCompleteData[tag] = null
+            // formats the autoselect options
+        }
+        );
 
         options = Object.assign({}, defaultOptions, options);
         let chipsInstance = M.Chips.getInstance(div);
@@ -141,17 +151,19 @@ Controller.FormController = class {
 
         if (chipsInstance === undefined) {
             chipsInstance = M.Chips.init(div, options);
-            $(div).children("input").on("blur", (event) => { //non-committed text is removed
+            $(div).children("input").on("blur", (event)=>{
+                //non-committed text is removed
                 $(event.target).val("")
-            })
+            }
+            )
         }
-        tokens.forEach(token => chipsInstance.addChip(token));
-
+        tokens.forEach(token=>chipsInstance.addChip(token));
 
     }
 
-    static __setupChips(form, tags = [], options = {}) {
-        for (let chipHolder of form.find(".chips")) this.__setupChip(chipHolder, tags, options)
+    static __setupChips(form, tags=[], options={}) {
+        for (let chipHolder of form.find(".chips"))
+            this.__setupChip(chipHolder, tags, options)
     }
 
     /**
@@ -161,7 +173,7 @@ Controller.FormController = class {
      */
     static __setupExtraDataFields(modal) {
         let self = this;
-        modal.find(".needsExtraInfo").change(function (event) {
+        modal.find(".needsExtraInfo").change(function(event) {
             let form = $(event.target.form);
             let target = $(event.target);
             let show = typeof target.data("show") === "undefined" ? [] : target.data("show").split(",");
@@ -186,9 +198,8 @@ Controller.FormController = class {
         Helper.Helper.setNodesVisibility(false);
         let transId = Helper.Helper.beginTransaction("Showing classes");
         try {
-            classArray.forEach(fmmlxClass => diagram.findNodeForData(fmmlxClass).visible = true)
-        }
-        catch (e) {
+            classArray.forEach(fmmlxClass=>diagram.findNodeForData(fmmlxClass).visible = true)
+        } catch (e) {
             Helper.Helper.rollbackTransaction(transId);
             Helper.Helper.setNodesVisibility(true);
             throw e;
@@ -211,7 +222,9 @@ Controller.FormController = class {
         let self = Controller.FormController;
         try {
             studio.abstractClasses();
-            M.toast({html: "Click on the canvas to insert the class"});
+            M.toast({
+                html: "Click on the canvas to insert the class"
+            });
 
         } catch (e) {
             self.__error(e);
@@ -224,12 +237,15 @@ Controller.FormController = class {
         const form = modal.find("form");
 
         try {
-            if (!form[0].checkValidity()) throw new Error("Invalid input. Check the highlighted fields and try again.");
+            if (!form[0].checkValidity())
+                throw new Error("Invalid input. Check the highlighted fields and try again.");
 
             let formVals = self.__readForm(form);
             if (formVals.id === "") {
                 studio.createFmmlxClass(formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass, formVals.tags);
-                M.toast({html: "Click on the canvas to insert the class"});
+                M.toast({
+                    html: "Click on the canvas to insert the class"
+                });
             } else {
                 studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass, formVals.tags);
             }
@@ -274,14 +290,14 @@ Controller.FormController = class {
         } catch (error) {
             let submitBtn = modal.find(".btn-flat");
             submitBtn.one("click", self.addEditFmmlxClassMember);
-            modal.find(":input").one('keydown', (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
+            modal.find(":input").one('keydown', (e)=>e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
             self.__error(error);
             return;
         }
         modal.modal("close");
         let another = modal.find(".addAnother").prop("checked");
         if (another) {
-            window.setTimeout(() => self.displayMemberForm({}, null, formVals.fmmlxClassId), 500);
+            window.setTimeout(()=>self.displayMemberForm({}, null, formVals.fmmlxClassId), 500);
         }
 
     }
@@ -293,31 +309,33 @@ Controller.FormController = class {
 
         let newId = `_${Helper.Helper.generateId()}`;
 
-
         let newRow = filterRow.clone(true);
 
         //replace old chips
         for (let chipHolder of newRow.find(".chips")) {
-            let name = chipHolder.getAttribute("name").replace(/(_.*|$)/, newId); //rename of chip fields
+            let name = chipHolder.getAttribute("name").replace(/(_.*|$)/, newId);
+            //rename of chip fields
             let newHolder = document.createElement("DIV");
-            newHolder.setAttribute("name",name)
+            newHolder.setAttribute("name", name)
             newHolder.classList.add("chips");
             chipHolder.replaceWith(newHolder);
         }
-
 
         //rename of input fields
         for (let input of newRow.find("input")) {
             if (input.id !== "") {
                 let label = newRow.find(`[for=${input.id}]`);
-                if (label.length > 0) label.prop("for", label.prop("for").replace(/(_.*|$)/, newId));
+                if (label.length > 0)
+                    label.prop("for", label.prop("for").replace(/(_.*|$)/, newId));
                 input.name = input.name.replace(/(_.*|$)/, newId);
                 input.id = input.id.replace(/(_.*|$)/, newId);
             }
         }
 
         newRow.insertAfter(filterRow);
-        self.__setupChips(newRow,[],{autocompleteOnly: true})
+        self.__setupChips(newRow, [], {
+            autocompleteOnly: true
+        })
     }
 
     static copyMemberToMetaclass(fmmlxClass, member) {
@@ -337,13 +355,15 @@ Controller.FormController = class {
     }
 
     static createAssociation(source) {
-        M.toast({html: "Select the target class"});
+        M.toast({
+            html: "Select the target class"
+        });
 
         /**
          *
          * @param {go.DiagramEvent} event
          */
-        let handler = function (event) {
+        let handler = function(event) {
             try {
                 studio._diagram.removeDiagramListener("ObjectSingleClicked", handler);
                 let target = event.subject.part.data;
@@ -368,21 +388,24 @@ Controller.FormController = class {
         let instanceSrc, instanceTgt;
         let self = Controller.FormController;
 
-
-        let toast = M.toast({html: "Choose source"});
+        let toast = M.toast({
+            html: "Choose source"
+        });
         Helper.Helper.setNodesVisibility(false);
         let validDescendants = studio.findValidRelationshipClasses(fmmlxAssociation.source, fmmlxAssociation.sourceIntrinsicness, refinement);
         this.__showClasses(validDescendants);
-        let handlerSrc = function (event) {
+        let handlerSrc = function(event) {
             if (event.subject.part.constructor === go.Node) {
                 diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc);
                 toast.dismiss();
                 instanceSrc = event.subject.part.data;
-                toast = M.toast({html: "Choose target"});
+                toast = M.toast({
+                    html: "Choose target"
+                });
                 Helper.Helper.setNodesVisibility(false);
                 let validDescendants = studio.findValidRelationshipClasses(fmmlxAssociation.target, fmmlxAssociation.targetIntrinsicness, refinement);
                 self.__showClasses(validDescendants);
-                let handlerTgt = function (event) {
+                let handlerTgt = function(event) {
                     if (event.subject.part.constructor === go.Node) {
                         studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt);
                         Helper.Helper.setNodesVisibility(true);
@@ -391,18 +414,20 @@ Controller.FormController = class {
                     }
                 };
                 diagram.addDiagramListener("ObjectSingleClicked", handlerTgt);
-                $('.toast-action').one('click', () => studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt));
+                $('.toast-action').one('click', ()=>studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerTgt));
             }
         };
         studio._diagram.addDiagramListener("ObjectSingleClicked", handlerSrc);
         self.showFilterToast();
-        $('.toast-action').one('click', () => studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc));
+        $('.toast-action').one('click', ()=>studio._diagram.removeDiagramListener("ObjectSingleClicked", handlerSrc));
 
     }
 
     static createInheritance(subclass) {
-        M.toast({html: "Select the superclass"});
-        let handler = function (event) {
+        M.toast({
+            html: "Select the superclass"
+        });
+        let handler = function(event) {
             try {
                 diagram.removeDiagramListener("ObjectSingleClicked", handler);
                 let superclass = event.subject.part.data;
@@ -476,7 +501,6 @@ Controller.FormController = class {
         modal.find("select").formSelect();
         self.__setupExtraDataFields(modal);
 
-
         if (obj !== null && obj.data !== null) {
             obj.data.src = obj.data.source.name;
             obj.data.tgt = obj.data.target.name;
@@ -492,28 +516,25 @@ Controller.FormController = class {
 
         let submitBtn = modal.find(".btn-flat");
         submitBtn.off("click", self.editFmmlxAssociation).one("click", self.editFmmlxAssociation);
-        modal.find(':input')
-            .remove("keydown")
-            .on("keydown", (e) => e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
+        modal.find(':input').remove("keydown").on("keydown", (e)=>e.key.toLowerCase() === "enter" ? submitBtn.trigger("click") : true);
         modal.modal("open");
     }
 
-    static displayClassForm(event = null, obj = null) {
+    static displayClassForm(event=null, obj=null) {
         let modal = $("#fmmlxClassModal");
         let self = Controller.FormController;
         modal.find("form").replaceWith(window._classForm.clone(true));
         modal.find("select").formSelect();
         self.__setupExtraDataFields(modal);
 
-
-        $("#class_level").on("change", function (event) {
+        $("#class_level").on("change", function(event) {
             let metaClassSelect = $("#class_metaclass");
             if (!metaClassSelect.prop("disabled")) {
                 let level = event.target.value;
                 let options = [];
                 for (let fmmlxClass of studio.getClassesByLevel(level)) {
                     if (fmmlxClass.id !== modal.find(`[name=id]`).val()) {
-                        options.push(new Option(fmmlxClass.name, fmmlxClass.id))
+                        options.push(new Option(fmmlxClass.name,fmmlxClass.id))
                     }
                 }
                 self.__fillSelect(metaClassSelect, options);
@@ -522,7 +543,8 @@ Controller.FormController = class {
 
         let tags = [];
         if (obj !== null && obj.data !== null) {
-            self.__fillForm(modal, obj.data.deflate()); //its called with deflate so no references are made, only ids are preserved and fields can be filled
+            self.__fillForm(modal, obj.data.deflate());
+            //its called with deflate so no references are made, only ids are preserved and fields can be filled
             tags = obj.data.tags;
         }
         self.__setupChips(modal, tags);
@@ -530,10 +552,7 @@ Controller.FormController = class {
         $("#addClass").removeClass('pulse');
         let submitBtn = modal.find(".btn-flat");
         submitBtn.off("click", self.addEditFmmlxClass).one("click", self.addEditFmmlxClass);
-        modal.find(':input')
-            .remove("keydown")
-            .on("keydown", (e) => e.key.toLowerCase() === "enter" && $(".chips.focus").length === 0 ? submitBtn.trigger("click") : true);
-
+        modal.find(':input').remove("keydown").on("keydown", (e)=>e.key.toLowerCase() === "enter" && $(".chips.focus").length === 0 ? submitBtn.trigger("click") : true);
 
         modal.modal("open");
     }
@@ -549,51 +568,57 @@ Controller.FormController = class {
         let contextMenus = $(".contextMenu");
         contextMenus.hide();
         switch (target.data.constructor) {
-            case Model.FmmlxClass:
-                menu = $("#classMenu");
-                $("#inherit").off("click").one("click", () => self.createInheritance(target.data));
-                $("#associate").off("click").one("click", () => self.createAssociation(target.data));
-                $("#deleteClass").off("click").one("click", () => self.deleteClass(target.data));
-                $("#abstractClass").off("click").one("click", () => self.abstractClass());
-                $("#addMember").off("click").one("click", () => self.displayMemberForm(inputEvent, target.data));
-                $("#filterChain").off("click").one("click", () => self.filterChains(inputEvent.targetDiagram.selection));
-                break;
+        case Model.FmmlxClass:
+            menu = $("#classMenu");
+            $("#inherit").off("click").one("click", ()=>self.createInheritance(target.data));
+            $("#associate").off("click").one("click", ()=>self.createAssociation(target.data));
+            $("#deleteClass").off("click").one("click", ()=>self.deleteClass(target.data));
+            $("#abstractClass").off("click").one("click", ()=>self.abstractClass());
+            $("#addMember").off("click").one("click", ()=>self.displayMemberForm(inputEvent, target.data));
+            $("#filterChain").off("click").one("click", ()=>self.filterChains(inputEvent.targetDiagram.selection));
+            break;
 
-            case Model.FmmlxProperty:
-                menu = $("#propertyMenu");
-                $("#deleteMemberUpstream").off("click").one("click", () => self.deleteMemberUpstream(target.part.data, target.data));
-                $("#deleteMember").off("click").one("click", () => self.deleteMember(target.part.data, target.data));
-                $("#toMetaclass").off("click").one("click", () => self.copyMemberToMetaclass(target.part.data, target.data));
-                $("#toSuperclass").off("click").one("click", () => self.copyMemberToSuperclass(target.part.data.id, target.data.id));
-                break;
+        case Model.FmmlxProperty:
+            menu = $("#propertyMenu");
+            $("#deleteMemberUpstream").off("click").one("click", ()=>self.deleteMemberUpstream(target.part.data, target.data));
+            $("#deleteMember").off("click").one("click", ()=>self.deleteMember(target.part.data, target.data));
+            $("#toMetaclass").off("click").one("click", ()=>self.copyMemberToMetaclass(target.part.data, target.data));
+            $("#toSuperclass").off("click").one("click", ()=>self.copyMemberToSuperclass(target.part.data.id, target.data.id));
+            break;
 
-            case Model.FmmlxAssociation:
-                menu = $("#associationMenu");
-                let refine = $("#refineAssociation");
-                let instantiate = $("#instantiateAssociation");
-                if (target.part.data.isInstance) {
-                    refine.hide();
-                    instantiate.hide()
-                } else {
-                    refine.show();
-                    instantiate.show();
-                }
-                $("#deleteAssociation").off("click").one("click", () => self.deleteAssociation(target.part.data));
-                instantiate.off("click").one("click", () => self.createAssociationInstanceOrRefinement(target.part.data, false));
-                refine.off("click").one("click", () => self.createAssociationInstanceOrRefinement(target.part.data, true));
-                break;
+        case Model.FmmlxAssociation:
+            menu = $("#associationMenu");
+            let refine = $("#refineAssociation");
+            let instantiate = $("#instantiateAssociation");
+            if (target.part.data.isInstance) {
+                refine.hide();
+                instantiate.hide()
+            } else {
+                refine.show();
+                instantiate.show();
+            }
+            $("#deleteAssociation").off("click").one("click", ()=>self.deleteAssociation(target.part.data));
+            instantiate.off("click").one("click", ()=>self.createAssociationInstanceOrRefinement(target.part.data, false));
+            refine.off("click").one("click", ()=>self.createAssociationInstanceOrRefinement(target.part.data, true));
+            break;
 
-            default: // Inheritance has no model because its just a plain link
-                menu = $("#inheritanceMenu");
-                $("#deleteInheritance").off("click").one("click", () => self.deleteSuperclass(target));
-                break;
+        default:
+            // Inheritance has no model because its just a plain link
+            menu = $("#inheritanceMenu");
+            $("#deleteInheritance").off("click").one("click", ()=>self.deleteSuperclass(target));
+            break;
         }
         let width = menu.css("width");
         menu.css({
-            top: inputEvent.event.pageY, left: inputEvent.event.pageX + 5, display: "block", width: 0,
-        }).animate({width: width}, 300, "swing");
+            top: inputEvent.event.pageY,
+            left: inputEvent.event.pageX + 5,
+            display: "block",
+            width: 0,
+        }).animate({
+            width: width
+        }, 300, "swing");
 
-        $("body,canvas").one("click", () => contextMenus.hide());
+        $("body,canvas").one("click", ()=>contextMenus.hide());
 
         inputEvent.handled = true;
 
@@ -607,23 +632,27 @@ Controller.FormController = class {
         let self = Controller.FormController;
 
         modal.show();
-        Controller.FormController.__setupChips(modal, [], {autocompleteOnly: true});
+        Controller.FormController.__setupChips(modal, [], {
+            autocompleteOnly: true
+        });
 
-        modal.find(".more").off().on("click", e => {
+        modal.find(".more").off().on("click", e=>{
             let filterRow = $(e.target).parents(".filterRow");
             self.cloneFilterRow(filterRow);
-        });
+        }
+        );
 
-        modal.find(".less").off().on("click", e => {
+        modal.find(".less").off().on("click", e=>{
             let filterRow = $(e.target).parents(".filterRow");
             filterRow.remove();
-        });
-        modal.find(".modal-action").off().on("click", e => self.filterModel());
+        }
+        );
+        modal.find(".modal-action").off().on("click", e=>self.filterModel());
         modal.modal("open");
 
     }
 
-    static displayMemberForm(event, obj, id = null) {
+    static displayMemberForm(event, obj, id=null) {
         const self = Controller.FormController;
         const modal = $("#fmmlxAttributeModal");
         modal.find("form").replaceWith(window._propertyForm.clone());
@@ -631,42 +660,41 @@ Controller.FormController = class {
         self.__setupExtraDataFields(modal);
         modal.find("select").formSelect();
 
-
-        let opBodyManager = function () {
+        let opBodyManager = function() {
             let opBody = modal.find("[name=operationBody]");
-            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]")
-                .prop("checked")) ? self.__showField(opBody) : self.__hideField(opBody);
+            (modal.find("[name=isOperation]").prop("checked") && !modal.find("[name=isValue]").prop("checked")) ? self.__showField(opBody) : self.__hideField(opBody);
         };
 
         $("[name=isOperation]").on("change", opBodyManager);
         modal.find("[name=isValue]").on("change", opBodyManager);
         let tags = [];
 
-        if (obj === null || obj.constructor === Model.FmmlxClass) { /*new property,it was right click on  the Class*/
+        if (obj === null || obj.constructor === Model.FmmlxClass) {
+            /*new property,it was right click on  the Class*/
             id = (id === null) ? obj.id : id;
             modal.find("[name=fmmlxClassId]").val(id);
             /* id of the Fmmlx Class that will hold the property+*/
-        }
-        else {
-            obj.data.behaviors.forEach((behavior) => {
+        } else {
+            obj.data.behaviors.forEach((behavior)=>{
                 switch (behavior) {
-                    case "O":
-                        obj.data.isObtainable = "O";
-                        break;
-                    case "D":
-                        obj.data.isDerivable = "D";
-                        break;
-                    case "S":
-                        obj.data.isSimulation = "S";
-                        break;
+                case "O":
+                    obj.data.isObtainable = "O";
+                    break;
+                case "D":
+                    obj.data.isDerivable = "D";
+                    break;
+                case "S":
+                    obj.data.isSimulation = "S";
+                    break;
                 }
-            });
+            }
+            );
             obj.data.fmmlxClassId = obj.part.data.id;
             self.__fillForm(modal, obj.data);
             tags = obj.data.tags;
 
-            $("#attribute_isValue").on("click", () => false);
-            $("#attribute_isOperation").on("click", () => false);
+            $("#attribute_isValue").on("click", ()=>false);
+            $("#attribute_isOperation").on("click", ()=>false);
             delete obj.data.isObtainable;
             delete obj.data.isDerivable;
             delete obj.data.isSimulation;
@@ -675,9 +703,7 @@ Controller.FormController = class {
 
         let submitBtn = modal.find(".btn-flat");
         submitBtn.off("click", self.addEditFmmlxClassMember).one("click", self.addEditFmmlxClassMember);
-        modal.find(':input')
-            .remove("keydown")
-            .on("keydown", (e) => e.key.toLowerCase() === "enter" && $(".chips.focus").length === 0 ? submitBtn.trigger("click") : true);
+        modal.find(':input').remove("keydown").on("keydown", (e)=>e.key.toLowerCase() === "enter" && $(".chips.focus").length === 0 ? submitBtn.trigger("click") : true);
         self.__setupChips(modal, tags);
         modal.modal("open");
         event.handled = true;
@@ -696,13 +722,14 @@ Controller.FormController = class {
         const form = modal.find("form");
 
         try {
-            if (!form[0].checkValidity()) throw new Error("Invalid input. Check the highlighted fields and try again.");
+            if (!form[0].checkValidity())
+                throw new Error("Invalid input. Check the highlighted fields and try again.");
             let formVals = self.__readForm(form);
             studio.editAssociation(formVals.id, formVals.name, formVals.sourceCardinality, formVals.sourceIntrinsicness, formVals.sourceRole, formVals.targetCardinality, formVals.targetIntrinsicness, formVals.targetRole);
         } catch (error) {
             let submitBtn = modal.find(".btn-flat");
             submitBtn.one("click", self.editFmmlxAssociation);
-            modal.find(':input').keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
+            modal.find(':input').keydown((e)=>e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
             self.__error(error);
             return false;
         }
@@ -724,7 +751,7 @@ Controller.FormController = class {
         const self = Controller.FormController;
         self.showFilterToast();
         let classes = [];
-        selection.each((part) => classes.push(part.data));
+        selection.each((part)=>classes.push(part.data));
         self.__showClasses(studio.findTrees(classes));
     }
 
@@ -740,30 +767,33 @@ Controller.FormController = class {
         }
 
         for (let fmmlxClass in matches.members) {
-            if (!matches.members.hasOwnProperty(fmmlxClass)) continue;
+            if (!matches.members.hasOwnProperty(fmmlxClass))
+                continue;
             let node = diagram.findNodeForData(fmmlxClass);
-            if (node === null) throw Exception("")
+            if (node === null)
+                throw Exception("")
 
             for (let member of matches.members[fmmlxClass]) {
                 let section, valueSection;
                 if (member.isOperation) {
                     section = node.findObject("operations");
                     valueSection = node.findObject("operationValues")
-                }
-                else {
+                } else {
                     section = node.findObject("attributes");
                     valueSection = node.findObject("attributeValues");
                 }
 
                 section.findObject("ellipsis").visible = true;
                 let propertyShape = section.findObject("items").findItemPanelForData(member);
-                if (propertyShape !== null) propertyShape.visible = false;
+                if (propertyShape !== null)
+                    propertyShape.visible = false;
 
                 let value = member.getValue(fmmlxClass);
                 if (value !== undefined) {
                     let section = node.findObject("operationValues");
                     let propertyShape = section.findObject("items").findItemPanelForData(value);
-                    if (propertyShape !== null) propertyShape.visible = false;
+                    if (propertyShape !== null)
+                        propertyShape.visible = false;
                 }
 
             }
@@ -773,19 +803,24 @@ Controller.FormController = class {
     }
 
     static filterModel() {
-        let modal = $("#filterModal"), self = Controller.FormController, suffixes = new Set([""]), filters = [];
+        let modal = $("#filterModal")
+          , self = Controller.FormController
+          , suffixes = new Set([""])
+          , filters = [];
         let data = self.__readForm(modal.find("form"));
-        Object.getOwnPropertyNames(data).forEach(name => {
+        Object.getOwnPropertyNames(data).forEach(name=>{
             if (name.indexOf("_") !== -1)
                 suffixes.add("_" + name.split("_")[1]);
-        });
-        suffixes.forEach(suffix => {
+        }
+        );
+        suffixes.forEach(suffix=>{
             filters.push({
-                operator: data [`operator${suffix}`],
+                operator: data[`operator${suffix}`],
                 tags: data[`tags${suffix}`],
                 levels: data[`levels${suffix}`] === "" ? [] : data[`levels${suffix}`].split(/[^\d]+/),
             });
-        });
+        }
+        );
         let matches = studio.filterModel(filters);
         self.doFilter(matches);
         self.showFilterToast();
@@ -794,10 +829,11 @@ Controller.FormController = class {
 
     static importJson() {
         let reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = (e)=>{
             let json = reader.result;
             studio.fromJSON(json);
-        };
+        }
+        ;
         reader.readAsText($("#importFile")[0].files[0]);
     }
 
@@ -805,7 +841,8 @@ Controller.FormController = class {
         window._classForm = $("#fmmlxClassModal").find("form").clone();
         window._propertyForm = $("#fmmlxAttributeModal").find("form").clone();
         window._associationForm = $("#fmmlxAssociationModal").find("form").clone();
-        $("#filterModal").find("select").formSelect(); //just setting up selects for filter modal, every other select is done when showing the modal
+        $("#filterModal").find("select").formSelect();
+        //just setting up selects for filter modal, every other select is done when showing the modal
         $('.fixed-action-btn').floatingActionButton();
         $(".modal").modal();
     }
@@ -814,19 +851,27 @@ Controller.FormController = class {
      * Resets all filters, showing all classes
      */
     static resetFilters() {
-        Helper.Helper.setNodesVisibility(true); // Show Everything
+        Helper.Helper.setNodesVisibility(true);
+        // Show Everything
         let toastElement = $('.filterMessage').parent()[0];
         M.Toast.getInstance(toastElement).dismiss();
-        M.toast({html: "All filters have been reset"});
+        M.toast({
+            html: "All filters have been reset"
+        });
     }
 
     static showFilterToast() {
-        let toastContent = "Filters Updated!", timeOut = 4000;
+        let toastContent = "Filters Updated!"
+          , timeOut = 4000;
 
         if ($('.filterMessage').length === 0) {
             toastContent = '<span class="filterMessage">There are active Filters</span><button class="btn-flat toast-action" onclick="Controller.FormController.resetFilters()">Reset Filters</button>';
             timeOut = Infinity;
         }
-        M.toast({html: toastContent, displayLength: timeOut});
+        M.toast({
+            html: toastContent,
+            displayLength: timeOut
+        });
     }
-};
+}
+;

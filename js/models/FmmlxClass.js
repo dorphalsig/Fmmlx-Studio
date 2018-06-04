@@ -110,22 +110,22 @@ Model.FmmlxClass = class {
          *
          * @type {Model.FmmlxProperty[]}
          */
-        this.attributes = [];
+        this.attributes = new Helper.Set()
         /**
          *
          * @type {Model.FmmlxProperty[]}
          */
-        this.operations = [];
+        this.operations = new Helper.Set();
         /**
          *
          * @type {Model.FmmlxValue[]}
          */
-        this.slotValues = [];
+        this.slotValues = new Helper.Set();
         /**
          *
          * @type {Model.FmmlxValue[]}
          */
-        this.operationValues = [];
+        this.operationValues = new Helper.Set();;
         this.associations = new Helper.Set();
         this.externalLanguage = externalLanguage;
         this.externalMetaclass = externalMetaclass;
@@ -257,18 +257,7 @@ Model.FmmlxClass = class {
      */
     findIndexForMember(property) {
         let array = this.findCorrespondingArray(property);
-        let index = array.findIndex(item => item.equals(property));
-        return index !== -1 ? index : null;
-    }
-
-    /**
-     * returns the corresponding index of an Attribute or Operation, or null if not found
-     * @param value
-     * @return {null|number}
-     */
-    findIndexForValue(value) {
-        let array = this.findCorrespondingArray(value);
-        let index = array.findIndex(item => item.equals(value));
+        let index = array.findIndex(property);
         return index !== -1 ? index : null;
     }
 
@@ -295,6 +284,7 @@ Model.FmmlxClass = class {
             propertyCollection = this.operationValues;
         }
 
+
         let index = propertyCollection.findIndex(val => val.property.equals(property));
         return (index === -1) ? null : propertyCollection[index];
     }
@@ -305,11 +295,8 @@ Model.FmmlxClass = class {
      * @returns {boolean}
      */
     hasMember(member) {
-        let correspondingArray = this.findCorrespondingArray(member);
-        let index = correspondingArray.findIndex(item => {
-            return member.equals(item);
-        });
-        if (index !== -1) {
+        let index = this.findIndexForMember(member);
+        if (index !== null) {
             return true;
         }
 
@@ -352,6 +339,10 @@ Model.FmmlxClass = class {
 
     }
 
+    /**
+     *
+     * @return {Array.<Model.FmmlxProperty>}
+     */
     get memberValues() {
         return this.slotValues.concat(this.operationValues);
     }
