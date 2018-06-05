@@ -24,7 +24,7 @@ Model.FmmlxValue = class {
             isValue: {enumerable: true, configurable: true, value: true, writable: false},
             id: {enumerable: true, configurable: true, get: () => this.property.id + this.class.id},
             value: {enumerable: true, configurable: true, writable: true, value: value},
-            tags: {enumerable: true, configurable: true, writable: true, value: new Set()},
+            tags: {enumerable: true, configurable: true, writable: true, value: property.tags},
             class: {enumerable: true, configurable: true, writable: false, value: fmmlxClass},
             property: {enumerable: true, configurable: true, writable: false, value: property},
 

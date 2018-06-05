@@ -64,14 +64,17 @@ Model.FmmlxProperty = class {
     }
 
 
-
     /**
      * Returns the value instance if there exists for a specified FmmlxClass, if it does not exist, it returns undefined
      * @param  {Model.FmmlxClass} fmmlxClass
-     * @return {V | undefined}
+     * @return {Model.FmmlxValue | undefined}
      */
-    getValue(fmmlxClass) {
-        return this.values.get(fmmlxClass);
+    getValueByClass(fmmlxClass) {
+        for (let val of this.values) {
+            if (val.class.equals(fmmlxClass))
+                return val;
+        }
+        return undefined;
     }
 
     /**
@@ -122,7 +125,7 @@ Model.FmmlxProperty = class {
         let index = this.classes.findIndex(fmmlxClass);
         return index !== -1 ? index : null;
     }
-    
+
 
     /**
      * Inflates a flattened member

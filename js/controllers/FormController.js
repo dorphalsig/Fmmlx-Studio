@@ -772,14 +772,15 @@ Controller.FormController = class {
             diagram.findNodeForData(fmmlxClass).visible = false;
         }
 
-        for (let fmmlxClass in matches.members) {
-            if (!matches.members.hasOwnProperty(fmmlxClass))
-                continue;
+        for (let match of matches.members) {
+            let fmmlxClass = match[0];
+
             let node = diagram.findNodeForData(fmmlxClass);
+
             if (node === null)
                 throw new Error(`Could not find node for ${fmmlxClass.name}.`);
 
-            for (let member of matches.members[fmmlxClass]) {
+            for (let member of match[1]) {
                 let section, valueSection;
                 if (member.isOperation) {
                     section = node.findObject("operations");
@@ -794,7 +795,7 @@ Controller.FormController = class {
                 if (propertyShape !== null)
                     propertyShape.visible = false;
 
-                let value = member.getValue(fmmlxClass);
+                let value = member.getValueByClass(fmmlxClass);
                 if (value !== undefined) {
                     let section = node.findObject("operationValues");
                     let propertyShape = section.findObject("items").findItemPanelForData(value);

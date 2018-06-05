@@ -874,7 +874,7 @@ Controller.StudioController = class {
         let realFilters = []
             , matchingClasses = new Set()
             , matchingAssociations = new Set()
-            , matchingMembers = {};
+            , matchingMembers = new Map();
 
         //consolidate filters
         realFilters[0] = filters.shift();
@@ -919,9 +919,9 @@ Controller.StudioController = class {
                         tagMatch = tagMatch && filter.tags.includes(tag);
                     }
                     if (tagMatch) {
-                        if (typeof matchingMembers[fmmlxClass] === "undefined")
-                            matchingMembers[fmmlxClass.id] = new Set();
-                        matchingMembers[fmmlxClass].add(member);
+                        if (!matchingMembers.has(fmmlxClass))
+                            matchingMembers.set(fmmlxClass, new Set());
+                        matchingMembers.get(fmmlxClass).add(member);
                     }
                 }
             }
