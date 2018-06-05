@@ -110,7 +110,7 @@ Model.FmmlxClass = class {
          *
          * @type {Model.FmmlxProperty[]}
          */
-        this.attributes = new Helper.Set()
+        this.attributes = new Helper.Set();
         /**
          *
          * @type {Model.FmmlxProperty[]}
@@ -125,7 +125,7 @@ Model.FmmlxClass = class {
          *
          * @type {Model.FmmlxValue[]}
          */
-        this.operationValues = new Helper.Set();;
+        this.operationValues = new Helper.Set();
         this.associations = new Helper.Set();
         this.externalLanguage = externalLanguage;
         this.externalMetaclass = externalMetaclass;
@@ -274,19 +274,17 @@ Model.FmmlxClass = class {
     /**
      * Finds the respective <Value> for <Member> if it exists. Returns null otherwise
      * @param {Model.FmmlxProperty} property
-     * @return {null|Model.FmmlxValue}
+     * @return {null|Number}
      */
     findValueFromProperty(property) {
+        let values = (property.isOperation) ? this.operationValues : this.slotValues;
 
-        let propertyCollection = this.slotValues;
-
-        if (property.isOperation) {
-            propertyCollection = this.operationValues;
+        for (value of values) {
+            if (value.property.equals(property))
+                return value;
         }
 
-
-        let index = propertyCollection.findIndex(val => val.property.equals(property));
-        return (index === -1) ? null : propertyCollection[index];
+        return null;
     }
 
     /**

@@ -115,7 +115,7 @@ Controller.StudioController = class {
                 Helper.Helper.commitTransaction(transId);
             } catch (error) {
                 Helper.Helper.rollbackTransaction();
-                //                throw error;
+                throw error;
             }
         };
 
@@ -215,7 +215,7 @@ Controller.StudioController = class {
             console.log("Initial and target levels are the same. Doing nothing.");
             return false;
         } else if (newLevel < 0)
-            throw new Error(`Level would be negative for ${fmmlxClass.name}`)
+            throw new Error(`Level would be negative for ${fmmlxClass.name}`);
 
         if (fmmlxClass.metaclass !== null && fmmlxClass.lastChangeId !== transId) {
             console.log(`Processing metaclass ${fmmlxClass.metaclass.name}...`);
@@ -390,7 +390,7 @@ Controller.StudioController = class {
             } else {
                 assoc = new Model.FmmlxAssociation(source, target, "Instance", association.sourceCardinality, null, association.sourceRole, association.targetCardinality, null, association.targetRole, null, association);
             }
-            studio._model.addLinkData(assoc);
+            this._model.addLinkData(assoc);
             source.addAssociation(assoc);
             target.addAssociation(assoc);
 
@@ -556,29 +556,31 @@ Controller.StudioController = class {
         console.log(`Delete member ${member.name} (and/or its value) from ${fmmlxClass.name}`);
 
         //if prop or value do not exist there's nothing to do.
-        let index = fmmlxClass.findIndexForMember(member);
-        if (index === null) {
+        let memberIndex = fmmlxClass.findIndexForMember(member);
+        let value = fmmlxClass.findValueFromProperty(member);
+
+        if (memberIndex === null && value === null) {
             console.log(`member ${member.name} (and/or its value) not found in ${fmmlxClass.name}!`);
-            return;
+            return
         }
 
         let transId = Helper.Helper.beginTransaction("Deleting member...", "deleteMember");
 
         //Delete member
         try {
-            let array = fmmlxClass.findCorrespondingArray(member);
-            this._model.removeArrayItem(array, index);
+            if (memberIndex !== null) {
+                let array = fmmlxClass.findCorrespondingArray(member);
+                this._model.removeArrayItem(array, memberIndex);
 
-            let classIndex = member.findIndexForClass(fmmlxClass);
-            this._model.removeArrayItem(member.classes, classIndex);
+                let classIndex = member.findIndexForClass(fmmlxClass);
+                this._model.removeArrayItem(member.classes, classIndex);
 
-            if (deleteValues) {
-                let value = fmmlxClass.findValueFromProperty(member);
-                if (value !== null) {
-                    this.deleteValueFromClass(fmmlxClass, value);
-                }
-                this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
             }
+
+            if (deleteValues && value !== null)
+                this.deleteValueFromClass(fmmlxClass, value);
+
+            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
 
             //del downstream
             if (downstream) {
@@ -753,7 +755,7 @@ Controller.StudioController = class {
                 this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
             }
 
-            this.changeClassLevel(fmmlxClass, level)
+            this.changeClassLevel(fmmlxClass, level);
             //if the level changed the whole chain is refreshed and there is no need to refresh the instances
             //to reflect name changes
             /*if (!this.changeClassLevel(fmmlxClass, level)) {
@@ -805,7 +807,9 @@ Controller.StudioController = class {
         };
 
         if (member.isValue) {
-            otherAttributes={value: value};
+            otherAttributes = {
+                value: value
+            };
         }
 
         let transId = Helper.Helper.beginTransaction(`Edit Member ${member.name}`, "editMember");
@@ -821,7 +825,7 @@ Controller.StudioController = class {
 
             this._model.setDataProperty(member, "tags", new Set(tags));
 
-            if (!member.isValue && member.intrinsicness != intrinsicness) {
+            if (!member.isValue && member.intrinsicness !== intrinsicness) {
                 this._model.setDataProperty(member, "intrinsicness", intrinsicness);
 
                 //process each class related to the member
@@ -830,7 +834,7 @@ Controller.StudioController = class {
                 //just in case we make a static clone
 
                 for (let fmmlxClass of classes) {
-                    if (fmmlxClass.lastChangeId != transId) {
+                    if (fmmlxClass.lastChangeId !== transId) {
                         this.processClass(fmmlxClass);
                         this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
                     }
@@ -838,18 +842,17 @@ Controller.StudioController = class {
 
                 for (let value of values) {
                     let fmmlxClass = value.class;
-                    if (fmmlxClass.lastChangeId != transId) {
+                    if (fmmlxClass.lastChangeId !== transId) {
                         this.processClass(fmmlxClass);
                         this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
                     }
                 }
 
-            }
-            else if (member.isValue === false) {
+            } else if (member.isValue === false) {
                 //If the instrinsicness is unchanged, it is necessary to refresh the classes that have the edited member
                 for (let fmmlxClass of member.classes) {
-                    let arrayName = fmmlxClass.findCorrespondingArray(member,true);
-                    this._model.updateTargetBindings(fmmlxClass,arrayName);
+                    let arrayName = fmmlxClass.findCorrespondingArray(member, true);
+                    this._model.updateTargetBindings(fmmlxClass, arrayName);
                 }
             }
         } catch (e) {
@@ -864,7 +867,7 @@ Controller.StudioController = class {
      * and return the matching ones
      * filter = [{tags:["tag1","tag2"], levels:["1","2","?"]},...]
      * @param filters {Object[]}
-     * @return {classes: Set(), associations: Set(), matchingMembers: {}}
+     * @return Object {classes: Set(), associations: Set(), matchingMembers: {}}
      */
     filterModel(filters = []) {
 
@@ -1084,7 +1087,6 @@ Controller.StudioController = class {
                                 this._model.setDataProperty(assocRefinement, "primitive", assoc);
                                 assoc.addRefinement(assocRefinement);
                             }
-                            ;
                         }
                     );
                 }
@@ -1161,7 +1163,6 @@ Controller.StudioController = class {
      *  Then it does the same for each class downstream.
      *
      * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Model.FmmlxProperty} member
      * @param {String} transId
      */
     processClass(fmmlxClass) {
