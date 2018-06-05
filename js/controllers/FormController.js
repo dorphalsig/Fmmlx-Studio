@@ -269,15 +269,16 @@ Controller.FormController = class {
         }
 
         let formVals = self.__readForm(form);
+
         formVals.behaviors = [];
 
-        if (formVals.isObtainable.length > 0) {
+        if (formVals.isObtainable !== undefined && formVals.isObtainable.length > 0) {
             formVals.behaviors.push(formVals.isObtainable);
         }
-        if (formVals.isDerivable.length > 0) {
+        if (formVals.isDerivable !== undefined && formVals.isDerivable.length > 0) {
             formVals.behaviors.push(formVals.isDerivable);
         }
-        if (formVals.isSimulation.length > 0) {
+        if (formVals.isSimulation !== undefined && formVals.isSimulation.length > 0) {
             formVals.behaviors.push(formVals.isSimulation);
         }
 
@@ -675,7 +676,8 @@ Controller.FormController = class {
             modal.find("[name=fmmlxClassId]").val(id);
             /* id of the Fmmlx Class that will hold the property+*/
         } else {
-            obj.data.behaviors.forEach((behavior)=>{
+            if (obj.data.isValue == false) {
+                obj.data.behaviors.forEach((behavior) => {
                 switch (behavior) {
                 case "O":
                     obj.data.isObtainable = "O";
@@ -687,8 +689,10 @@ Controller.FormController = class {
                     obj.data.isSimulation = "S";
                     break;
                 }
+                });
             }
-            );
+
+
             obj.data.fmmlxClassId = obj.part.data.id;
             self.__fillForm(modal, obj.data);
             tags = obj.data.tags;
