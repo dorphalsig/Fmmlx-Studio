@@ -52,7 +52,9 @@ Controller.FormController = class {
                     break;
 
                 case "select-one":
-                    field.val(value);
+                    M.FormSelect.getInstance(field).destroy();
+                    field.val(value.toString());
+                    M.FormSelect.init(field);
                     break;
 
                 default:
@@ -246,7 +248,7 @@ Controller.FormController = class {
                 M.toast({
                     html: "Click on the canvas to insert the class"
                 });
-            } else {
+            } else if (confirm("Please note that changing classification level can possibly break the instantiation and the inheritance chain.\nDo you wish to continue?")) {
                 studio.editFmmlxClass(formVals.id, formVals.name, formVals.level, formVals.isAbstract, formVals.metaclass, formVals.externalLanguage, formVals.externalMetaclass, formVals.tags);
             }
 

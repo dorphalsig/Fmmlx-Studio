@@ -27,6 +27,7 @@ Model.FmmlxValue = class {
             tags: {enumerable: true, configurable: true, writable: true, value: property.tags},
             class: {enumerable: true, configurable: true, writable: false, value: fmmlxClass},
             property: {enumerable: true, configurable: true, writable: false, value: property},
+            intrinsicness: {enumerable: true, configurable: true, get: () => property.intrinsicness},
 
         })
         //return new Proxy(property,this);

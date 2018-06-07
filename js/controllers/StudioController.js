@@ -176,10 +176,13 @@ Controller.StudioController = class {
             console.log(`Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the member's (${member.name}) intrinsicness (${member.intrinsicness}). Doing nothing`);
             return null;
         }
+
+
         let transId = Helper.Helper.beginTransaction("Adding Value to class...", "addValue");
         try {
 
             let val = new Model.FmmlxValue(member, value, fmmlxClass);
+
             let array = fmmlxClass.findCorrespondingArray(val);
             this.deleteMember(fmmlxClass, member);
             if (!array.has(val)) {
@@ -208,24 +211,33 @@ Controller.StudioController = class {
         if (fmmlxClass.lastChangeId === transId)
             return false;
 
-        console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
-        newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
-
         if (newLevel === fmmlxClass.level) {
             console.log("Initial and target levels are the same. Doing nothing.");
             return false;
         } else if (newLevel < 0)
             throw new Error(`Level would be negative for ${fmmlxClass.name}`);
 
-        if (fmmlxClass.metaclass !== null && fmmlxClass.lastChangeId !== transId) {
-            console.log(`Processing metaclass ${fmmlxClass.metaclass.name}...`);
-            this.changeClassLevel(fmmlxClass.metaclass, newLevel + 1, transId);
+        console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
+        let instanceLevel = "?";
+        if (newLevel !== "?") {
+            newLevel = Number.parseInt(newLevel);
+            instanceLevel = newLevel - 1;
         }
+        newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
 
-        if (fmmlxClass.superclass !== null && fmmlxClass.lastChangeId !== transId) {
-            console.log(`Processing supeclass... ${fmmlxClass.superclass.name}.`);
-            this.changeClassLevel(fmmlxClass.superclass, newLevel, transId);
-        }
+
+        /* -- Level change only works downstream
+                if (fmmlxClass.metaclass !== null && fmmlxClass.lastChangeId !== transId) {
+                    console.log(`Processing metaclass ${fmmlxClass.metaclass.name}...`);
+                    this.changeClassLevel(fmmlxClass.metaclass, instanceLevel, transId);
+                }
+
+
+                if (fmmlxClass.superclass !== null && fmmlxClass.lastChangeId !== transId) {
+                    console.log(`Processing supeclass... ${fmmlxClass.superclass.name}.`);
+                    this.changeClassLevel(fmmlxClass.superclass, newLevel, transId);
+                }
+                */
 
         this._model.setDataProperty(fmmlxClass, "level", newLevel);
         this.processClass(fmmlxClass);
@@ -234,14 +246,15 @@ Controller.StudioController = class {
         if (fmmlxClass.instances.length > 0) {
             console.log("Processing instances...");
             for (let instance of fmmlxClass.instances) {
-                this.changeClassLevel(instance, newLevel - 1, transId);
+                this.changeClassLevel(instance, instanceLevel, transId);
             }
         }
 
         if (fmmlxClass.subclasses.length > 0) {
             console.log("Processing subclasses...");
-            for (let subclass of fmmlxClass.subclasses) {
-                this.changeClassLevel(subclass, newLevel, transId);
+            let subclasses = fmmlxClass.subclasses.slice(0);
+            for (let subclass of subclasses) {
+                this.deleteSuperclass(subclass);
             }
         }
 
@@ -676,9 +689,8 @@ Controller.StudioController = class {
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
 
             //remove value from class
-            let arrayName = fmmlxClass.findCorrespondingArray(value, true);
-            let array = fmmlxClass[arrayName];
-            let index = array.findIndex(value);
+            let array = fmmlxClass.findCorrespondingArray(value);
+            //let index = array.findIndex(value);
             this._model.removeArrayItem(array, index);
 
             //remove value from property
@@ -755,7 +767,7 @@ Controller.StudioController = class {
                 this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
             }
 
-            this.changeClassLevel(fmmlxClass, level);
+            this.changeClassLevel(fmmlxClass, level, transId);
             //if the level changed the whole chain is refreshed and there is no need to refresh the instances
             //to reflect name changes
             /*if (!this.changeClassLevel(fmmlxClass, level)) {
@@ -765,7 +777,7 @@ Controller.StudioController = class {
                 }
             }*/
 
-            this.changeClassMetaclass(fmmlxClass, metaclassId);
+            this.changeClassMetaclass(fmmlxClass, metaclassId)
             if (!(tags === null || tags.length === 0)) {
                 fmmlxClass.tags = new Set(tags);
                 tags.forEach(tag => this.tags.add(tag));
@@ -1171,17 +1183,17 @@ Controller.StudioController = class {
         let allMembers = fmmlxClass.members.concat(fmmlxClass.memberValues);
 
         for (let member of allMembers) {
-            let intrinsicness = member.intrinsicness;
+            let intrinsicness = member.intrinsicness;                
             let level = fmmlxClass.level;
 
             if (intrinsicness > level) {
                 //if intrinsicness > level : the member + its value is deleted
                 this.deleteMember(fmmlxClass, member);
-            } else if (intrinsicness === level && intrinsicness !== "?") {
+            } else if (intrinsicness === level && intrinsicness !== "?" && !member.isValue) {
                 // if intrinsicness = level: the member gets deleted +  a value is created
-                //this.deleteMember(fmmlxClass, member, false, true, false);
+                // only if the member is not a value
                 this.addValueToClass(fmmlxClass, member);
-            } else if (member.isValue) {
+            } else if (intrinsicness < level && member.isValue) {
                 //if intrinsicness < level: if there is a value its gets deleted and the member gets added
                 let property = member.property;
                 this.deleteValueFromClass(fmmlxClass, member);

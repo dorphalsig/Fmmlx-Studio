@@ -23,9 +23,12 @@ Model.FmmlxClass = class {
          * @type Number|String
          */
         Object.defineProperty(this, "level", {
-            configurable: false, enumerable: true, get: function () {
+            configurable: false,
+            enumerable: true,
+            get: function () {
                 return this._level;
-            }, set: function (level) {
+            },
+            set: function (level) {
                 if (level !== "?") {
                     let parsedLevel = Number.parseInt(level);
                     if (isNaN(parsedLevel)) {
@@ -42,9 +45,12 @@ Model.FmmlxClass = class {
          * @type Helper.Set
          */
         Object.defineProperty(this, "instances", {
-            configurable: true, enumerable: true, get: function () {
+            configurable: true,
+            enumerable: true,
+            get: function () {
                 return this._instances;
-            }, set: function (val) {
+            },
+            set: function (val) {
                 this._instances = val;
             },
         });
@@ -53,7 +59,9 @@ Model.FmmlxClass = class {
          * @type Number
          */
         Object.defineProperty(this, "distanceFromRoot", {
-            configurable: true, enumerable: true, get: function () {
+            configurable: true,
+            enumerable: true,
+            get: function () {
                 return this._distanceFromRoot;
             },
         });
@@ -62,17 +70,23 @@ Model.FmmlxClass = class {
          * @type boolean
          */
         Object.defineProperty(this, "hasUnknownLevel", {
-            configurable: true, enumerable: true, get: () => this.level === "?",
+            configurable: true,
+            enumerable: true,
+            get: () => this.level === "?",
         });
 
         /**
          * @type Model.FmmlxClass
          */
         Object.defineProperty(this, "metaclass", {
-            configurable: true, enumerable: true, get: () => this._metaclass, set: (val) => {
+            configurable: true,
+            enumerable: true,
+            get: () => this._metaclass,
+            set: (val) => {
                 this._distanceFromRoot = (val === null) ? 0 : val.distanceFromRoot + 1;
                 this._metaclass = val;
-            },
+            }
+            ,
         });
 
         /**
@@ -88,7 +102,9 @@ Model.FmmlxClass = class {
          * @type boolean
          */
         Object.defineProperty(this, "isExternal", {
-            configurable: true, enumerable: true, get: () => this.externalLanguage !== null,
+            configurable: true,
+            enumerable: true,
+            get: () => this.externalLanguage !== null,
         });
 
         Object.defineProperty(this, "filteredAttributes", {
@@ -135,14 +151,17 @@ Model.FmmlxClass = class {
         //let d = new Date(Date.now());
         this.id = Helper.Helper.generateId();
 
-    };
-
+    }
+    ;
     /**
-     *
-     * @param {Model.FmmlxAssociation} association
+     * Returns a partially inflated copy of a flattened class
+     * @param flatClass
+     * @return Model.FmmlxClass
      */
-    addAssociation(association) {
-        this.associations.add(association);
+    static inflate(flatClass) {
+        let partial = new Model.FmmlxClass(flatClass.name, flatClass.level, flatClass.isAbstract, flatClass.externalLanguage, flatClass.externalMetaclass, flatClass.tags);
+        partial.id = flatClass.id;
+        return partial;
     }
 
     /**
@@ -167,6 +186,30 @@ Model.FmmlxClass = class {
 
     get category() {
         return this.constructor.category;
+    }
+
+    /**
+     *
+     * @param {Model.FmmlxAssociation} association
+     */
+    addAssociation(association) {
+        this.associations.add(association);
+    }
+
+    /**
+     * For object comparison. Determines an unique identifier based on the content of the obj
+     * @returns {boolean}
+     */
+    equals(obj) {
+        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
+
+        if (this.isExternal) {
+            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
+        } else if (typeof this.metaclass !== "undefined" && this.metaclass !== null) {
+            val = val && this.metaclass.id === obj.metaclass.id;
+        }
+
+        return val;
     }
 
     /**
@@ -199,7 +242,8 @@ Model.FmmlxClass = class {
             clone.values.push(value.deflate());
         }
         for (let attributeName in clone) {
-            if (attributeName[0] === "_") delete clone[attributeName];
+            if (attributeName[0] === "_")
+                delete clone[attributeName];
         }
         clone.tags = Array.from(this.tags);
 
@@ -210,44 +254,6 @@ Model.FmmlxClass = class {
         delete clone.associations;
 
         return clone;
-    }
-
-    /**
-     * For object comparison. Determines an unique identifier based on the content of the obj
-     * @returns {boolean}
-     */
-    equals(obj) {
-        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
-
-        if (this.isExternal) {
-            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        } else if (typeof this.metaclass !== "undefined" && this.metaclass !== null) {
-            val = val && this.metaclass.id === obj.metaclass.id;
-        }
-
-        return val;
-    }
-
-    /**
-     *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
-     *  if returnName is true, returns the name as a String.
-     * @param {Model.FmmlxProperty|Model.FmmlxValue} member
-     * @param {Boolean} returnName
-     * @return {Model.FmmlxProperty[]|Model.FmmlxValue|String}
-     */
-    findCorrespondingArray(member, returnName = false) {
-        if (member.constructor === Model.FmmlxProperty) {
-            if (member.isOperation) {
-                return (returnName) ? "operations" : this.operations;
-            } else {
-                return (returnName) ? "attributes" : this.attributes;
-            }
-        }
-        if (member.isOperation) {
-            return (returnName) ? "operationValues" : this.operationValues;
-        } else {
-            return (returnName) ? "slotValues" : this.slotValues;
-        }
     }
 
     /**
@@ -262,6 +268,29 @@ Model.FmmlxClass = class {
     }
 
     /**
+     *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
+     *  if returnName is true, returns the name as a String.
+     * @param {Model.FmmlxProperty|Model.FmmlxValue} member
+     * @param {Boolean} returnName
+     * @return {Model.FmmlxProperty[]|Model.FmmlxValue|String}
+     */
+    findCorrespondingArray(member, returnName = false) {
+        if (!member.isValue) {
+            if (member.isOperation) {
+                return (returnName) ? "operations" : this.operations;
+            } else {
+                return (returnName) ? "attributes" : this.attributes;
+            }
+        }
+
+        if (member.property.isOperation) {
+            return (returnName) ? "operationValues" : this.operationValues;
+        } else {
+            return (returnName) ? "slotValues" : this.slotValues;
+        }
+    }
+
+    /**
      * Returns the attribute/operation/*value with the specified id
      * @param memberId
      * @return {Model.FmmlxProperty|Model.FmmlxValue}
@@ -269,22 +298,6 @@ Model.FmmlxClass = class {
     findMemberById(memberId) {
         let members = this.attributes.concat(this.operations).concat(this.slotValues).concat(this.operationValues);
         return members.filter(member => member.id === memberId)[0];
-    }
-
-    /**
-     * Finds the respective <Value> for <Member> if it exists. Returns null otherwise
-     * @param {Model.FmmlxProperty} property
-     * @return {null|Number}
-     */
-    findValueFromProperty(property) {
-        let values = (property.isOperation) ? this.operationValues : this.slotValues;
-
-        for (value of values) {
-            if (value.property.equals(property))
-                return value;
-        }
-
-        return null;
     }
 
     /**
@@ -306,14 +319,19 @@ Model.FmmlxClass = class {
     }
 
     /**
-     * Returns a partially inflated copy of a flattened class
-     * @param flatClass
-     * @return Model.FmmlxClass
+     * Finds the respective <Value> for <Member> if it exists. Returns null otherwise
+     * @param {Model.FmmlxProperty} property
+     * @return {null|Number}
      */
-    static inflate(flatClass) {
-        let partial = new Model.FmmlxClass(flatClass.name, flatClass.level, flatClass.isAbstract, flatClass.externalLanguage, flatClass.externalMetaclass, flatClass.tags);
-        partial.id = flatClass.id;
-        return partial;
+    findValueFromProperty(property) {
+        let values = (property.isOperation) ? this.operationValues : this.slotValues;
+
+        for (let value of values) {
+            if (value.property.equals(property))
+                return value;
+        }
+
+        return null;
     }
 
     /**
@@ -331,7 +349,6 @@ Model.FmmlxClass = class {
             if (!isDescendant && this.superclass !== null) {
                 isDescendant = this.superclass.equals(fmmlxClass) ? true : this.superclass.isDescendantOf(fmmlxClass);
             }
-
 
         }
 
@@ -378,5 +395,5 @@ Model.FmmlxClass = class {
         this.subclasses.remove(subclass);
     }
 
-
-};
+}
+;
