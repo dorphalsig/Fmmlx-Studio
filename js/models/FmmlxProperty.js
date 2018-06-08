@@ -118,12 +118,12 @@ Model.FmmlxProperty = class {
 
     /**
      * returns the corresponding index of an Attribute or Operation, or null if not found
-     * @param property
+     * @param fmmlxClass
      * @return {null|number}
      */
     findIndexForClass(fmmlxClass) {
         let index = this.classes.findIndex(fmmlxClass);
-        return index !== -1 ? index : null;
+        return index !== -1 ? index : null
     }
 
 

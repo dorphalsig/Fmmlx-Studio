@@ -39,7 +39,7 @@ Controller.FormController = class {
             field = $(field);
             let fieldName = field.prop("name");
             let value = data[fieldName];
-            if (typeof value === "undefined") {
+            if (typeof value === "undefined" || value === null) {
                 continue;
             }
 
@@ -140,7 +140,7 @@ Controller.FormController = class {
                 studio.tags.add(tag);
                 tokens.push({
                     tag: tag
-                })
+                });
                 // formats the tokens
                 autoCompleteData[tag] = null
                 // formats the autoselect options

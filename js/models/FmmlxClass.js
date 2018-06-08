@@ -15,7 +15,7 @@ Model.FmmlxClass = class {
      * @param {boolean} isAbstract
      * @param {string} externalLanguage
      * @param {string} externalMetaclass
-     * @params {string[]} tags
+     * @param {string[]} tags
      */
     constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null, tags = []) {
 
@@ -40,6 +40,7 @@ Model.FmmlxClass = class {
                 }
             },
         });
+
 
         /**
          * @type Helper.Set
@@ -110,9 +111,6 @@ Model.FmmlxClass = class {
         Object.defineProperty(this, "filteredAttributes", {
             configurable: true,
             enumerable: true,
-            get: () => {
-                let filtered = false;
-            }
         });
 
         this.metaclass = null;
@@ -152,7 +150,48 @@ Model.FmmlxClass = class {
         this.id = Helper.Helper.generateId();
 
     }
-    ;
+
+    /**
+     * For object comparison. Determines an unique identifier based on the content of the obj
+     * @returns {boolean}
+     */
+    equals(obj) {
+        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
+
+        if (this.isExternal) {
+            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
+        } else if (typeof this.metaclass !== "undefined" && this.metaclass !== null) {
+            val = val && this.metaclass.id === obj.metaclass.id;
+        }
+
+        return val;
+    }
+
+
+    static get category() {
+        return "FmmlxClass";
+    }
+
+    get category() {
+        return this.constructor.category;
+    }
+
+    /**
+     *
+     * @return {Array.<Model.FmmlxProperty>}
+     */
+    get memberValues() {
+        return this.slotValues.concat(this.operationValues);
+    }
+
+    /**
+     *
+     * @return {Array.<Model.FmmlxProperty>}
+     */
+    get members() {
+        return this.attributes.concat(this.operations);
+    }
+
     /**
      * Returns a partially inflated copy of a flattened class
      * @param flatClass
@@ -180,36 +219,12 @@ Model.FmmlxClass = class {
         this.subclasses.add(subclass);
     }
 
-    static get category() {
-        return "FmmlxClass";
-    }
-
-    get category() {
-        return this.constructor.category;
-    }
-
     /**
      *
      * @param {Model.FmmlxAssociation} association
      */
     addAssociation(association) {
         this.associations.add(association);
-    }
-
-    /**
-     * For object comparison. Determines an unique identifier based on the content of the obj
-     * @returns {boolean}
-     */
-    equals(obj) {
-        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
-
-        if (this.isExternal) {
-            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        } else if (typeof this.metaclass !== "undefined" && this.metaclass !== null) {
-            val = val && this.metaclass.id === obj.metaclass.id;
-        }
-
-        return val;
     }
 
     /**
@@ -356,22 +371,6 @@ Model.FmmlxClass = class {
 
     /**
      *
-     * @return {Array.<Model.FmmlxProperty>}
-     */
-    get memberValues() {
-        return this.slotValues.concat(this.operationValues);
-    }
-
-    /**
-     *
-     * @return {Array.<Model.FmmlxProperty>}
-     */
-    get members() {
-        return this.attributes.concat(this.operations);
-    }
-
-    /**
-     *
      * @param {Model.FmmlxAssociation} association
      * @return {*}
      */
@@ -395,5 +394,4 @@ Model.FmmlxClass = class {
         this.subclasses.remove(subclass);
     }
 
-}
-;
+};

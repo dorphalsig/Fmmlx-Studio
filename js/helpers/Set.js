@@ -19,7 +19,7 @@ Helper.Set = class extends Array {
      */
     add(value, force = false) {
         if (force) {
-            super.push(value)
+            super.push(value);
             return true;
         }
         let index = this.findIndex(value);
@@ -34,26 +34,21 @@ Helper.Set = class extends Array {
 
     /**
      *
-     * @param value
+     * @param item
      * @return {*|number}
      */
     findIndex(item) {
-        let index = super.findIndex(collectionItem => (collectionItem.equals !== undefined) ? collectionItem.equals(item) : item === collectionItem);
-        return index;
+        return super.findIndex(collectionItem => {
+            if (collectionItem.equals !== undefined)
+                return collectionItem.equals(item);
+            else
+                return item === collectionItem
+        });
+
     }
 
     has(value) {
         return this.findIndex(value) !== -1;
-    }
-
-    intersection(setB) {
-        let intersection = new Set();
-        for (let elem of setB) {
-            if (this.has(elem)) {
-                intersection.add(elem);
-            }
-        }
-        return intersection;
     }
 
 

@@ -166,7 +166,6 @@ Controller.StudioController = class {
      * @param {Model.FmmlxClass}  fmmlxClass
      * @param {Model.FmmlxProperty} member
      * @param {string} [value]
-     * @param {boolean} [overwrite] determines if the value should be overwritten, false by default
      * @return {Model.FmmlxValue|null}
      */
     addValueToClass(fmmlxClass, member, value = null) {
@@ -586,7 +585,7 @@ Controller.StudioController = class {
                 this._model.removeArrayItem(array, memberIndex);
 
                 let classIndex = member.findIndexForClass(fmmlxClass);
-                this._model.removeArrayItem(member.classes, classIndex);
+                this._model.removeArrayItem(member.classes, classIndex)
 
             }
 
@@ -650,7 +649,6 @@ Controller.StudioController = class {
     /**
      * Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link
      * @param {Model.FmmlxClass|String} subclassOrId
-     * @param {Model.FmmlxClass|String} superclassOrId
      */
     deleteSuperclass(subclassOrId) {
 
@@ -777,7 +775,7 @@ Controller.StudioController = class {
                 }
             }*/
 
-            this.changeClassMetaclass(fmmlxClass, metaclassId)
+            this.changeClassMetaclass(fmmlxClass, metaclassId);
             if (!(tags === null || tags.length === 0)) {
                 fmmlxClass.tags = new Set(tags);
                 tags.forEach(tag => this.tags.add(tag));
@@ -1175,7 +1173,6 @@ Controller.StudioController = class {
      *  Then it does the same for each class downstream.
      *
      * @param {Model.FmmlxClass} fmmlxClass
-     * @param {String} transId
      */
     processClass(fmmlxClass) {
         console.log(`Processing all members in ${fmmlxClass.name}`);
