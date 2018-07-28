@@ -60,6 +60,8 @@ FmmlxShapes.FmmlxClass = class {
         return gMake(go.Node, "Spot", {
             doubleClick: Controller.FormController.displayClassForm,
             contextClick: Controller.FormController.displayContextMenu,
+            fromSpot: go.Spot.AllSides, toSpot: go.Spot.AllSides,
+            locationSpot: go.Spot.Center
         }, new go.Binding("location", "location", go.Point.parse), this._mainBlock, this._externalLanguageBlock);
     }
 

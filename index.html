@@ -13,6 +13,7 @@
 
     <script src="js/vendor/spark-md5/spark-md5_3.0.0.js"></script>
     <script src="js/vendor/gojs/go-debug_1.7.19.js"></script>
+    <script src="js/vendor/gojs/LinkShiftingTool.js"></script>
 
     <script src="js/helpers/Set.js"></script>
     <script src="js/helpers/Helper.js"></script>
@@ -33,6 +34,13 @@
 
         //Modal Init
         $(function () {
+            //friendly leaving page warning
+            window.addEventListener("beforeunload", function (e) {
+                const confirmationMessage = "Are you sure wou want to leave?";
+                (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+                return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+            });
+
             //Set up Modals
             Controller.FormController.init();
             window.studio = new Controller.StudioController();

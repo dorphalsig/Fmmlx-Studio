@@ -84,8 +84,11 @@ FmmlxShapes.FmmlxAssociation = class {
 
         return gMake(fmmlxAssociationLink, {
                 routing: go.Link.Orthogonal,  // may be either Orthogonal or AvoidsNodes
-                reshapable: false,
-                resegmentable: false,
+                reshapable: true,
+                resegmentable: true,
+                relinkableFrom: true,
+                relinkableTo: true,
+                adjusting: go.Link.Stretch,
                 curve: go.Link.JumpGap,
                 doubleClick: Controller.FormController.displayAssociationForm,
                 contextClick: Controller.FormController.displayContextMenu,

@@ -24,7 +24,7 @@ Controller.StudioController = class {
             "undoManager.isEnabled": true,
             // enable Ctrl-Z to undo and Ctrl-Y to redo
             model: new go.GraphLinksModel(),
-            allowDelete: false
+            allowDelete: false,
         });
         window.PIXELRATIO = window.diagram.computePixelRatio();
         window.diagram.nodeTemplateMap.add(Model.FmmlxClass.category, FmmlxShapes.FmmlxClass.shape);
@@ -32,6 +32,7 @@ Controller.StudioController = class {
         window.diagram.linkTemplateMap.add(`fmmlxInheritance`, FmmlxShapes.FmmlxInheritance.shape);
         window.diagram.model.nodeKeyProperty = `id`;
         window.diagram.model.linkKeyProperty = `id`;
+        window.diagram.toolManager.mouseDownTools.add(go.GraphObject.make(LinkShiftingTool));
 
         this._diagram = window.diagram;
         /**
