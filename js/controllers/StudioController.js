@@ -21,8 +21,10 @@ Controller.StudioController = class {
          * @type {go.Diagram | *}
          */
         window.diagram = go.GraphObject.make(go.Diagram, div, {
-            "undoManager.isEnabled": true, // enable Ctrl-Z to undo and Ctrl-Y to redo
-            model: new go.GraphLinksModel(), allowDelete: false
+            "undoManager.isEnabled": true,
+            // enable Ctrl-Z to undo and Ctrl-Y to redo
+            model: new go.GraphLinksModel(),
+            allowDelete: false
         });
         window.PIXELRATIO = window.diagram.computePixelRatio();
         window.diagram.nodeTemplateMap.add(Model.FmmlxClass.category, FmmlxShapes.FmmlxClass.shape);
@@ -37,84 +39,7 @@ Controller.StudioController = class {
          * @private
          */
         this._model = this._diagram.model;
-
-        this._diagram.addDiagramListener("PartRotated", (event) => {
-            console.log(event);
-        });
-    }
-
-    /**
-     * Starts a Transaction and returns he TxID
-     * @param {String} msg
-     * @return {String}
-     * @private
-     */
-    _beginTransaction(msg) {
-        let id = Helper.Helper.uuid4();
-        this._diagram.startTransaction(id);
-        console.group(`👉 ${id} :: Begin Transaction ${msg}`);
-        return id;
-    }
-
-    /**
-     *  Changes the level of an FMMLx Class by delta, reevaluates its properties and propagates the changes downstream, and optionally upstream.
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {number|NaN} delta: NaN => change to "?"
-     * @param upstream
-     * @param transId
-     */
-    _calculateClassLevel(fmmlxClass, delta, upstream, transId) {
-        let lvl = (delta === 0) ? "?" : (fmmlxClass.level === "?") ? delta - fmmlxClass.distanceFromRoot : fmmlxClass.level + delta;
-        console.log(`Chaninging level of ${fmmlxClass.name} from ${fmmlxClass.level} to ${lvl}`);
-
-        if (fmmlxClass.lastChangeId === transId) {
-            console.log("Already processed. Skipping!");
-            return;
-        }
-        this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-
-        if (upstream) {
-            if (fmmlxClass.metaclass !== null) {
-                console.log(`Processing metaclass ${fmmlxClass.metaclass.name}...`);
-                this._calculateClassLevel(fmmlxClass.metaclass, delta, upstream, transId);
-            }
-            if (fmmlxClass.superclass !== null) {
-                console.log(`Processing supeclass... ${fmmlxClass.superclass.name}.`);
-                this._calculateClassLevel(fmmlxClass.superclass, delta, upstream, transId);
-            }
-        }
-
-        this._model.setDataProperty(fmmlxClass, "level", lvl);
-
-        let members = fmmlxClass.attributes.concat(fmmlxClass.operations)
-            .concat(fmmlxClass.slotValues)
-            .concat(fmmlxClass.operationValues);
-
-        for (let member of members) {
-            this.calculatePropertyMaxIntrinsicness(member);
-            this.processMember(fmmlxClass, member);
-        }
-
-        if (fmmlxClass.instances.length > 0) {
-            console.log("Processing instances...");
-            for (let instance of fmmlxClass.instances) {
-                this._calculateClassLevel(instance, delta, false, transId);
-            }
-        }
-
-        if (fmmlxClass.subclasses.length > 0) {
-            console.log("Processing subclasses...");
-
-            for (let subclass of fmmlxClass.subclasses) {
-                this._calculateClassLevel(subclass, delta, true, transId);
-            }
-        }
-    }
-
-    _commitTransaction(transId) {
-        this._diagram.commitTransaction(transId);
-        console.groupEnd();
-        console.log(`✅ ${transId} :: Transaction committed`);
+        this.tags = new Set();
     }
 
     /**
@@ -157,20 +82,17 @@ Controller.StudioController = class {
         let base = parts.pop().data;
 
         return base.members.filter((member) => {
-            let common = true;
-            for (let part of parts) {
-                common = common && part.data.members.some((t) => t.equals(member));
+                let common = true;
+                for (let part of parts) {
+                    common = common && part.data.members.some((t) => t.equals(member));
+                }
+                return common;
             }
-            return common;
-        });
+        );
     }
 
-    _rollbackTransaction() {
-        let id = this._diagram.undoManager.currentTransaction;
-        this._diagram.rollbackTransaction();
-        console.groupEnd();
-        console.warn(`❌ ${id} :: Rolled-back Transaction`);
-
+    _updateTags(tags) {
+        tags.forEach(tag => this.tags.add(tag));
     }
 
     abstractClasses() {
@@ -178,7 +100,7 @@ Controller.StudioController = class {
         let classLevel = fmmlxClassNodes[0].data.level;
         let partCreatedHandler = function (diagramEvent) {
             diagramEvent.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
-            let transId = studio._beginTransaction("Abstracting Selection...");
+            let transId = Helper.Helper.beginTransaction("Abstracting Selection...", "AbsSel");
             try {
                 let commonMembers = studio._findCommonMembers(fmmlxClassNodes);
                 for (let member of commonMembers) {
@@ -190,11 +112,10 @@ Controller.StudioController = class {
                     }
                     studio.changeClassMetaclass(fmmlxClassNode.data, diagramEvent.subject.data.id);
                 }
-                studio._commitTransaction(transId);
-            }
-            catch (error) {
-                studio._rollbackTransaction();
-                //                throw error;
+                Helper.Helper.commitTransaction(transId);
+            } catch (error) {
+                Helper.Helper.rollbackTransaction();
+                throw error;
             }
         };
 
@@ -212,26 +133,30 @@ Controller.StudioController = class {
      * @return {Boolean}
      */
     addMemberToClass(fmmlxClass, member) {
-        console.log(`Adding ${member.name} (${member.id}) to ${fmmlxClass.name}`);
-        //Do nothing if it already exists of if member.intrinsicness >= fmmlxClass.level
-        if (fmmlxClass.level <= member.intrinsicness || fmmlxClass.hasMember(member)) {
-            console.log(`Member already exists OR intrinsicness >= level. doing nothing`);
-            return null;
-        }
+        console.log(`Adding ${member.name} to ${fmmlxClass.name}`);
 
-        let transId = this._beginTransaction(`Adding Member to class...`);
+        let transId = Helper.Helper.beginTransaction(`Adding Member to class...`, "addMember");
         try {
-            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-            let array = fmmlxClass.findCorrespondingArray(member);
-            this._model.addArrayItem(array, member);
-            member.addClass(fmmlxClass);
-            this.calculatePropertyMaxIntrinsicness(member);
-            this.processMember(fmmlxClass, member);
-            this._commitTransaction(transId);
-        }
-        catch (error) {
-            this._rollbackTransaction();
-            throw  error;
+            if (fmmlxClass.lastChangeId !== transId) {
+                this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
+                let array = fmmlxClass.findCorrespondingArray(member);
+                if (!array.has(member)) {
+                    this._model.addArrayItem(array, member);
+                    this._model.addArrayItem(member.classes, fmmlxClass);
+                }
+                this.processClass(fmmlxClass);
+            }
+
+            let downstream = fmmlxClass.instances.concat(fmmlxClass.subclasses);
+
+            for (let aClass of downstream) {
+                this.addMemberToClass(aClass, member);
+            }
+
+            Helper.Helper.commitTransaction(transId);
+        } catch (error) {
+            Helper.Helper.rollbackTransaction();
+            throw error;
         }
     }
 
@@ -241,7 +166,6 @@ Controller.StudioController = class {
      * @param {Model.FmmlxClass}  fmmlxClass
      * @param {Model.FmmlxProperty} member
      * @param {string} [value]
-     * @param {boolean} [overwrite] determines if the value should be overwritten, false by default
      * @return {Model.FmmlxValue|null}
      */
     addValueToClass(fmmlxClass, member, value = null) {
@@ -252,55 +176,25 @@ Controller.StudioController = class {
             return null;
         }
 
-        let val = member.createValue(fmmlxClass, value);
-        let valIndex = fmmlxClass.findIndexForValue(val);
-        if (valIndex !== null) {
-            if (fmmlxClass.memberValues[valIndex].value === null) {
-                console.log(`Assigning value...`);
-                fmmlxClass.memberValues[valIndex].value = value
-            }
-            else
-                console.log(`A value of ${val.name} already exists in ${fmmlxClass.name}. doing Nothing`);
 
-            return null;
-        }
-
-        let transId = this._beginTransaction("Adding Value to class...");
-        //the member gets deleted from here downwards
+        let transId = Helper.Helper.beginTransaction("Adding Value to class...", "addValue");
         try {
-            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-            this.deleteMember(fmmlxClass, val.property);
-            let array = fmmlxClass.findCorrespondingArray(val);
-            this._model.addArrayItem(array, val);
-            this._commitTransaction(transId);
-        }
-        catch (error) {
-            this._rollbackTransaction();
-            throw error;
-        }
-        return val;
-    }
 
-    /**
-     * Calculates a new value of maxIntrinsicness based on Class
-     * if fmmlxClass.level - 1 > fmmlxProperty.maxIntrinsicness => fmmlxProperty.maxIntrinsicness =  fmmlxClass.level - 1
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Model.FmmlxProperty} fmmlxProperty
-     */
-    calculatePropertyMaxIntrinsicness(fmmlxProperty) {
-        fmmlxProperty.maxIntrinsicness = -1;
-        for (let tmp of fmmlxProperty.classes) {
-            if (tmp.level === "?") {
-                fmmlxProperty.maxIntrinsicness = "?";
-                fmmlxProperty.intrinsicness = "?";
-                break;
+            let val = new Model.FmmlxValue(member, value, fmmlxClass);
+
+            let array = fmmlxClass.findCorrespondingArray(val);
+            this.deleteMember(fmmlxClass, member);
+            if (!array.has(val)) {
+                this._model.addArrayItem(array, val);
+                this._model.addArrayItem(member.values, val)
             }
-            else {
-                let level = Number.parseInt(tmp.level);
-                if (fmmlxProperty.maxIntrinsicness === Infinity || fmmlxProperty.maxIntrinsicness < level) {
-                    fmmlxProperty.maxIntrinsicness = level - 1;
-                }
-            }
+
+            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
+            Helper.Helper.commitTransaction(transId);
+            return val;
+        } catch (error) {
+            Helper.Helper.rollbackTransaction();
+            throw error;
         }
     }
 
@@ -308,26 +202,61 @@ Controller.StudioController = class {
      * Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes up and downstream
      * @param fmmlxClass
      * @param newLevel
-     * @return false if the change was not done, true otherwise
+     * @param transId
+     * @return boolean, false if the change was not done, true otherwise
      */
-    changeClassLevel(fmmlxClass, newLevel) {
-        console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
-        newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
+    changeClassLevel(fmmlxClass, newLevel, transId) {
+
+        if (fmmlxClass.lastChangeId === transId)
+            return false;
+
         if (newLevel === fmmlxClass.level) {
             console.log("Initial and target levels are the same. Doing nothing.");
             return false;
+        } else if (newLevel < 0)
+            throw new Error(`Level would be negative for ${fmmlxClass.name}`);
+
+        console.log(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
+        let instanceLevel = "?";
+        if (newLevel !== "?") {
+            newLevel = Number.parseInt(newLevel);
+            instanceLevel = newLevel - 1;
+        }
+        newLevel = newLevel === "?" ? "?" : Number.parseFloat(newLevel);
+
+
+        /* -- Level change only works downstream
+                if (fmmlxClass.metaclass !== null && fmmlxClass.lastChangeId !== transId) {
+                    console.log(`Processing metaclass ${fmmlxClass.metaclass.name}...`);
+                    this.changeClassLevel(fmmlxClass.metaclass, instanceLevel, transId);
+                }
+
+
+                if (fmmlxClass.superclass !== null && fmmlxClass.lastChangeId !== transId) {
+                    console.log(`Processing supeclass... ${fmmlxClass.superclass.name}.`);
+                    this.changeClassLevel(fmmlxClass.superclass, newLevel, transId);
+                }
+                */
+
+        this._model.setDataProperty(fmmlxClass, "level", newLevel);
+        this.processClass(fmmlxClass);
+        this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
+
+        if (fmmlxClass.instances.length > 0) {
+            console.log("Processing instances...");
+            for (let instance of fmmlxClass.instances) {
+                this.changeClassLevel(instance, instanceLevel, transId);
+            }
         }
 
-        let transId = this._beginTransaction("Changing Class level...");
-        let delta = isNaN(newLevel) ? 0 : (fmmlxClass.level === "?") ? newLevel + fmmlxClass.distanceFromRoot : newLevel - fmmlxClass.level;
-        try {
-            this._calculateClassLevel(fmmlxClass, delta, true, transId);
-            this._commitTransaction(transId);
+        if (fmmlxClass.subclasses.length > 0) {
+            console.log("Processing subclasses...");
+            let subclasses = fmmlxClass.subclasses.slice(0);
+            for (let subclass of subclasses) {
+                this.deleteSuperclass(subclass);
+            }
         }
-        catch (error) {
-            this._rollbackTransaction();
-            throw error;
-        }
+
         return true;
     }
 
@@ -357,7 +286,7 @@ Controller.StudioController = class {
         }
 
         console.log(`Change ${fmmlxClass.name}'s metaclass from  ${(fmmlxClass.metaclass === null) ? "Metaclass" : fmmlxClass.metaclass.name} to ${metaclass.name}`);
-        let transId = this._beginTransaction("Changing Metaclass...");
+        let transId = Helper.Helper.beginTransaction("Changing Metaclass...", "changeMeta");
         try {
             this.deleteMetaclass(fmmlxClass);
             this._model.setDataProperty(fmmlxClass, "metaclass", metaclass);
@@ -367,12 +296,11 @@ Controller.StudioController = class {
                 this.addMemberToClass(fmmlxClass, member);
                 this.addValueToClass(fmmlxClass, member);
             }
-        }
-        catch (error) {
-            this._rollbackTransaction();
+        } catch (error) {
+            Helper.Helper.rollbackTransaction();
             throw error;
         }
-        this._commitTransaction(transId);
+        Helper.Helper.commitTransaction(transId);
     }
 
     changeClassSuperclass(superclass, subclass) {
@@ -380,12 +308,14 @@ Controller.StudioController = class {
             console.log("Superclass is null, doing nothing");
             return;
         }
-        if (typeof superclass.level === "undefined" || superclass.id === subclass.id) throw new Error("Invalid selection");
-        if (superclass.level !== subclass.level) throw new Error("Subclass and Superclass must have the same level.");
-        if (subclass.superclass !== null) throw new Error("Subclass already inherits from another class.");
+        if (typeof superclass.level === "undefined" || superclass.id === subclass.id)
+            throw new Error("Invalid selection");
+        if (superclass.level !== subclass.level)
+            throw new Error("Subclass and Superclass must have the same level.");
+        if (subclass.superclass !== null)
+            throw new Error("Subclass already inherits from another class.");
 
-
-        let transId = this._beginTransaction("Creating inheritance");
+        let transId = Helper.Helper.beginTransaction("Creating inheritance", "inherit");
         try {
             let members = superclass.members;
             for (let member of members) {
@@ -395,39 +325,11 @@ Controller.StudioController = class {
             superclass.addSubclass(subclass);
             let data = new Model.FmmlxInheritance(subclass, superclass);
             this._model.addLinkData(data);
-            this._commitTransaction(transId);
-        }
-        catch (e) {
-            this._rollbackTransaction();
+            Helper.Helper.commitTransaction(transId);
+        } catch (e) {
+            Helper.Helper.rollbackTransaction();
             throw e;
         }
-    }
-
-    /**
-     *  Changes the level of an FMMMLx member, if not possible throws an exception. returns true if successful, false otherwise
-     * @param {Model.FmmlxProperty} member
-     * @param newIntrinsicness
-     * @return {Boolean}
-     */
-    changeMemberIntrinsicness(member, newIntrinsicness) {
-        console.log(`Changing ${member.name} intrinsicness from ${member.intrinsicness} to ${newIntrinsicness}`);
-        if (member.intrinsicness.toString() === newIntrinsicness) {
-            console.log("Initial and target instrinsicness are the same. Doing nothing.");
-            return false;
-        }
-        let transId = this._beginTransaction("Changing intrinsicness...");
-        try {
-            this._model.setDataProperty(member, "intrinsicness", newIntrinsicness);
-            for (let fmmlxClass of member.classes) {
-                this.processMember(fmmlxClass, member);
-            }
-            this._commitTransaction(transId);
-        }
-        catch (e) {
-            this._rollbackTransaction();
-            throw e;
-        }
-        return true;
     }
 
     /**
@@ -440,7 +342,8 @@ Controller.StudioController = class {
          * @type {Model.FmmlxClass}
          */
         //let fmmlxClass = this._model.findNodeDataForKey(classId);
-        if (fmmlxClass.metaclass === null) throw new Error("Class has no defined metaclass");
+        if (fmmlxClass.metaclass === null)
+            throw new Error("Class has no defined metaclass");
 
         //let member = fmmlxClass.findMemberById(memberId);
         this.addMemberToClass(fmmlxClass.metaclass, member);
@@ -456,27 +359,31 @@ Controller.StudioController = class {
          * @type {Model.FmmlxClass}
          */
         let fmmlxClass = this._model.findNodeDataForKey(classId);
-        if (fmmlxClass.superclass === null) throw new Error("Class has no defined superclass");
+        if (fmmlxClass.superclass === null)
+            throw new Error("Class has no defined superclass");
 
         let member = fmmlxClass.findMemberById(memberId);
         this.addMemberToClass(fmmlxClass.superclass, member);
     }
 
+    /**
+     * Creates an association from source to target
+     * @param source
+     * @param target
+     */
     createAssociation(source, target) {
         try {
-            let transId = this._beginTransaction(`Associating ${source.name} and ${target.name}`);
+            let transId = Helper.Helper.beginTransaction(`Associating ${source.name} and ${target.name}`, "assoc");
             let assoc = new Model.FmmlxAssociation(source, target, "association", "0,*", "?", "src", "0,*", "?", "dst");
             this._model.addLinkData(assoc);
             source.addAssociation(assoc);
             target.addAssociation(assoc);
-            this._commitTransaction(transId);
-        }
-        catch (err) {
-            studio._rollbackTransaction();
+            Helper.Helper.commitTransaction(transId);
+        } catch (err) {
+            Helper.Helper.rollbackTransaction();
             throw err;
         }
     }
-
 
     /**
      * Given an association, creates an instance or a refinement of it
@@ -486,33 +393,30 @@ Controller.StudioController = class {
      * @param {boolean} isRefinement
      */
     createAssociationInstanceOrRefinement(association, source, target, isRefinement = false) {
-        let transId = this._beginTransaction(`Instantiating assoc ${association.name}`);
+        let transId = Helper.Helper.beginTransaction(`Instantiating assoc ${association.name}`, "instantiate");
         try {
             let assoc;
             if (isRefinement) {
                 assoc = new Model.FmmlxAssociation(source, target, "Refinement", association.sourceCardinality, association.sourceIntrinsicness, association.sourceRole, association.targetCardinality, association.targetIntrinsicness, association.targetRole, association, null);
 
-            }
-            else {
+            } else {
                 assoc = new Model.FmmlxAssociation(source, target, "Instance", association.sourceCardinality, null, association.sourceRole, association.targetCardinality, null, association.targetRole, null, association);
             }
-            studio._model.addLinkData(assoc);
+            this._model.addLinkData(assoc);
             source.addAssociation(assoc);
             target.addAssociation(assoc);
 
-            if(isRefinement){
+            if (isRefinement) {
                 association.addRefinement(assoc);
                 assoc.primitive = association;
-            }
-            else{
+            } else {
                 association.addInstance(assoc);
                 assoc.metaAssociation = association;
             }
 
-            this._commitTransaction(transId);
-        }
-        catch (err) {
-            this._rollbackTransaction();
+            Helper.Helper.commitTransaction(transId);
+        } catch (err) {
+            Helper.Helper.rollbackTransaction();
             throw err;
         }
     }
@@ -525,17 +429,19 @@ Controller.StudioController = class {
      * @param {string} level
      * @param {string} externalLanguage
      * @param {string} externalMetaclass
+     * @param {string[]} tags
      * @returns undefined
      */
-    createFmmlxClass(name, level, isAbstract, metaclassId = "", externalLanguage, externalMetaclass) {
+    createFmmlxClass(name, level, isAbstract, metaclassId = "", externalLanguage, externalMetaclass, tags = []) {
 
         //Step 1 Search for dupes
 
-        let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass);
+        let fmmlxClass = new Model.FmmlxClass(name, level, isAbstract, externalLanguage, externalMetaclass, tags);
         let dupe = this._model.findNodeDataForKey(fmmlxClass.id);
         if (dupe !== null) {
-            throw  new Error(`An equivalent class definition already exists.`);
+            throw new Error(`An equivalent class definition already exists.`);
         }
+        this._updateTags(tags);
         console.log(`Add Class ${name}`);
 
         //The next click on the diagram will insert the class
@@ -543,13 +449,13 @@ Controller.StudioController = class {
         this._diagram.toolManager.clickCreatingTool.isDoubleClick = false;
 
         let partCreatedHandler = (diagramEvent) => {
-            diagramEvent.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
-            let tool = diagramEvent.diagram.toolManager.clickCreatingTool;
-            tool.archetypeNodeData = null;
-            tool.isDoubleClick = true;
-            studio.changeClassMetaclass(diagramEvent.subject.data, metaclassId);
-        };
-
+                diagramEvent.diagram.removeDiagramListener("PartCreated", partCreatedHandler);
+                let tool = diagramEvent.diagram.toolManager.clickCreatingTool;
+                tool.archetypeNodeData = null;
+                tool.isDoubleClick = true;
+                studio.changeClassMetaclass(diagramEvent.subject.data, metaclassId);
+            }
+        ;
 
         //Step 3 once we have a part instance we add its metaclass
         this._diagram.addDiagramListener("PartCreated", partCreatedHandler);
@@ -568,18 +474,21 @@ Controller.StudioController = class {
      * @param {String} isValue
      * @param {String} value
      * @param {String} operationBody
+     * @param {string[]} tags
      */
-    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, behaviors, isValue, value = null, operationBody = null) {
+    createMember(fmmlxClassId, name, type, intrinsicness, isOperation, behaviors, isValue, value = null, operationBody = null, tags = []) {
         let fmmlxClass = this._model.findNodeDataForKey(fmmlxClassId);
         if (Boolean(isValue)) {
             intrinsicness = fmmlxClass.level;
         }
 
-        let member = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors, operationBody);
+        let member = new Model.FmmlxProperty(name, type, intrinsicness, Boolean(isOperation), behaviors, operationBody, tags);
+
         this.addMemberToClass(fmmlxClass, member);
         if (Boolean(isValue)) {
             this.addValueToClass(fmmlxClass, member, value);
         }
+        this._updateTags(tags);
     }
 
     /**
@@ -587,17 +496,18 @@ Controller.StudioController = class {
      * @param {Model.FmmlxAssociation} association
      */
     deleteAssociation(association) {
-        let transId = this._beginTransaction(`Deleting association ${association.name}`);
+        let transId = Helper.Helper.beginTransaction(`Deleting association ${association.name}`, "deleteAssoc");
         try {
             association.source.removeAssociation(association);
             association.target.removeAssociation(association);
-            if (association.metaAssociation !== null) association.metaAssociation.deleteInstance(association);
-            if (association.primitive !== null) association.primitive.deleteRefinement(association);
+            if (association.metaAssociation !== null)
+                association.metaAssociation.deleteInstance(association);
+            if (association.primitive !== null)
+                association.primitive.deleteRefinement(association);
             this._diagram.remove(this._diagram.findLinkForData(association));
-            this._commitTransaction(transId);
-        }
-        catch (err) {
-            this._rollbackTransaction();
+            Helper.Helper.commitTransaction(transId);
+        } catch (err) {
+            Helper.Helper.rollbackTransaction();
             throw err;
         }
     }
@@ -608,7 +518,7 @@ Controller.StudioController = class {
      */
     deleteFmmlxClass(fmmlxClass) {
 
-        let transId = this._beginTransaction(`Deleting class ${fmmlxClass.name}`);
+        let transId = Helper.Helper.beginTransaction(`Deleting class ${fmmlxClass.name}`, "deleteClass");
         try {
             //inheritance -  instantiation
             for (let instance of fmmlxClass.instances) {
@@ -618,7 +528,8 @@ Controller.StudioController = class {
                 this.deleteSuperclass(subclass);
             }
 
-            if (fmmlxClass.superclass !== null) fmmlxClass.superclass.removeSubclass(fmmlxClass);
+            if (fmmlxClass.superclass !== null)
+                fmmlxClass.superclass.removeSubclass(fmmlxClass);
 
             this.deleteMetaclass(fmmlxClass);
 
@@ -634,12 +545,11 @@ Controller.StudioController = class {
             let node = this._diagram.findNodeForData(fmmlxClass);
             this._diagram.remove(node);
             this._model.removeNodeData(fmmlxClass);
-        }
-        catch (error) {
-            this._rollbackTransaction();
+        } catch (error) {
+            Helper.Helper.rollbackTransaction();
             throw error;
         }
-        this._commitTransaction(transId);
+        Helper.Helper.commitTransaction(transId);
     }
 
     /**
@@ -653,62 +563,62 @@ Controller.StudioController = class {
     deleteMember(classOrId, memberOrId, upstream = false, downstream = true, deleteValues = true) {
 
         let fmmlxClass = typeof classOrId === "string" ? this._model.findNodeDataForKey(classOrId) : classOrId;
-        let member = typeof  memberOrId === "string" ? fmmlxClass.findMemberById(memberOrId) : memberOrId;
+        let member = typeof memberOrId === "string" ? fmmlxClass.findMemberById(memberOrId) : memberOrId;
 
         console.log(`Delete member ${member.name} (and/or its value) from ${fmmlxClass.name}`);
 
         //if prop or value do not exist there's nothing to do.
-        if (!fmmlxClass.hasMember(member)) {
+        let memberIndex = fmmlxClass.findIndexForMember(member);
+        let value = fmmlxClass.findValueFromProperty(member);
+
+        if (memberIndex === null && value === null) {
             console.log(`member ${member.name} (and/or its value) not found in ${fmmlxClass.name}!`);
-            return;
+            return
         }
 
-
-        let transId = this._beginTransaction("Deleting member...");
+        let transId = Helper.Helper.beginTransaction("Deleting member...", "deleteMember");
 
         //Delete member
         try {
+            if (memberIndex !== null) {
+                let array = fmmlxClass.findCorrespondingArray(member);
+                this._model.removeArrayItem(array, memberIndex);
+
+                let classIndex = member.findIndexForClass(fmmlxClass);
+                this._model.removeArrayItem(member.classes, classIndex)
+
+            }
+
+            if (deleteValues && value !== null)
+                this.deleteValueFromClass(fmmlxClass, value);
+
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-            let array = fmmlxClass.findCorrespondingArray(member);
-            let index = fmmlxClass.findIndexForMember(member);
-            if (index !== null) {
-                this._model.removeArrayItem(array, index);
-                member.classes.remove(fmmlxClass);
-            }
-
-            if (deleteValues) {
-                let value = fmmlxClass.findValueFromProperty(member);
-                if (value !== null) {
-                    this.deleteValueFromClass(fmmlxClass, value);
-                }
-            }
-
 
             //del downstream
             if (downstream) {
                 for (let instance of fmmlxClass.instances) {
-                    this.deleteMember(instance, member, upstream, downstream, deleteValues);
+                    this.deleteMember(instance, member, false, downstream, deleteValues);
                 }
                 for (let subclass of fmmlxClass.subclasses) {
-                    this.deleteMember(subclass, member, upstream, downstream, deleteValues);
+                    this.deleteMember(subclass, member, false, downstream, deleteValues);
                 }
             }
 
             //del upstream
             if (upstream) {
                 if (fmmlxClass.superclass !== null) {
-                    this.deleteMember(fmmlxClass.superclass, member, upstream, downstream, deleteValues);
+                    this.deleteMember(fmmlxClass.superclass, member, true, downstream, deleteValues);
                 }
                 if (fmmlxClass.metaclass !== null) {
-                    this.deleteMember(fmmlxClass.metaclass, member, upstream, downstream, deleteValues);
+                    this.deleteMember(fmmlxClass.metaclass, member, true, downstream, deleteValues);
                 }
             }
-        }
-        catch (e) {
-            this._rollbackTransaction();
+            Helper.Helper.commitTransaction(transId);
+        } catch (e) {
+            Helper.Helper.rollbackTransaction();
             throw e;
         }
-        this._commitTransaction(transId);
+
     }
 
     /**
@@ -720,7 +630,7 @@ Controller.StudioController = class {
         if (fmmlxClass.metaclass === null) {
             return false;
         }
-        let transId = this._beginTransaction(`Removing old Metaclass from ${fmmlxClass.name}`);
+        let transId = Helper.Helper.beginTransaction(`Removing old Metaclass from ${fmmlxClass.name}`, "deleteMetaclass");
         try {
             let metaclass = fmmlxClass.metaclass;
             let deletableProperties = metaclass.attributes.concat(metaclass.operations);
@@ -729,18 +639,16 @@ Controller.StudioController = class {
             }
             this._model.setDataProperty(fmmlxClass, "metaclass", null);
             metaclass.removeInstance(fmmlxClass);
-        }
-        catch (error) {
-            this._rollbackTransaction();
+        } catch (error) {
+            Helper.Helper.rollbackTransaction();
             throw error;
         }
-        this._commitTransaction(transId);
+        Helper.Helper.commitTransaction(transId);
     }
 
     /**
      * Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link
      * @param {Model.FmmlxClass|String} subclassOrId
-     * @param {Model.FmmlxClass|String} superclassOrId
      */
     deleteSuperclass(subclassOrId) {
 
@@ -753,7 +661,8 @@ Controller.StudioController = class {
         }
         subclass.superclass = null;
         let linkData = this._diagram.findLinksByExample({
-            from: subclass.id, to: superclass.id,
+            from: subclass.id,
+            to: superclass.id,
             category: "fmmlxInheritance"
         }).first().data;
         this._model.removeLinkData(linkData);
@@ -766,28 +675,33 @@ Controller.StudioController = class {
      */
     deleteValueFromClass(fmmlxClass, value) {
         console.log(`Delete Value of ${value.property.name}:${value.property.type} in ${fmmlxClass.name}`);
-        let index = (value !== null) ? fmmlxClass.findIndexForValue(value) : null;
+        let index = (value !== null) ? fmmlxClass.findIndexForMember(value) : null;
         if (index === null) {
             console.log(`Value not found in class. Doing nothing.`);
             return;
         }
 
-        let transId = this._beginTransaction("Deleting value...");
+        let transId = Helper.Helper.beginTransaction("Deleting value...", "deleteValue");
 
         try {
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-            let arrayName = fmmlxClass.findCorrespondingArray(value, true);
-            let array = fmmlxClass[arrayName];
-            value.property.deleteValue(value);
+
+            //remove value from class
+            let array = fmmlxClass.findCorrespondingArray(value);
+            //let index = array.findIndex(value);
             this._model.removeArrayItem(array, index);
 
-        }
-        catch (error) {
-            this._rollbackTransaction(transId);
+            //remove value from property
+            index = value.property.values.findIndex(value);
+            this._model.removeArrayItem(value.property.values, index);
+
+            Helper.Helper.commitTransaction(transId);
+
+        } catch (error) {
+            Helper.Helper.rollbackTransaction(transId);
             throw error;
         }
 
-        this._commitTransaction(transId);
     }
 
     editAssociation(assocId, name, sourceCardinality, sourceIntrinsicness, sourceRole, targetCardinality, targetIntrinsicness, targetRole) {
@@ -796,7 +710,7 @@ Controller.StudioController = class {
          * @type {Model.FmmlxAssociation}
          */
         let association = this._model.findLinkDataForKey(assocId);
-        let transId = this._beginTransaction("Edit Association");
+        let transId = Helper.Helper.beginTransaction("Edit Association", "EditAssoc");
         try {
             this._model.setDataProperty(association, "name", name);
             this._model.setDataProperty(association, "sourceCardinality", sourceCardinality);
@@ -805,13 +719,11 @@ Controller.StudioController = class {
             this._model.setDataProperty(association, "targetCardinality", targetCardinality);
             this._model.setDataProperty(association, "targetIntrinsicness", targetIntrinsicness);
             this._model.setDataProperty(association, "targetRole", targetRole);
-            this._commitTransaction(transId);
-        }
-        catch (error) {
-            this._rollbackTransaction();
+            Helper.Helper.commitTransaction(transId);
+        } catch (error) {
+            Helper.Helper.rollbackTransaction();
             throw error;
         }
-
 
     }
 
@@ -824,8 +736,9 @@ Controller.StudioController = class {
      * @param metaclassId
      * @param externalLanguage
      * @param externalMetaclass
+     * @param {string[]} tags
      */
-    editFmmlxClass(classId, name, level, isAbstract, metaclassId = null, externalLanguage = null, externalMetaclass = null) {
+    editFmmlxClass(classId, name, level, isAbstract, metaclassId = null, externalLanguage = null, externalMetaclass = null, tags = []) {
 
         /**
          *
@@ -840,7 +753,7 @@ Controller.StudioController = class {
             throw new Error("Can not make class abstract because it has instances.");
         }
 
-        let transId = this._beginTransaction("Editing Class...");
+        let transId = Helper.Helper.beginTransaction("Editing Class...", "editClass");
         try {
             this._model.setDataProperty(fmmlxClass, "isAbstract", Boolean(isAbstract));
             this._model.setDataProperty(fmmlxClass, "name", name);
@@ -852,23 +765,27 @@ Controller.StudioController = class {
                 this._model.setDataProperty(fmmlxClass, "externalMetaclass", externalMetaclass);
             }
 
+            this.changeClassLevel(fmmlxClass, level, transId);
             //if the level changed the whole chain is refreshed and there is no need to refresh the instances
             //to reflect name changes
-            if (!this.changeClassLevel(fmmlxClass, level)) {
+            /*if (!this.changeClassLevel(fmmlxClass, level)) {
                 for (let instance of fmmlxClass.instances) {
                     let node = this._diagram.findNodeForData(instance);
                     node.updateTargetBindings();
                 }
-            }
+            }*/
 
             this.changeClassMetaclass(fmmlxClass, metaclassId);
+            if (!(tags === null || tags.length === 0)) {
+                fmmlxClass.tags = new Set(tags);
+                tags.forEach(tag => this.tags.add(tag));
+            }
             this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-        }
-        catch (error) {
-            this._rollbackTransaction();
+            Helper.Helper.commitTransaction(transId);
+        } catch (error) {
+            Helper.Helper.rollbackTransaction();
             throw error;
         }
-        this._commitTransaction(transId);
     }
 
     /**
@@ -881,8 +798,9 @@ Controller.StudioController = class {
      * @param {String[]}behaviors
      * @param {String|Null} value
      * @param {String|Null} operationBody
+     * @param {string[]} tags
      */
-    editMember(classId, memberId, name, type, intrinsicness, behaviors, value = null, operationBody = null) {
+    editMember(classId, memberId, name, type, intrinsicness, behaviors, value = null, operationBody = null, tags = []) {
 
         let node = this._diagram.findNodeForKey(classId);
         /**
@@ -891,12 +809,21 @@ Controller.StudioController = class {
          */
         let fmmlxClass = node.data;
         let member = fmmlxClass.findMemberById(memberId);
-        let otherAttributes = {name: name, type: type, behaviors: behaviors, operationBody: operationBody};
+        let otherAttributes = {
+            name: name,
+            type: type,
+            behaviors: behaviors,
+            operationBody: operationBody
+        };
+
         if (member.isValue) {
-            otherAttributes.value = value;
+            otherAttributes = {
+                value: value
+            };
         }
 
-        let transId = this._beginTransaction(`Edit Member ${member.name}`);
+        let transId = Helper.Helper.beginTransaction(`Edit Member ${member.name}`, "editMember");
+        this._updateTags(tags);
 
         try {
             for (let prop in otherAttributes) {
@@ -906,31 +833,228 @@ Controller.StudioController = class {
                 this._model.setDataProperty(member, prop, otherAttributes[prop]);
             }
 
-            if (!member.isValue && member.intrinsicness.toString() !== intrinsicness) {
-                this.changeMemberIntrinsicness(member, intrinsicness);
-            }
+            this._model.setDataProperty(member, "tags", new Set(tags));
 
-            if (!Boolean(member.isValue)) {
-                //refresh all classes that contain this
+            if (!member.isValue && member.intrinsicness !== intrinsicness) {
+                this._model.setDataProperty(member, "intrinsicness", intrinsicness);
+
+                //process each class related to the member
+                let classes = member.classes.toArray().slice(0);
+                let values = Array.from(member.values.values()).slice(0);
+                //just in case we make a static clone
+
+                for (let fmmlxClass of classes) {
+                    if (fmmlxClass.lastChangeId !== transId) {
+                        this.processClass(fmmlxClass);
+                        this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
+                    }
+                }
+
+                for (let value of values) {
+                    let fmmlxClass = value.class;
+                    if (fmmlxClass.lastChangeId !== transId) {
+                        this.processClass(fmmlxClass);
+                        this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
+                    }
+                }
+
+            } else if (member.isValue === false) {
+                //If the instrinsicness is unchanged, it is necessary to refresh the classes that have the edited member
                 for (let fmmlxClass of member.classes) {
-                    let node = this._diagram.findNodeForKey(fmmlxClass.id);
-                    node.updateTargetBindings();
+                    let arrayName = fmmlxClass.findCorrespondingArray(member, true);
+                    this._model.updateTargetBindings(fmmlxClass, arrayName);
                 }
             }
-            else node.updateTargetBindings();
-
-        }
-        catch (e) {
-            this._rollbackTransaction(e);
+        } catch (e) {
+            Helper.Helper.rollbackTransaction(e);
             throw e;
         }
-        this._commitTransaction(transId);
+        Helper.Helper.commitTransaction(transId);
+    }
+
+    /**
+     * Given an array of filter objects, proceeds to apply them recursively to each node in the diagram.
+     * and return the matching ones
+     * filter = [{tags:["tag1","tag2"], levels:["1","2","?"]},...]
+     * @param filters {Object[]}
+     * @return Object {classes: Set(), associations: Set(), matchingMembers: {}}
+     */
+    filterModel(filters = []) {
+
+        let realFilters = []
+            , matchingClasses = new Set()
+            , matchingAssociations = new Set()
+            , matchingMembers = new Map();
+
+        //consolidate filters
+        realFilters[0] = filters.shift();
+        filters.forEach(filter => {
+                if (filter.operator === "") {
+                    // AND
+                    let pos = realFilters.length - 1;
+                    realFilters[pos].tags = realFilters[pos].concat(filter.tags);
+                    realFilters[pos].levels = realFilters[pos].concat(filter.levels);
+                } else
+                    realFilters.push(filter);
+                //OR
+            }
+        );
+
+        //evaluate filters
+
+        for (let filter of realFilters) {
+            //Evaluate classes and members
+            for (let fmmlxClass of this._model.nodeDataArray) {
+
+                //Evaluate class match with filters
+                let levelMatch = filter.levels.length === 0 || filter.levels.includes(fmmlxClass.level.toString());
+                let tagMatch = filter.tags.length > 0 && fmmlxClass.tags.size > 0;
+
+                for (let tag of fmmlxClass.tags) {
+                    if (!tagMatch)
+                        break;
+                    tagMatch = tagMatch && filter.tags.includes(tag);
+                }
+
+                if (tagMatch && levelMatch)
+                    matchingClasses.add(fmmlxClass);
+
+                //Evaluate member match with filters
+                for (let member of fmmlxClass.members) {
+                    let tagMatch = filter.tags.length > 0 && member.tags.size > 0;
+
+                    for (let tag of member.tags) {
+                        if (!tagMatch)
+                            break;
+                        tagMatch = tagMatch && filter.tags.includes(tag);
+                    }
+                    if (tagMatch) {
+                        if (!matchingMembers.has(fmmlxClass))
+                            matchingMembers.set(fmmlxClass, new Set());
+                        matchingMembers.get(fmmlxClass).add(member);
+                    }
+                }
+            }
+
+            //Evaluate associations
+            for (let fmmlxAssociation of this._model.linkDataArray) {
+                let tagMatch = filter.tags.length > 0 && fmmlxAssociation.tags.length > 0;
+
+                for (let tag of fmmlxAssociation.tags) {
+                    if (!tagMatch)
+                        break;
+                    tagMatch = tagMatch && filter.tags.includes(tag);
+                }
+
+                if (tagMatch)
+                    matchingAssociations.add(fmmlxAssociation);
+            }
+        }
+        return {
+            classes: matchingClasses,
+            members: matchingMembers,
+            associations: matchingAssociations
+        }
+    }
+
+    /**
+     * Makes the instances and subclasses of fmmlxClass and their descendants visible if they have <level> level
+     * if <level> is not specified, all descendants are shown.
+     * @param {Model.FmmlxClass} fmmlxClass
+     */
+    findDescendants(fmmlxClass) {
+        let children = [];
+
+        for (let instance of fmmlxClass.instances) {
+            let tmpBranch = this.findDescendants(instance);
+            tmpBranch.push(instance);
+            children = children.concat(tmpBranch);
+        }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            let tmpBranch = this.findDescendants(subclass);
+            tmpBranch.push(subclass);
+            children = children.concat(tmpBranch);
+        }
+        return children;
+    }
+
+    /**
+     * Finds the possible Root classes of fmmlxClass and returns the ids in a set
+     * The root is defined as the class with highest abstraction level that has metaclass === null
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @returns {Model.FmmlxClass}
+     */
+    findRoot(fmmlxClass) {
+        let roots = new Helper.Set();
+
+        let metaRoot = (fmmlxClass.metaclass === null) ? fmmlxClass : this.findRoot(fmmlxClass.metaclass);
+        roots.add(metaRoot);
+
+        if (fmmlxClass.superclass !== null) {
+            let superRoots = this.findRoot(fmmlxClass.superclass);
+            for (let superRoot of superRoots) {
+                roots.add(superRoot);
+            }
+        }
+
+        let rootClass = null;
+        for (let possibleRoot of roots) {
+            //let tmpClass = this._model.findNodeDataForKey(id);
+            if (rootClass === null || parseInt(possibleRoot.level) > parseInt(rootClass.level))
+                rootClass = possibleRoot;
+        }
+
+        return rootClass;
+    }
+
+    /**
+     * Finds the parent of each class in classes and hides all the rest
+     * @param {Model.FmmlxClass[]} selectedClasses
+     */
+    findTrees(selectedClasses) {
+        let chain = [];
+        Helper.Helper.setNodesVisibility(false);
+        // hides all classes
+        for (let selectedClass of selectedClasses) {
+            let root = this.findRoot(selectedClass);
+            chain.push(root);
+            chain = chain.concat(this.findDescendants(root));
+        }
+        return chain
+    }
+
+    /**
+     * Returns an array of valid FmmlxClasses for refinement of a relationship.
+     * Valid endpoints for *REFINEMENT* are descendants of each endpoint with *minLevel > intrinsicness*
+     * Valid endpoints for *INSTANTIATION* are descendants of each endpoint with *minLevel <= intrinsicness*
+     * @param {Model.FmmlxClass} fmmlxClass
+     * @param {string} intrinsicness
+     * @param {boolean} refinement
+     */
+    findValidRelationshipClasses(fmmlxClass, intrinsicness, refinement) {
+        let validClasses = [];
+
+        for (let instance of fmmlxClass.instances) {
+            if (intrinsicness === "?" || (refinement && Number.parseInt(instance.level) > Number.parseInt(intrinsicness)) || (!refinement && Number.parseInt(instance.level) <= Number.parseInt(intrinsicness)))
+                validClasses.push(instance);
+            validClasses = validClasses.concat(this.findValidRelationshipClasses(instance, intrinsicness, refinement));
+        }
+
+        for (let subclass of fmmlxClass.subclasses) {
+            if (intrinsicness === "?" || (refinement && Number.parseInt(subclass.level) > Number.parseInt(intrinsicness)) || (!refinement && Number.parseInt(subclass.level) <= Number.parseInt(intrinsicness)))
+                validClasses.push(subclass);
+            validClasses = this.findValidRelationshipClasses(instance, intrinsicness, refinement).concat(validClasses);
+        }
+
+        return validClasses;
     }
 
     fromJSON(jsonData) {
-        let transId = this._beginTransaction("Importing JSON");
+        let transId = Helper.Helper.beginTransaction("Importing JSON", "import");
         try {
             let flatData = JSON.parse(jsonData);
+
             while (flatData.nodes.length > 0) {
                 let level = flatData.nodes.pop();
                 if (Array.isArray(level)) {
@@ -945,8 +1069,7 @@ Controller.StudioController = class {
                     let subclass = this._model.findLinkDataForKey(link.subclass);
                     let superclass = this._model.findLinkDataForKey(link.superclass);
                     this.changeClassSuperclass(superclass, subclass);
-                }
-                else if (link.category === Model.FmmlxAssociation.category) {
+                } else if (link.category === Model.FmmlxAssociation.category) {
 
                     let source = this._model.findNodeDataForKey(link.source);
                     let target = this._model.findNodeDataForKey(link.target);
@@ -954,33 +1077,34 @@ Controller.StudioController = class {
                     let metaAssoc = (link.metaAssociation !== null) ? this._model.findLinkDataForKey(link.metaAssociation) : null;
                     let assoc = Model.FmmlxAssociation.inflate(link, source, target, primitive, metaAssoc);
                     this._model.addLinkData(assoc);
-                    for (let instance of link.instances) {
-                        /**
-                         * @type {Model.FmmlxAssociation}
-                         */
-                        let assocInstance = this._model.findLinkDataForKey(instance);
-                        if (assocInstance !== null) {
-                            this._model.setDataProperty(assocInstance, "metaAssoc", assoc);
-                            assoc.addInstance(assocInstance);
+                    link.instances.forEach(instance => {
+                            /**
+                             * @type {Model.FmmlxAssociation}
+                             */
+                            let assocInstance = this._model.findLinkDataForKey(instance);
+                            if (assocInstance !== null) {
+                                this._model.setDataProperty(assocInstance, "metaAssoc", assoc);
+                                assoc.addInstance(assocInstance);
+                            }
                         }
-                    }
-
-                    for (let refinement of link.refinements) {
-                        /**
-                         * @type {Model.FmmlxAssociation}
-                         */
-                        let assocRefinement = this._model.findLinkDataForKey(refinement);
-                        if (assocRefinement !== null) {
-                            this._model.setDataProperty(assocRefinement, "primitive", assoc);
-                            assoc.addRefinement(assocRefinement);
+                    );
+                    link.refinements.forEach(refinement => {
+                            /**
+                             * @type {Model.FmmlxAssociation}
+                             */
+                            let assocRefinement = this._model.findLinkDataForKey(refinement);
+                            if (assocRefinement !== null) {
+                                this._model.setDataProperty(assocRefinement, "primitive", assoc);
+                                assoc.addRefinement(assocRefinement);
+                            }
                         }
-                    }
+                    );
                 }
             }
-            this._commitTransaction(transId);
-        }
-        catch (err) {
-            this._rollbackTransaction();
+
+            Helper.Helper.commitTransaction(transId);
+        } catch (err) {
+            Helper.Helper.rollbackTransaction();
             throw err;
         }
     }
@@ -993,7 +1117,9 @@ Controller.StudioController = class {
     getClassesByLevel(level) {
 
         let targetLevel = (level !== "?") ? Number.parseInt(level) + 1 : "?";
-        return this._filterClasses({level: targetLevel});
+        return this._filterClasses({
+            level: targetLevel
+        });
     }
 
     /**
@@ -1002,7 +1128,7 @@ Controller.StudioController = class {
      * @return {go.Node}
      */
     inflateClass(flatClass) {
-        let transId = this._beginTransaction(`Inflating ${flatClass.name}`);
+        let transId = Helper.Helper.beginTransaction(`Inflating ${flatClass.name}`, "inflate");
         try {
             /**
              * @type {Model.FmmlxClass}
@@ -1010,6 +1136,7 @@ Controller.StudioController = class {
             let fmmlxClass = Model.FmmlxClass.inflate(flatClass);
             this._model.addNodeData(fmmlxClass);
             this.changeClassMetaclass(fmmlxClass, flatClass.metaclass);
+            this._updateTags(flatClass.tags);
 
             if (flatClass.superclass !== null) {
                 let superclass = this._model.findNodeDataForKey(flatClass.superclass);
@@ -1017,8 +1144,10 @@ Controller.StudioController = class {
             }
 
             for (let flatMember of flatClass.members) {
-                let member = Model.FmmlxProperty.inflate(flatMember)
+                let member = Model.FmmlxProperty.inflate(flatMember);
                 this.addMemberToClass(fmmlxClass, member);
+                if (flatMember.tags !== undefined && flatMember.tags.length > 0)
+                    this._updateTags(flatMember.tags)
             }
 
             for (let flatValue of flatClass.values) {
@@ -1027,11 +1156,10 @@ Controller.StudioController = class {
             }
 
             this._diagram.findNodeForKey(fmmlxClass.id).updateTargetBindings();
-            this._commitTransaction(transId);
+            Helper.Helper.commitTransaction(transId);
             return this._diagram.findNodeForKey(fmmlxClass.id);
-        }
-        catch (e) {
-            this._rollbackTransaction();
+        } catch (e) {
+            Helper.Helper.rollbackTransaction();
             throw e;
         }
     }
@@ -1045,136 +1173,67 @@ Controller.StudioController = class {
      *  Then it does the same for each class downstream.
      *
      * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Model.FmmlxProperty} member
-     * @param {String} transId
      */
-    processMember(fmmlxClass, member, transId = null) {
+    processClass(fmmlxClass) {
+        console.log(`Processing all members in ${fmmlxClass.name}`);
 
-        let localCommit = false;
-        if (transId === null) {
-            transId = this._beginTransaction(`Processing Member ${member.name} in class ${fmmlxClass.name}`);
-            localCommit = true;
-        }
-        else {
-            console.log(`Processing Member ${member.name} in class ${fmmlxClass.name}`);
-        }
+        let allMembers = fmmlxClass.members.concat(fmmlxClass.memberValues);
 
-        try {
-            //if its already processed do nothing
-            if (transId === fmmlxClass.lastChangeId) {
-                console.log(`Transaction already processed. Doing nothing.`);
-                return;
-            }
-            this._model.setDataProperty(fmmlxClass, "lastChangeId", transId);
-            let intrinsicness = member.intrinsicness;
+        for (let member of allMembers) {
+            let intrinsicness = member.intrinsicness;                
             let level = fmmlxClass.level;
 
-            if (intrinsicness > level) { //if intrinsicness > level : the member + its value is deleted
+            if (intrinsicness > level) {
+                //if intrinsicness > level : the member + its value is deleted
                 this.deleteMember(fmmlxClass, member);
-            }
-            else if (intrinsicness === level && intrinsicness !== "?") { // if intrinsicness = level: the member gets deleted +  a value is created
-                this.deleteMember(fmmlxClass, member, false, true, false);
+            } else if (intrinsicness === level && intrinsicness !== "?" && !member.isValue) {
+                // if intrinsicness = level: the member gets deleted +  a value is created
+                // only if the member is not a value
                 this.addValueToClass(fmmlxClass, member);
-            }
-            else { //if intrinsicness < level: if there is a value its gets deleted and the member gets added
-                let val = "";
-                if (member.isValue) {
-                    val = member;
-                    member = member.property;
-                }
-                else {
-                    val = fmmlxClass.findValueFromProperty(member);
-                }
-
-                if (val !== null) {
-                    this.deleteValueFromClass(fmmlxClass, val);
-                }
-                this.addMemberToClass(fmmlxClass, member);
-            }
-
-            // this._model.updateTargetBindings(fmmlxClass);
-
-            for (let instance of fmmlxClass.instances) {
-                this.processMember(instance, member, transId);
-            }
-
-            for (let subclass of fmmlxClass.subclasses) {
-                this.processMember(subclass, member, transId);
-            }
-            if (localCommit) {
-                this._commitTransaction(transId);
+            } else if (intrinsicness < level && member.isValue) {
+                //if intrinsicness < level: if there is a value its gets deleted and the member gets added
+                let property = member.property;
+                this.deleteValueFromClass(fmmlxClass, member);
+                this.addMemberToClass(fmmlxClass, property);
             }
         }
-        catch (e) {
-            if (localCommit) {
-                this._rollbackTransaction();
-            }
-            throw e;
 
-        }
-
-    }
-
-    /**
-     * Changes the visibility of all nodes
-     * @param {boolean} visible if true the nodes are visible, else they are not.
-     */
-    setNodesVisibility(visible) {
-        let transId = this._beginTransaction("Hiding/Showing all nodes");
-        try {
-            this._diagram.nodes.each(node => node.visible = visible);
-            this._commitTransaction(transId);
-        }
-        catch (err) {
-            this._rollbackTransaction();
-            throw err;
-        }
-    }
-
-    /**
-     * Makes the instances and subclasses of fmmlxClass and their descendants visible if they have <level> level
-     * if <level> is not specified, all descendants are shown.
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {Number} level
-     */
-    showDescendantsOf(fmmlxClass, level = null) {
-
-        for (let instance of fmmlxClass.instances) {
-            let node = this._diagram.findNodeForKey(instance.id);
-            if (level === null || instance.level === Number.parseInt(level)) node.visible = true;
-            this.showDescendantsOf(instance);
-        }
-
-        for (let subclass of fmmlxClass.subclasses) {
-            let node = this._diagram.findNodeForKey(subclass.id);
-            if (level === null || subclass.level === Number.parseInt(level)) node.visible = true;
-            this.showDescendantsOf(subclass);
-        }
     }
 
     /**
      * Exports the diagram as JSON
      */
     toJSON() {
-        let flatData = {nodes: [], links: []};
+        let flatData = {
+            nodes: [],
+            links: []
+        };
         this._diagram.nodes.each((node) => {
-            let data = node.data;
-            if (data.category === Model.FmmlxClass.category) {
-                if (!Array.isArray(flatData.nodes[data.level])) flatData.nodes[data.level] = [];
-                flatData.nodes[data.level].push({data: data.deflate(), location: go.Point.stringify(node.location)});
+                let data = node.data;
+                if (data.category === Model.FmmlxClass.category) {
+                    if (!Array.isArray(flatData.nodes[data.level]))
+                        flatData.nodes[data.level] = [];
+                    flatData.nodes[data.level].push({
+                        data: data.deflate(),
+                        location: go.Point.stringify(node.location)
+                    });
+                }
             }
-        });
+        );
 
         this._diagram.links.each((link) => {
-            flatData.links.push(link.data.deflate());
-        });
+                flatData.links.push(link.data.deflate());
+            }
+        );
 
         return JSON.stringify(flatData);
     }
 
     toPNG() {
         return this._diagram.makeImageData({
-            scale: 1
+            scale: 1,
+            background: "rgba(255, 255, 255, 0.8)"
         });
     }
-};
+}
+;

@@ -15,16 +15,20 @@ Model.FmmlxClass = class {
      * @param {boolean} isAbstract
      * @param {string} externalLanguage
      * @param {string} externalMetaclass
+     * @param {string[]} tags
      */
-    constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null) {
+    constructor(name = "", level = "0", isAbstract = false, externalLanguage = null, externalMetaclass = null, tags = []) {
 
         /**
          * @type Number|String
          */
         Object.defineProperty(this, "level", {
-            configurable: false, enumerable: true, get: function () {
+            configurable: false,
+            enumerable: true,
+            get: function () {
                 return this._level;
-            }, set: function (level) {
+            },
+            set: function (level) {
                 if (level !== "?") {
                     let parsedLevel = Number.parseInt(level);
                     if (isNaN(parsedLevel)) {
@@ -37,13 +41,17 @@ Model.FmmlxClass = class {
             },
         });
 
+
         /**
          * @type Helper.Set
          */
         Object.defineProperty(this, "instances", {
-            configurable: true, enumerable: true, get: function () {
+            configurable: true,
+            enumerable: true,
+            get: function () {
                 return this._instances;
-            }, set: function (val) {
+            },
+            set: function (val) {
                 this._instances = val;
             },
         });
@@ -52,7 +60,9 @@ Model.FmmlxClass = class {
          * @type Number
          */
         Object.defineProperty(this, "distanceFromRoot", {
-            configurable: true, enumerable: true, get: function () {
+            configurable: true,
+            enumerable: true,
+            get: function () {
                 return this._distanceFromRoot;
             },
         });
@@ -61,31 +71,46 @@ Model.FmmlxClass = class {
          * @type boolean
          */
         Object.defineProperty(this, "hasUnknownLevel", {
-            configurable: true, enumerable: true, get: () => this.level === "?",
+            configurable: true,
+            enumerable: true,
+            get: () => this.level === "?",
         });
 
         /**
          * @type Model.FmmlxClass
          */
         Object.defineProperty(this, "metaclass", {
-            configurable: true, enumerable: true, get: () => this._metaclass, set: (val) => {
+            configurable: true,
+            enumerable: true,
+            get: () => this._metaclass,
+            set: (val) => {
                 this._distanceFromRoot = (val === null) ? 0 : val.distanceFromRoot + 1;
                 this._metaclass = val;
-            },
+            }
+            ,
         });
 
         /**
          * @type String
          */
         Object.defineProperty(this, "metaclassName", {
-            configurable: true, enumerable: true, get: () => this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name,
+            configurable: true,
+            enumerable: true,
+            get: () => this.isExternal ? this.externalMetaclass : this._metaclass === null ? "Metaclass" : this._metaclass.name,
         });
 
         /**
          * @type boolean
          */
         Object.defineProperty(this, "isExternal", {
-            configurable: true, enumerable: true, get: () => this.externalLanguage !== null,
+            configurable: true,
+            enumerable: true,
+            get: () => this.externalLanguage !== null,
+        });
+
+        Object.defineProperty(this, "filteredAttributes", {
+            configurable: true,
+            enumerable: true,
         });
 
         this.metaclass = null;
@@ -99,39 +124,83 @@ Model.FmmlxClass = class {
          *
          * @type {Model.FmmlxProperty[]}
          */
-        this.attributes = [];
+        this.attributes = new Helper.Set();
         /**
          *
          * @type {Model.FmmlxProperty[]}
          */
-        this.operations = [];
+        this.operations = new Helper.Set();
         /**
          *
          * @type {Model.FmmlxValue[]}
          */
-        this.slotValues = [];
+        this.slotValues = new Helper.Set();
         /**
          *
          * @type {Model.FmmlxValue[]}
          */
-        this.operationValues = [];
+        this.operationValues = new Helper.Set();
         this.associations = new Helper.Set();
-        this.tags = [];
         this.externalLanguage = externalLanguage;
         this.externalMetaclass = externalMetaclass;
         this.level = level;
         this.isAbstract = isAbstract;
+        this.tags = new Set(tags);
         //let d = new Date(Date.now());
-        this.id = Helper.Helper.uuid4();
+        this.id = Helper.Helper.generateId();
 
-    };
+    }
+
+    /**
+     * For object comparison. Determines an unique identifier based on the content of the obj
+     * @returns {boolean}
+     */
+    equals(obj) {
+        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
+
+        if (this.isExternal) {
+            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
+        } else if (typeof this.metaclass !== "undefined" && this.metaclass !== null) {
+            val = val && this.metaclass.id === obj.metaclass.id;
+        }
+
+        return val;
+    }
+
+
+    static get category() {
+        return "FmmlxClass";
+    }
+
+    get category() {
+        return this.constructor.category;
+    }
 
     /**
      *
-     * @param {Model.FmmlxAssociation} association
+     * @return {Array.<Model.FmmlxProperty>}
      */
-    addAssociation(association) {
-        this.associations.add(association);
+    get memberValues() {
+        return this.slotValues.concat(this.operationValues);
+    }
+
+    /**
+     *
+     * @return {Array.<Model.FmmlxProperty>}
+     */
+    get members() {
+        return this.attributes.concat(this.operations);
+    }
+
+    /**
+     * Returns a partially inflated copy of a flattened class
+     * @param flatClass
+     * @return Model.FmmlxClass
+     */
+    static inflate(flatClass) {
+        let partial = new Model.FmmlxClass(flatClass.name, flatClass.level, flatClass.isAbstract, flatClass.externalLanguage, flatClass.externalMetaclass, flatClass.tags);
+        partial.id = flatClass.id;
+        return partial;
     }
 
     /**
@@ -150,17 +219,16 @@ Model.FmmlxClass = class {
         this.subclasses.add(subclass);
     }
 
-    static get category() {
-        return "FmmlxClass";
-    }
-
-    get category() {
-        return "FmmlxClass";
+    /**
+     *
+     * @param {Model.FmmlxAssociation} association
+     */
+    addAssociation(association) {
+        this.associations.add(association);
     }
 
     /**
      * Returns a flattened copy of the object
-     * @todo process associations
      * @return {Model.FmmlxClass}
      */
     deflate() {
@@ -189,32 +257,29 @@ Model.FmmlxClass = class {
             clone.values.push(value.deflate());
         }
         for (let attributeName in clone) {
-            if (attributeName[0] === "_") delete clone[attributeName];
+            if (attributeName[0] === "_")
+                delete clone[attributeName];
         }
-
+        clone.tags = Array.from(this.tags);
 
         delete clone.attributes;
         delete clone.operations;
         delete clone.slotValues;
         delete clone.operationValues;
         delete clone.associations;
+
         return clone;
     }
 
     /**
-     * For object comparison. Determines an unique identifier based on the content of the obj
-     * @returns {boolean}
+     * returns the corresponding index of an Attribute or Operation, or null if not found
+     * @param property
+     * @return {null|number}
      */
-    equals(obj) {
-        let val = obj.constructor === Model.FmmlxClass && this.name === obj.name && this.level === obj.level;
-
-        if (this.isExternal) {
-            val = val && this.externalLanguage === obj.externalLanguage && this.externalMetaclass === obj.externalMetaclass;
-        } else if (typeof this.metaclass !== "undefined" && this.metaclass !== null) {
-            val = val && this.metaclass.id === obj.metaclass.id;
-        }
-
-        return val;
+    findIndexForMember(property) {
+        let array = this.findCorrespondingArray(property);
+        let index = array.findIndex(property);
+        return index !== -1 ? index : null;
     }
 
     /**
@@ -225,40 +290,19 @@ Model.FmmlxClass = class {
      * @return {Model.FmmlxProperty[]|Model.FmmlxValue|String}
      */
     findCorrespondingArray(member, returnName = false) {
-        if (member.constructor === Model.FmmlxProperty) {
+        if (!member.isValue) {
             if (member.isOperation) {
                 return (returnName) ? "operations" : this.operations;
             } else {
                 return (returnName) ? "attributes" : this.attributes;
             }
         }
-        if (member.isOperation) {
+
+        if (member.property.isOperation) {
             return (returnName) ? "operationValues" : this.operationValues;
         } else {
             return (returnName) ? "slotValues" : this.slotValues;
         }
-    }
-
-    /**
-     * returns the corresponding index of an Attribute or Operation, or null if not found
-     * @param property
-     * @return {null|number}
-     */
-    findIndexForMember(property) {
-        let array = this.findCorrespondingArray(property);
-        let index = array.findIndex(item => item.equals(property));
-        return index !== -1 ? index : null;
-    }
-
-    /**
-     * returns the corresponding index of an Attribute or Operation, or null if not found
-     * @param value
-     * @return {null|number}
-     */
-    findIndexForValue(value) {
-        let array = this.findCorrespondingArray(value);
-        let index = array.findIndex(item => item.equals(value));
-        return index !== -1 ? index : null;
     }
 
     /**
@@ -272,33 +316,13 @@ Model.FmmlxClass = class {
     }
 
     /**
-     * Finds the respective <Value> for <Member> if it exists. Returns null otherwise
-     * @param {Model.FmmlxProperty} property
-     * @return {null|Model.FmmlxValue}
-     */
-    findValueFromProperty(property) {
-
-        let propertyCollection = this.slotValues;
-
-        if (property.isOperation) {
-            propertyCollection = this.operationValues;
-        }
-
-        let index = propertyCollection.findIndex(val => val.property.equals(property));
-        return (index === -1) ? null : propertyCollection[index];
-    }
-
-    /**
      * Determines if a Member or its corresponding value exist
      * @param {Model.FmmlxProperty} member
      * @returns {boolean}
      */
     hasMember(member) {
-        let correspondingArray = this.findCorrespondingArray(member);
-        let index = correspondingArray.findIndex(item => {
-            return member.equals(item);
-        });
-        if (index !== -1) {
+        let index = this.findIndexForMember(member);
+        if (index !== null) {
             return true;
         }
 
@@ -310,14 +334,19 @@ Model.FmmlxClass = class {
     }
 
     /**
-     * Returns a partially inflated copy of a flattened class
-     * @param flatClass
-     * @return Model.FmmlxClass
+     * Finds the respective <Value> for <Member> if it exists. Returns null otherwise
+     * @param {Model.FmmlxProperty} property
+     * @return {null|Number}
      */
-    static inflate(flatClass) {
-        let partial = new Model.FmmlxClass(flatClass.name, flatClass.level, flatClass.isAbstract, flatClass.externalLanguage, flatClass.externalMetaclass);
-        partial.id = flatClass.id;
-        return partial;
+    findValueFromProperty(property) {
+        let values = (property.isOperation) ? this.operationValues : this.slotValues;
+
+        for (let value of values) {
+            if (value.property.equals(property))
+                return value;
+        }
+
+        return null;
     }
 
     /**
@@ -336,21 +365,8 @@ Model.FmmlxClass = class {
                 isDescendant = this.superclass.equals(fmmlxClass) ? true : this.superclass.isDescendantOf(fmmlxClass);
             }
 
-
         }
 
-    }
-
-    get memberValues() {
-        return this.slotValues.concat(this.operationValues);
-    }
-
-    /**
-     *
-     * @return {Array.<Model.FmmlxProperty>}
-     */
-    get members() {
-        return this.attributes.concat(this.operations);
     }
 
     /**
@@ -377,6 +393,5 @@ Model.FmmlxClass = class {
     removeSubclass(subclass) {
         this.subclasses.remove(subclass);
     }
-
 
 };

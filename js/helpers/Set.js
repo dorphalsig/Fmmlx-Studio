@@ -17,48 +17,40 @@ Helper.Set = class extends Array {
      * Adds an item or array to the collection if it doesnt exist. (Comparing it with all others (using obj.equals()) )
      * @param value
      */
-    add(value) {
+    add(value, force = false) {
+        if (force) {
+            super.push(value);
+            return true;
+        }
         let index = this.findIndex(value);
         if (index === -1) {
             super.push(value);
-        }
-        else {
+            return true;
+        } else {
             this[index] = value;
+            return false;
         }
-        return this;
     }
 
     /**
      *
-     * @param value
+     * @param item
      * @return {*|number}
      */
-    findIndex(value) {
-        let v = super.findIndex(item => {
-            if (item !== null) {
-                return (value === item || (typeof value.equals !== "undefined" && typeof value.equals === "function" && value.equals(item)) );
-            }
+    findIndex(item) {
+        return super.findIndex(collectionItem => {
+            if (collectionItem.equals !== undefined)
+                return collectionItem.equals(item);
+            else
+                return item === collectionItem
         });
-        return v;
+
     }
 
     has(value) {
         return this.findIndex(value) !== -1;
     }
 
-    intersection(setB) {
-        let intersection = new Set();
-        for (let elem of setB) {
-            if (this.has(elem)) {
-                intersection.add(elem);
-            }
-        }
-        return intersection;
-    }
-
-    push(value) {
-        add(value);
-    }
 
     remove(value) {
         let pos = this.findIndex(value);
@@ -72,4 +64,5 @@ Helper.Set = class extends Array {
     toArray() {
         return Array.from(this);
     }
-};
+}
+;

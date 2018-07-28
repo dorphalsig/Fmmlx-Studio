@@ -25,18 +25,19 @@ Model.FmmlxProperty = class {
      * @param {Boolean} isOperation
      * @param {String[]} behaviors
      * @param {String} operationBody
+     * @param {string[]} tags
      */
-    constructor(name = "", type = "", intrinsicness = 0, isOperation = false, behaviors = [], operationBody = null) {
+    constructor(name = "", type = "", intrinsicness = 0, isOperation = false, behaviors = [], operationBody = null, tags = []) {
         this.values = new Helper.Set();
         this.classes = new Helper.Set();
-        this.id = Helper.Helper.uuid4();
-        this.maxIntrinsicness = Infinity;
+        this.id = Helper.Helper.generateId();
         this.name = name;
         this.type = type;
         this.intrinsicness = intrinsicness;
         this.isOperation = isOperation;
         this.behaviors = behaviors === null ? [] : behaviors;
         this.operationBody = operationBody;
+        this.tags = new Set(tags);
     }
 
     get intrinsicness() {
@@ -45,15 +46,13 @@ Model.FmmlxProperty = class {
 
     set intrinsicness(val) {
         let numberVal = Number.parseInt(val);
-        if ((val !== "?" && isNaN(numberVal)) || numberVal > Number.parseInt(this.maxIntrinsicness)) {
-            throw new Error(`Invalid intrinsicness ${val} for property ${this.name}`);
-        }
         this._intrinsicness = (val === "?") ? "?" : numberVal;
     };
 
     get isValue() {
         return false;
     }
+
 
     /**
      * Adds an FMMLx Class to the set. Recalculates max intrinsicness
@@ -64,16 +63,18 @@ Model.FmmlxProperty = class {
         return this;
     }
 
+
     /**
-     * Creates an FmmlxValue
-     * @param {Model.FmmlxClass} fmmlxClass
-     * @param {String} value
-     * @return {Model.FmmlxValue}
+     * Returns the value instance if there exists for a specified FmmlxClass, if it does not exist, it returns undefined
+     * @param  {Model.FmmlxClass} fmmlxClass
+     * @return {Model.FmmlxValue | undefined}
      */
-    createValue(fmmlxClass, value = null) {
-        let valObj = new Model.FmmlxValue(this, value, fmmlxClass);
-        this.values.add(valObj);
-        return valObj;
+    getValueByClass(fmmlxClass) {
+        for (let val of this.values) {
+            if (val.class.equals(fmmlxClass))
+                return val;
+        }
+        return undefined;
     }
 
     /**
@@ -91,6 +92,7 @@ Model.FmmlxProperty = class {
         delete clone.intrinsicness;
         clone.intrinsicness = clone._intrinsicness;
         clone.isValue = false;
+        clone.tags = Array.from(this.tags);
         delete clone._intrinsicness;
         delete clone.values;
         delete clone.classes;
@@ -104,14 +106,10 @@ Model.FmmlxProperty = class {
      */
     deleteClass(fmmlxClass) {
         this.classes.remove(fmmlxClass);
-        this.maxIntrinsicness = -1;
-        for (let item of this.classes) {
-            this.maxIntrinsicness = (this.maxIntrinsicness <= item.intrinsicness) ? (item.intrinsicness - 1) : this.maxIntrinsicness;
-        }
     }
 
     deleteValue(value) {
-        this.values.remove(value);
+        this.values.delete(value);
     }
 
     equals(obj) {
@@ -119,12 +117,23 @@ Model.FmmlxProperty = class {
     }
 
     /**
+     * returns the corresponding index of an Attribute or Operation, or null if not found
+     * @param fmmlxClass
+     * @return {null|number}
+     */
+    findIndexForClass(fmmlxClass) {
+        let index = this.classes.findIndex(fmmlxClass);
+        return index !== -1 ? index : null
+    }
+
+
+    /**
      * Inflates a flattened member
      * @param flatMember
      * @return {Model.FmmlxProperty}
      */
     static inflate(flatMember) {
-        let partial = new Model.FmmlxProperty(flatMember.name, flatMember.type, flatMember.intrinsicness, flatMember.isOperation, flatMember.behaviors, flatMember.operationBody);
+        let partial = new Model.FmmlxProperty(flatMember.name, flatMember.type, flatMember.intrinsicness, flatMember.isOperation, flatMember.behaviors, flatMember.operationBody, flatMember.tags);
         partial.id = flatMember.id;
         return partial;
     }

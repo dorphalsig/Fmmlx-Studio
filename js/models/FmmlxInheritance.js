@@ -8,7 +8,7 @@ Model.FmmlxInheritance = class {
      * @param {Model.FmmlxClass} superclass
      */
     constructor(subclass, superclass) {
-        this.id = Helper.Helper.uuid4();
+        this.id = Helper.Helper.generateId();
         this.subclass = subclass;
         this.superclass = superclass;
     }

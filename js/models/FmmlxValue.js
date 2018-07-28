@@ -19,11 +19,18 @@ Model.FmmlxValue = class {
      * @param {Model.FmmlxClass} fmmlxClass
      */
     constructor(property, value, fmmlxClass) {
+        Object.defineProperties(this, {
+            name: {enumerable: true, configurable: true, get: () => property.name},
+            isValue: {enumerable: true, configurable: true, value: true, writable: false},
+            id: {enumerable: true, configurable: true, get: () => this.property.id + this.class.id},
+            value: {enumerable: true, configurable: true, writable: true, value: value},
+            tags: {enumerable: true, configurable: true, writable: true, value: property.tags},
+            class: {enumerable: true, configurable: true, writable: false, value: fmmlxClass},
+            property: {enumerable: true, configurable: true, writable: false, value: property},
+            intrinsicness: {enumerable: true, configurable: true, get: () => property.intrinsicness},
 
-        this.value = value;
-        this.class = fmmlxClass;
-        this.id = Helper.Helper.uuid4();
-        return new Proxy(property, this);
+        })
+        //return new Proxy(property,this);
     }
 
     deflate() {
@@ -31,7 +38,8 @@ Model.FmmlxValue = class {
         clone.value = this.value;
         clone.isValue = true;
         clone.class = this.class.id;
-        delete this.property;
+        clone.property = this.property.id;
+        //delete this.property;
         return clone;
     }
 
@@ -43,81 +51,4 @@ Model.FmmlxValue = class {
     equals(obj) {
         return this.class.equals(obj.class) && this.property.equals(obj.property);
     }
-
-    get(target, name) {
-        switch (name) {
-
-            case "deflate":
-                this.property = target;
-                return this.deflate;
-                break;
-
-            case "equals":
-                return this.equals;
-                break;
-
-            case "constructor":
-                return this.constructor;
-                break;
-
-            case "class":
-                return this.class;
-                break;
-
-            case "value":
-                return this.value;
-                break;
-
-            case "id":
-                return target.id + this.class.id;
-                break;
-
-            case "isValue":
-                return true;
-                break;
-
-            case "property":
-                return target;
-                break;
-
-            default:
-                return target[name];
-                break;
-
-        }
-    }
-
-    getOwnPropertyDescriptor(obj, prop) {
-        console.log(obj.constructor);
-        return {
-            enumerable: true, configurable: true,
-        };
-    }
-
-
-    set(target, name, val) {
-        switch (name) {
-            case "class":
-                if (this.class === null) {
-                    this.class = val;
-                } else {
-                    throw new Error("Cannot replace the class for a value");
-                }
-                break;
-            case "value":
-                this.value = val;
-                break;
-            default:
-                target[name] = val;
-                break;
-        }
-        return true;
-    }
-
 };
-
-
-
-
-
-

@@ -38,8 +38,9 @@ Model.FmmlxAssociation = class {
      * @param {String} role1
      * @param {Model.FmmlxAssociation} primitive
      * @param {Model.FmmlxAssociation} metaAssociation
+     * @param {String[]} tags
      */
-    constructor(source, target, name, cardinality0, intrinsicness0, role0, cardinality1, intrinsicness1, role1, primitive = null, metaAssociation = null) {
+    constructor(source, target, name, cardinality0, intrinsicness0, role0, cardinality1, intrinsicness1, role1, primitive = null, metaAssociation = null,tags=[]) {
         this.source = source;
         this.target = target;
         this.name = name;
@@ -53,7 +54,10 @@ Model.FmmlxAssociation = class {
         this.targetIntrinsicness = intrinsicness1;
         this.refinements = new Helper.Set();
         this.instances = new Helper.Set();
-        this.id = Helper.Helper.uuid4();
+        this.id = Helper.Helper.generateId();
+        this.tags = new Set();
+        tags = Array.isArray(tags)?tags:[tags];
+        tags.forEach(tag=>this.tags.add(tag));
     }
 
     /**
