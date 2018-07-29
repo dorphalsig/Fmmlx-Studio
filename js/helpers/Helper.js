@@ -11,12 +11,27 @@ Helper.Helper = {
         return Math.random().toString(36).substring(4);
     },
 
-    fixNameBlock: function (nameBlock, targetRight = true) {
+
+    fixNameBlock: function (nameBlock) {
+
+        const link = nameBlock.part;
+        let targetRight;
+        switch (nameBlock.angle) {
+            case 0:
+                targetRight = link.points.get(0).x < link.points.get(link.pointsCount - 1).x;
+                break;
+            case 90:
+                targetRight = true;
+                break;
+            case 270:
+                targetRight = false;
+        }
+
+
         let sourceIntrinsicness = nameBlock.findObject("sourceIntrinsicness");
         let targetIntrinsicness = nameBlock.findObject("targetIntrinsicness");
         nameBlock.remove(sourceIntrinsicness);
         nameBlock.remove(targetIntrinsicness);
-
 
         if (targetRight) {
             nameBlock.insertAt(0, sourceIntrinsicness);
@@ -30,36 +45,50 @@ Helper.Helper = {
         nameBlock.add(sourceIntrinsicness);
         nameBlock.findObject("leftArrow").visible = true;
         nameBlock.findObject("rightArrow").visible = false;
-        nameBlock.segmentOffset = new go.Point(0, 15);
     },
 
+    /**
+     *  Aligns labels and takes care of them pointing where they should
+     * @param {go.Link} link
+     */
+    /**
+     *  Aligns labels and takes care of them pointing where they should
+     * @param {go.Link} link
+     */
     fixLabels: function (link) {
+
         let nameBlock = link.findObject("nameBlock");
         let referenceBlock = link.findObject("referenceBlock");
-        let sourceRole = link.findObject("sourceRole");
-        let sourceCardinality = link.findObject("sourceCardinality");
-        let targetRole = link.findObject("targetRole");
-        let targetCardinality = link.findObject("targetCardinality");
+
+        const segment = link.findClosestSegment(new go.Point(link.midPoint.x + 10, link.midPoint.y + 10));
+        const segmentLength = Math.sqrt(link.points.get(segment).distanceSquaredPoint(link.points.get(segment + 1)));
+        const labelLength = Math.max(nameBlock.naturalBounds.width, referenceBlock.naturalBounds.width);
+
+        const orientation = (segmentLength / labelLength < 0.4) ? go.Link.None : go.Link.OrientUpright;
+
+        let transId = Helper.Helper.beginTransaction("Fixing labels...");
+
         try {
-            let transId = Helper.Helper.beginTransaction("Fixing labels...");
-            if (link.midAngle !== 180) {
-                sourceRole.segmentOffset = new go.Point(NaN, -15);
-                nameBlock.segmentOffset = new go.Point(0, -15);
-                targetRole.segmentOffset = new go.Point(NaN, -15);
-                sourceCardinality.segmentOffset = new go.Point(NaN, 15);
-                referenceBlock.segmentOffset = new go.Point(0, 15);
-                targetCardinality.segmentOffset = new go.Point(NaN, 15);
-                this.fixNameBlock(nameBlock, true)
-                Helper.Helper.commitTransaction(transId);
-                return;
+            nameBlock.segmentIndex = segment;
+            nameBlock.segmentFraction = 0.5;
+            nameBlock.segmentOrientation = orientation;
+
+            referenceBlock.segmentIndex = segment;
+            referenceBlock.segmentFraction = 0.5;
+            referenceBlock.segmentOrientation = orientation;
+
+
+            if (nameBlock.angle > 90) {
+                nameBlock.segmentOffset = new go.Point(0, 15);
+                referenceBlock.segmentOffset = new go.Point(0, -15);
             }
-            sourceRole.segmentOffset = new go.Point(NaN, 15);
-            nameBlock.segmentOffset = new go.Point(0, 15);
-            targetRole.segmentOffset = new go.Point(NaN, 15);
-            sourceCardinality.segmentOffset = new go.Point(NaN, -15);
-            referenceBlock.segmentOffset = new go.Point(0, -15);
-            targetCardinality.segmentOffset = new go.Point(NaN, -15);
-            this.fixNameBlock(nameBlock, false);
+            else {
+                nameBlock.segmentOffset = new go.Point(0, -15);
+                referenceBlock.segmentOffset = new go.Point(0, 15);
+            }
+            //fix the label arrows and get stuff sorted correctly
+            this.fixNameBlock(nameBlock);
+
             Helper.Helper.commitTransaction(transId);
         }
         catch (error) {
@@ -73,7 +102,7 @@ Helper.Helper = {
      * @param {String} msg
      * @return {String}
      */
-    beginTransaction: function (msg,baseName="") {
+    beginTransaction: function (msg, baseName = "") {
         let id = `${baseName}-${this.generateId()}`;
         diagram.startTransaction(id);
         console.group(`👉 ${id} :: Begin Transaction ${msg}`);
@@ -82,7 +111,7 @@ Helper.Helper = {
 
     rollbackTransaction: function () {
         let txs = diagram.undoManager.nestedTransactionNames;
-        let id = txs.get(txs.length-1);
+        let id = txs.get(txs.length - 1);
         diagram.rollbackTransaction();
         console.groupEnd();
         console.warn(`❌ ${id} :: Rolled-back Transaction`);

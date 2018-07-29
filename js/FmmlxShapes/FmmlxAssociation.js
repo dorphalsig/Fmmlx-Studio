@@ -55,13 +55,13 @@ FmmlxShapes.FmmlxAssociation = class {
         });
 
         let relName = gMake(go.TextBlock, new go.Binding("text", "name"), {
-            name: "relationshipName"
+            name: "relationshipName",
+            margin: new go.Margin(0, 5, 0, 5)
         });
 
 
         let nameBlock = gMake(go.Panel, "Horizontal", {
                 name: "nameBlock",
-                segmentOffset: new go.Point(0, -15),
                 segmentOrientation: go.Link.OrientUpright,
             },
             this.intrinsicnessBlock("sourceIntrinsicness"), this.arrowBlock("leftArrow"), relName, this.arrowBlock("rightArrow"), this.intrinsicnessBlock("targetIntrinsicness")
@@ -85,9 +85,6 @@ FmmlxShapes.FmmlxAssociation = class {
         return gMake(fmmlxAssociationLink, {
                 routing: go.Link.Orthogonal,  // may be either Orthogonal or AvoidsNodes
                 reshapable: true,
-                resegmentable: true,
-                relinkableFrom: true,
-                relinkableTo: true,
                 adjusting: go.Link.Stretch,
                 curve: go.Link.JumpGap,
                 doubleClick: Controller.FormController.displayAssociationForm,

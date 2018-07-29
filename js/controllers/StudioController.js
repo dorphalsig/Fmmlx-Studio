@@ -374,8 +374,9 @@ Controller.StudioController = class {
      */
     createAssociation(source, target) {
         try {
-            let transId = Helper.Helper.beginTransaction(`Associating ${source.name} and ${target.name}`, "assoc");
-            let assoc = new Model.FmmlxAssociation(source, target, "association", "0,*", "?", "src", "0,*", "?", "dst");
+            const transId = Helper.Helper.beginTransaction(`Associating ${source.name} and ${target.name}`, "assoc");
+            const assocName = `${source.name}_${target.name}${Math.floor(Math.random() * 11)}`;
+            const assoc = new Model.FmmlxAssociation(source, target, assocName, "0,*", "?", "src", "0,*", "?", "dst");
             this._model.addLinkData(assoc);
             source.addAssociation(assoc);
             target.addAssociation(assoc);
