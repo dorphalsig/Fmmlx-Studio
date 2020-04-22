@@ -1,0 +1,41 @@
+{
+  "name": "fmmlx-studio",
+  "version": "2.0.0",
+  "description": "Implementation of the FMMLX Multivel modelling language in Javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "check": "gts check",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile",
+    "posttest": "npm run check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dorphalsig/Fmmlx-Studio.git"
+  },
+  "keywords": [
+    "FMMLX",
+    "Multilevel",
+    "Modelling",
+    "Metamodelling",
+    "Modelling"
+  ],
+  "author": "David Sarmiento <dorphalsig at gmail dot com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/dorphalsig/Fmmlx-Studio/issues"
+  },
+  "homepage": "https://github.com/dorphalsig/Fmmlx-Studio#readme",
+  "dependencies": {
+    "crypto-es": "^1.2.4",
+    "gojs": "^1.7.29"
+  },
+  "devDependencies": {
+    "gts": "^2.0.0",
+    "typescript": "~3.8.0"
+  }
+}
