@@ -1,6 +1,6 @@
 import * as Models from '../models/Models';
 import * as go from 'gojs';
-import {PropertyShape} from './PropertyShape';
+import {propertyShape} from './PropertyShape';
 
 function externalLanguageBlock() {
   return go.GraphObject.make(
@@ -112,7 +112,7 @@ function genericBlock(collectionName: string) {
         {
           name: 'items',
           defaultAlignment: go.Spot.Left,
-          itemTemplate: PropertyShape.shape,
+          itemTemplate: propertyShape,
         },
         new go.Binding('itemArray', collectionName)
       ),
@@ -186,7 +186,7 @@ function MetaclassName(fmmlxClass: Models.Class) {
 
 //@todo add callbacks for clicks and doubleclicks
 export const classShape = go.GraphObject.make(
-  go.Node,
+  go.Panel,
   'Spot',
   {
     //  doubleClick: Controller.FormController.displayClassForm,
@@ -195,4 +195,4 @@ export const classShape = go.GraphObject.make(
   new go.Binding('location', 'location', go.Point.parse),
   mainBlock,
   externalLanguageBlock
-);
+) as go.Panel;

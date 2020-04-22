@@ -72,5 +72,5 @@ export const propertyShape = go.GraphObject.make(
   nameBlock,
   assignmentBlock,
   typeBlock
-);
+) as go.Panel;
 

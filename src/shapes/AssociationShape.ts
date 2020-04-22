@@ -3,6 +3,14 @@ import * as Models from '../models/Models';
 import * as go from 'gojs';
 import * as Helpers from '../helpers/Helpers';
 
+class fmmlxAssociationLink extends go.Link {
+  computePoints() {
+    let result = super.computePoints();
+    Helpers.Helper.fixLabels(this);
+    return result;
+  }
+}
+
 /**
  * Defines the text for the reference block (lower middle segment of the
  */
@@ -115,14 +123,6 @@ let referenceBlock = go.GraphObject.make(go.TextBlock, new go.Binding('text', ''
   segmentOrientation: go.Link.OrientUpright,
 });
 
-let fmmlxAssociationLink = class extends go.Link {
-  computePoints() {
-    let result = super.computePoints();
-    Helpers.Helper.fixLabels(this);
-    return result;
-  }
-};
-
 export const associationShape = go.GraphObject.make(
   fmmlxAssociationLink,
   {
@@ -142,6 +142,4 @@ export const associationShape = go.GraphObject.make(
   referenceBlock,
   targetRole,
   targetCardinality
-);
-
-console.debug(`Association Shape Loaded`);
+) as fmmlxAssociationLink;

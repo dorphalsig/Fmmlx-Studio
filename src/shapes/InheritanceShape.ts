@@ -20,4 +20,5 @@ export const inheritanceShape = go.GraphObject.make(
   initializers,
   go.GraphObject.make(go.Shape), // the link shape
   arrowHead
-);
+) as go.Link;
+
