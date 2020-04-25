@@ -1,11 +1,12 @@
 import {Class} from './Class';
 import {Property} from './Property';
-import { Serializable, Comparable } from '../helpers/Helpers';
+import {Serializable, Comparable} from '../helpers/Helpers';
 
-export class Value implements Serializable,Comparable{
+export class Value implements Serializable, Comparable {
   value: string;
   #property: Property;
   #class: Class;
+  tags: Set<string> = new Set();
 
   constructor(property: Property, value: string, fmmlxClass: Class) {
     this.#property = property;
@@ -13,8 +14,8 @@ export class Value implements Serializable,Comparable{
     this.value = value;
   }
 
-  get class(){
-    return this.#class
+  get class() {
+    return this.#class;
   }
 
   get property() {
@@ -25,12 +26,11 @@ export class Value implements Serializable,Comparable{
     return this.#property.id + this.#class.id;
   }
 
-  get tags() {
-    return this.#property.tags;
-  }
-
   get intrinsicness() {
     return this.#property.intrinsicness;
+  }
+  get hasDefinedIntrinsicness() {
+    return this.#property.intrinsicness !== undefined;
   }
 
   toJSON() {

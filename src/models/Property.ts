@@ -11,28 +11,32 @@ export class Property implements Comparable, Serializable {
   type: string;
   isOperation: boolean;
   behaviors: string[];
-  operationBody: string | null;
-  tags: string[];
+  operationBody?: string;
+  tags: Set<String> = new Set();
   #id: string;
-  #intrinsicness: string | number = '?';
+  #intrinsicness?: number;
 
   constructor(
-    name = '',
-    type = '',
-    intrinsicness: string | number = '?',
+    name: string,
+    type: string,
+    intrinsicness?: number,
     isOperation = false,
     behaviors: string[] = [],
-    operationBody: string | null = null,
+    operationBody?: string,
     tags: string[] = []
   ) {
-    this.#id = Helpers.Helper.generateId();
+    this.#id = Helpers.Helper.randomString();
     this.name = name;
     this.type = type;
     this.intrinsicness = intrinsicness;
     this.isOperation = isOperation;
     this.behaviors = behaviors === null ? [] : behaviors;
     this.operationBody = operationBody;
-    this.tags = tags;
+    tags.forEach(tag => this.tags.add(tag));
+  }
+
+  get hasDefinedIntrinsicness(){
+    return this.#intrinsicness !== undefined
   }
 
   get values() {
@@ -47,11 +51,10 @@ export class Property implements Comparable, Serializable {
     return this.#intrinsicness;
   }
 
-  set intrinsicness(val: number | string) {
-    const numberVal = Number.parseInt(val as string);
-    if ((val !== '?' && isNaN(numberVal)) || val < 0)
+  set intrinsicness(val: number | undefined) {
+    if (val !== undefined && (!Number.isInteger(val) || val! < 0))
       throw new Error('Intrinsicness values can only be posotive integers or');
-    this.#intrinsicness = val === '?' ? '?' : numberVal;
+    this.#intrinsicness = val;
   }
 
   get id() {
@@ -60,7 +63,6 @@ export class Property implements Comparable, Serializable {
   static get isValue() {
     return false;
   }
-
 
   /**
    * If the property has a value with a specific
@@ -155,5 +157,8 @@ export class Property implements Comparable, Serializable {
   findIndexForClass(fmmlxClass: Class) {
     let index = this.#classes.findIndex(fmmlxClass);
     return index !== -1 ? index : null;
+  }
+  toString() {
+    return `Property ${this.name} (${this.id})`;
   }
 }

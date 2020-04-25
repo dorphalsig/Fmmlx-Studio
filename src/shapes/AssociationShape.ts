@@ -1,12 +1,72 @@
 'use strict';
 import * as Models from '../models/Models';
 import * as go from 'gojs';
-import * as Helpers from '../helpers/Helpers';
+import {Helper} from '../helpers/Helpers';
+
+function fixNameBlock(nameBlock: go.Panel, targetRight = true) {
+  let sourceIntrinsicness = nameBlock.findObject('sourceIntrinsicness');
+  let targetIntrinsicness = nameBlock.findObject('targetIntrinsicness');
+  nameBlock.remove(sourceIntrinsicness);
+  nameBlock.remove(targetIntrinsicness);
+
+  if (targetRight) {
+    nameBlock.insertAt(0, sourceIntrinsicness);
+    nameBlock.add(targetIntrinsicness);
+    nameBlock.findObject('leftArrow').visible = false;
+    nameBlock.findObject('rightArrow').visible = true;
+    return;
+  }
+
+  nameBlock.insertAt(0, targetIntrinsicness);
+  nameBlock.add(sourceIntrinsicness);
+  nameBlock.findObject('leftArrow').visible = true;
+  nameBlock.findObject('rightArrow').visible = false;
+  nameBlock.segmentOffset = new go.Point(0, 15);
+}
+
+/**
+ * Makes sure that in a link label the intrinsicness boxes are rotated
+ * with the link, but are not upside down
+ * @param link
+ */
+function fixLabels(link: go.Link) {
+  const nameBlock = link.findObject('nameBlock') as go.Panel;
+  const referenceBlock = link.findObject('referenceBlock');
+  const sourceRole = link.findObject('sourceRole');
+  const sourceCardinality = link.findObject('sourceCardinality');
+  const targetRole = link.findObject('targetRole');
+  const targetCardinality = link.findObject('targetCardinality');
+  try {
+    let transId = Helper.beginTransaction('Fixing labels...');
+    if (link.midAngle !== 180) {
+      sourceRole.segmentOffset = new go.Point(NaN, -15);
+      nameBlock.segmentOffset = new go.Point(0, -15);
+      targetRole.segmentOffset = new go.Point(NaN, -15);
+      sourceCardinality.segmentOffset = new go.Point(NaN, 15);
+      referenceBlock.segmentOffset = new go.Point(0, 15);
+      targetCardinality.segmentOffset = new go.Point(NaN, 15);
+      fixNameBlock(nameBlock, true);
+      Helper.commitTransaction(transId);
+      return;
+    }
+    sourceRole.segmentOffset = new go.Point(NaN, 15);
+    nameBlock.segmentOffset = new go.Point(0, 15);
+    targetRole.segmentOffset = new go.Point(NaN, 15);
+    sourceCardinality.segmentOffset = new go.Point(NaN, -15);
+    referenceBlock.segmentOffset = new go.Point(0, -15);
+    targetCardinality.segmentOffset = new go.Point(NaN, -15);
+    fixNameBlock(nameBlock, false);
+    Helper.commitTransaction(transId);
+  } catch (error) {
+    Helper.rollbackTransaction();
+    throw error;
+  }
+}
 
 class fmmlxAssociationLink extends go.Link {
   computePoints() {
     let result = super.computePoints();
-    Helpers.Helper.fixLabels(this);
+    fixLabels(this);
     return result;
   }
 }

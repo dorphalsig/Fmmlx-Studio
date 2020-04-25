@@ -1,7 +1,7 @@
 'use strict';
 import * as Helpers from '../helpers/Helpers';
 import {Class} from './Class';
-import { Serializable } from '../helpers/Helpers';
+import {Serializable} from '../helpers/Helpers';
 
 export class Inheritance implements Serializable {
   id: any;
@@ -9,25 +9,19 @@ export class Inheritance implements Serializable {
   superclass: Class;
 
   constructor(subclass: Class, superclass: Class) {
-    this.id = Helpers.Helper.generateId();
+    this.id = Helpers.Helper.randomString();
     this.subclass = subclass;
     this.superclass = superclass;
   }
 
-  static get category() {
-    return 'fmmlxInheritance';
-  }
-
-  get category() {
-    return Inheritance.category;
-  }
+  static readonly category = 'fmmlxInheritance';
 
   toJSON() {
     return JSON.stringify({
       subclass: this.from,
       superclass: this.to,
       id: this.id,
-      category: this.category,
+      category: Inheritance.category,
     });
   }
 

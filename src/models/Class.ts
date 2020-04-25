@@ -6,10 +6,10 @@ import * as Helpers from '../helpers/Helpers';
 export class Class implements Helpers.Comparable, Helpers.Serializable {
   distanceFromRoot = 0;
   name = '';
-  superclass: Class | null = null;
+  superclass?: Class;
   lastChangeId = '';
-  externalLanguage = '';
-  externalMetaclassName = '';
+  externalLanguage?: string;
+  externalMetaclassName?: string;
   isAbstract = false;
   tags: Set<string>;
   id: string;
@@ -20,15 +20,15 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   #operations: Helpers.CustomSet<Property> = new Helpers.CustomSet();
   #slotValues: Helpers.CustomSet<Value> = new Helpers.CustomSet();
   #operationValues: Helpers.CustomSet<Value> = new Helpers.CustomSet();
-  #level: string | number = '?';
-  #metaclass: Class | null = null;
+  #level?: number;
+  #metaclass?: Class;
 
   constructor(
-    name = '',
-    level = '0',
+    name:string,
+    level?: number,
     isAbstract = false,
-    externalLanguage = '',
-    externalMetaclass = '',
+    externalLanguage?: string,
+    externalMetaclass?: string,
     tags: string[] = []
   ) {
     //  Object.setPrototypeOf(this, null);
@@ -39,7 +39,7 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
     this.externalMetaclassName = externalMetaclass;
     this.isAbstract = isAbstract;
     this.tags = new Set(tags);
-    this.id = Helpers.Helper.generateId();
+    this.id = Helpers.Helper.randomString();
   }
 
   get subclasses() {
@@ -54,20 +54,25 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
     return this.#level;
   }
 
-  set level(level: number | string) {
-    if (typeof level !== 'number' && level !== '?')
+  get descendants() {
+    return [...this.#subclasses, ...this.#instances];
+  }
+
+  set level(level: number | undefined) {
+    if (level !== undefined && (!Number.isInteger(level) || level! < 0))
       throw new Error(`Erroneous level ${level} for class ${this.name}`);
-    this.#level = level === '?' ? '?' : level;
+    this.#level = level;
   }
 
   get metaclass() {
     return this.#metaclass;
   }
 
-  set metaclass(metaclass: Class | null) {
+  set metaclass(metaclass: Class | undefined) {
     //@todo check this
     //possible bug? shouldn't the distanceFromRoot be 1+ that of the metaclass?
-    this.distanceFromRoot = metaclass ? 0 : this.distanceFromRoot + 1;
+
+    this.distanceFromRoot = metaclass === undefined ? 0 : metaclass.distanceFromRoot + 1;
     this.#metaclass = metaclass;
   }
 
@@ -75,8 +80,6 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
 
   /**
    * Returns a partially inflated copy of a flattened class
-   * @param flatClass
-   * @return FmmlxClass
    */
   static inflate(flatClass: any) {
     let partial = new Class(
@@ -92,12 +95,12 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   }
 
   get isExternal() {
-    return this.externalLanguage === null;
+    return this.externalLanguage === undefined;
   }
 
   get metaclassName() {
     if (this.isExternal) return this.externalMetaclassName;
-    if (this.metaclass === null) return 'Metaclass';
+    if (this.metaclass === undefined) return 'Metaclass';
     return this.metaclass.name;
   }
 
@@ -115,7 +118,7 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
         equals &&
         this.externalLanguage === obj.externalLanguage &&
         this.externalMetaclassName === obj.externalMetaclassName;
-    } else if (this.metaclass !== null && obj.metaclass !== null) {
+    } else if (this.metaclass !== undefined && obj.metaclass !== undefined) {
       equals = equals && this.metaclass.id === obj.metaclass.id;
     }
 
@@ -137,15 +140,14 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
     return this.toJSON();
   }
 
-
   /**
    * Returns a flattened copy of the object
    */
   toJSON(): string {
     const clone = Object.assign(
       {
-        metaclass: this.#metaclass !== null ? this.#metaclass.id : null,
-        superclass: this.superclass !== null ? this.superclass.id : null,
+        metaclass: this.#metaclass !== undefined ? this.#metaclass.id : null,
+        superclass: this.superclass !== undefined ? this.superclass.id : null,
         subclasses: this.#subclasses.toArray().map(item => item.id),
         instances: this.#instances.toArray().map(item => item.id),
         associations: this.#associations.toArray().map(item => item.id),
@@ -160,12 +162,12 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   }
 
   /**
-   * Returns the corresponding index of an Attribute or Operation, or null if not found
+   * Returns the corresponding index of an Attribute or Operation or Value, or null if not found
    * This function is SLOW, CustomSet is SLOOW
    */
-  findIndexForMember(property: Property): null | number {
-    let array = this.findCorrespondingArray(property) as Helpers.CustomSet<Property>;
-    let index = array.findIndex(property);
+  findIndexForMember(member: Property | Value): null | number {
+    let array = this.findCorrespondingArray(member) as Helpers.CustomSet<Property | Value>;
+    let index = array.findIndex(member);
     return index !== -1 ? index : null;
   }
 
@@ -176,7 +178,7 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   }
 
   hasDefinedLevel(): boolean {
-    return this.#level !== '?';
+    return this.#level !== undefined;
   }
 
   //@todo make these properties public
@@ -191,11 +193,8 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   /**
    *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
    *  if returnName is true, returns the name as a String.
-   *  @todo delete this thing
    */
-  findCorrespondingArray(
-    member: Property | Value
-  ): Helpers.CustomSet<Property | Value> {
+  findCorrespondingArray(member: Property | Value): Helpers.CustomSet<Property | Value> {
     if (Object.getPrototypeOf(member) === Property)
       return (member as Property).isOperation ? this.#operations : this.#attributes;
     return (member as Value).property.isOperation ? this.#operationValues : this.#slotValues;
@@ -233,9 +232,9 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   /**
    * Finds the respective <Value> for <Member> if it exists. Returns null otherwise
    */
-  findValueFromProperty(property: Property): null | Value {
+  /*findValueFromProperty(property: Property): null | Value {
     return property.getValue(this);
-  }
+  }*/
 
   /**
    * Checks whether a class is a descendant of another class
@@ -243,13 +242,13 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   isDescendantOf(fmmlxClass: Class): boolean {
     let isDescendant = false;
     while (!isDescendant) {
-      if (this.#metaclass !== null) {
+      if (this.#metaclass !== undefined) {
         isDescendant = this.#metaclass.equals(fmmlxClass)
           ? true
           : this.#metaclass.isDescendantOf(fmmlxClass);
       }
 
-      if (!isDescendant && this.superclass !== null) {
+      if (!isDescendant && this.superclass !== undefined) {
         isDescendant = this.superclass.equals(fmmlxClass)
           ? true
           : this.superclass.isDescendantOf(fmmlxClass);
@@ -258,28 +257,19 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
     return isDescendant;
   }
 
-  /**
-   *
-   * @param {Association} association
-   * @return {*}
-   */
-  removeAssociation(association: Association): any {
+  removeAssociation(association: Association): void {
     return this.#associations.remove(association);
   }
 
-  /**
-   *
-   * @param {Class} instance
-   */
   removeInstance(instance: Class) {
     this.#instances.remove(instance);
   }
 
-  /**
-   *
-   * @param {Class} subclass
-   */
   removeSubclass(subclass: Class) {
     this.#subclasses.remove(subclass);
+  }
+
+  toString(){
+    return `${this.name} (${this.id})`
   }
 }
