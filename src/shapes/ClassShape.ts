@@ -181,7 +181,7 @@ function IsExternal(fmmlxClass: Models.Class) {
  *  s the name string to display. that is ^^ META ^^ \n Name
  */
 function MetaclassName(fmmlxClass: Models.Class) {
-  return `^${fmmlxClass.metaclassName.toUpperCase()}^\n${fmmlxClass.name} (${fmmlxClass.level})`;
+  return `^${fmmlxClass.metaclassName!.toUpperCase()}^\n${fmmlxClass.name} (${fmmlxClass.level})`;
 }
 
 //@todo add callbacks for clicks and doubleclicks

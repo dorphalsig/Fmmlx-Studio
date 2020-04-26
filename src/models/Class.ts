@@ -13,18 +13,18 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   isAbstract = false;
   tags: Set<string>;
   id: string;
-  #subclasses: Helpers.CustomSet<Class> = new Helpers.CustomSet();
-  #instances: Helpers.CustomSet<Class> = new Helpers.CustomSet();
-  #associations: Helpers.CustomSet<Association> = new Helpers.CustomSet();
-  #attributes: Helpers.CustomSet<Property> = new Helpers.CustomSet();
-  #operations: Helpers.CustomSet<Property> = new Helpers.CustomSet();
-  #slotValues: Helpers.CustomSet<Value> = new Helpers.CustomSet();
-  #operationValues: Helpers.CustomSet<Value> = new Helpers.CustomSet();
+  #subclasses: Set<Class> = new Set();
+  #instances: Set<Class> = new Set();
+  #associations: Set<Association> = new Set();
+  #attributes: Set<Property> = new Set();
+  #operations: Set<Property> = new Set();
+  #slotValues: Set<Value> = new Set();
+  #operationValues: Set<Value> = new Set();
   #level?: number;
   #metaclass?: Class;
 
   constructor(
-    name:string,
+    name: string,
     level?: number,
     isAbstract = false,
     externalLanguage?: string,
@@ -105,7 +105,7 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   }
 
   get values() {
-    return [...this.#operationValues, ...this.#slotValues];
+    return new Set([...this.#operationValues, ...this.#slotValues]);
   }
   get members() {
     return [...this.#attributes, ...this.#operations];
@@ -143,41 +143,40 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   /**
    * Returns a flattened copy of the object
    */
-  toJSON(): string {
-    const clone = Object.assign(
+  toJSON(): Object {
+    return Object.assign(
       {
         metaclass: this.#metaclass !== undefined ? this.#metaclass.id : null,
         superclass: this.superclass !== undefined ? this.superclass.id : null,
-        subclasses: this.#subclasses.toArray().map(item => item.id),
-        instances: this.#instances.toArray().map(item => item.id),
-        associations: this.#associations.toArray().map(item => item.id),
-        attributes: this.#attributes.toArray().map(item => item.id),
-        operations: this.#operations.toArray().map(item => item.id),
-        slotValues: this.#slotValues.toArray().map(item => item.id),
-        operationValues: this.#operationValues.toArray().map(item => item.id),
+        subclasses: Array.from(this.#subclasses).map(item => item.id),
+        instances: Array.from(this.#instances).map(item => item.id),
+        associations: Array.from(this.#associations).map(item => item.id),
+        attributes: Array.from(this.#attributes).map(item => item.id),
+        operations: Array.from(this.#operations).map(item => item.id),
+        slotValues: Array.from(this.#slotValues).map(item => item.id),
+        operationValues: Array.from(this.#operationValues).map(item => item.id),
       },
       this
     );
-    return JSON.stringify(clone);
   }
 
   /**
    * Returns the corresponding index of an Attribute or Operation or Value, or null if not found
    * This function is SLOW, CustomSet is SLOOW
    */
-  findIndexForMember(member: Property | Value): null | number {
-    let array = this.findCorrespondingArray(member) as Helpers.CustomSet<Property | Value>;
+  /*findIndexForMember(member: Property | Value): null | number {
+    let array = this.findCorrespondingCollection(member) as Set<Property | Value>;
     let index = array.findIndex(member);
     return index !== -1 ? index : null;
-  }
+  }*/
 
-  findCorrespondingArrayName(member: Property | Value): string {
+  findCorrespondingCollectionName(member: Property | Value): string {
     if (Object.getPrototypeOf(member) === Property)
       return (member as Property).isOperation ? 'operations' : 'attributes';
     return (member as Value).property.isOperation ? 'operationValues' : 'slotValues';
   }
 
-  hasDefinedLevel(): boolean {
+  get hasDefinedLevel(): boolean {
     return this.#level !== undefined;
   }
 
@@ -194,9 +193,10 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
    *  returns the appropriate array for a member or value. Ie. if its an attribute returns a ref to the attribute array.
    *  if returnName is true, returns the name as a String.
    */
-  findCorrespondingArray(member: Property | Value): Helpers.CustomSet<Property | Value> {
-    if (Object.getPrototypeOf(member) === Property)
+  findCorrespondingCollection(member: Property | Value): Set<Property | Value> {
+    if (member.constructor === Property) {
       return (member as Property).isOperation ? this.#operations : this.#attributes;
+    }
     return (member as Value).property.isOperation ? this.#operationValues : this.#slotValues;
   }
 
@@ -213,63 +213,19 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
     return members.filter(member => member.id === memberId)[0];
   }
 
-  /**
-   * Determines if a Member or its corresponding value exist
-   */
-  hasMember(member: Property): boolean {
-    let index = this.findIndexForMember(member);
-    if (index !== null) {
-      return true;
-    }
-
-    if (member.constructor === Property) {
-      return this.findValueFromProperty(member) !== null;
-    }
-
-    return false;
-  }
-
-  /**
-   * Finds the respective <Value> for <Member> if it exists. Returns null otherwise
-   */
-  /*findValueFromProperty(property: Property): null | Value {
-    return property.getValue(this);
-  }*/
-
-  /**
-   * Checks whether a class is a descendant of another class
-   */
-  isDescendantOf(fmmlxClass: Class): boolean {
-    let isDescendant = false;
-    while (!isDescendant) {
-      if (this.#metaclass !== undefined) {
-        isDescendant = this.#metaclass.equals(fmmlxClass)
-          ? true
-          : this.#metaclass.isDescendantOf(fmmlxClass);
-      }
-
-      if (!isDescendant && this.superclass !== undefined) {
-        isDescendant = this.superclass.equals(fmmlxClass)
-          ? true
-          : this.superclass.isDescendantOf(fmmlxClass);
-      }
-    }
-    return isDescendant;
-  }
-
   removeAssociation(association: Association): void {
-    return this.#associations.remove(association);
+    this.#associations.delete(association);
   }
 
   removeInstance(instance: Class) {
-    this.#instances.remove(instance);
+    this.#instances.delete(instance);
   }
 
   removeSubclass(subclass: Class) {
-    this.#subclasses.remove(subclass);
+    this.#subclasses.delete(subclass);
   }
 
-  toString(){
-    return `${this.name} (${this.id})`
+  toString() {
+    return `${this.name} (${this.id})`;
   }
 }

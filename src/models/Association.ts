@@ -218,7 +218,7 @@ export class Association implements Serializable, Comparable {
    * are replaced by their respective id
    * @todo persist in indexeddb
    */
-  toJSON() {
+  toJSON(): Object {
     const refinements: string[] = [];
     const instances: string[] = [];
 
@@ -237,7 +237,7 @@ export class Association implements Serializable, Comparable {
       category: Association.category,
     };
 
-    return JSON.stringify({...this, ...flat});
+    return {...this, ...flat};
   }
 
   /**

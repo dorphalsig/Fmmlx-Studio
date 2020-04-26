@@ -5,8 +5,8 @@ import {CustomSet} from '../helpers/Set';
 import {Comparable, Serializable} from '../helpers/Interfaces';
 
 export class Property implements Comparable, Serializable {
-  #values: CustomSet<Value> = new CustomSet<Value>();
-  #classes: CustomSet<Class> = new CustomSet<Class>();
+  #values: Map<Class, Value> = new Map<Class, Value>();
+  #classes: Set<Class> = new Set<Class>();
   name: string = '';
   type: string;
   isOperation: boolean;
@@ -35,8 +35,8 @@ export class Property implements Comparable, Serializable {
     tags.forEach(tag => this.tags.add(tag));
   }
 
-  get hasDefinedIntrinsicness(){
-    return this.#intrinsicness !== undefined
+  get hasDefinedIntrinsicness() {
+    return this.#intrinsicness !== undefined;
   }
 
   get values() {
@@ -60,25 +60,13 @@ export class Property implements Comparable, Serializable {
   get id() {
     return this.#id;
   }
-  static get isValue() {
-    return false;
-  }
 
-  /**
-   * If the property has a value with a specific
-   * @param fmmlxClass
-   */
-  getValue(fmmlxClass: Class) {
-    for (const value of this.#values) {
-      if (value.class.equals(fmmlxClass)) return value;
-    }
-    return null;
+  getValue(fmmlxClass: Class): Value | undefined {
+    return this.values.get(fmmlxClass);
   }
 
   /**
    * Inflates a flattened member
-   * @param flatMember
-   * @return {Property}
    */
   static inflate(flatMember: any) {
     let partial = new Property(
@@ -103,43 +91,40 @@ export class Property implements Comparable, Serializable {
     return this;
   }
 
-  /**
-   * Returns the value instance if there exists for a specified FmmlxClass, if it does not exist, it returns undefined
-   */
-  getValueByClass(fmmlxClass: Class) {
-    let [found] = this.#values.toArray().filter(val => val.class.equals(fmmlxClass));
-    return found;
-  }
-
-  toJSON(): string {
+  toJSON(): Object {
     let classes: string[] = [];
-    this.#classes.toArray().forEach(fmmlxClass => classes.push(fmmlxClass.id));
-    let values: string[] = [];
-    this.#values.toArray().forEach(value => values.push(value.id));
-
-    const serializable = Object.assign(
+    for (let fmmlxClass of this.#classes) {
+      classes.push(fmmlxClass.id);
+    }
+    //this.#classes.forEach(fmmlxClass => classes.push(fmmlxClass.id));
+    let values: [string, string][] = [];
+    this.#values.forEach((value, fmmlxClass) => values.push([value.value, fmmlxClass.id]));
+    return Object.assign(
       {
         id: this.#id,
         classes: classes,
         values: values,
-        isValue: Property.isValue,
         intrinsicness: this.#intrinsicness,
       },
       this
     );
-    return JSON.stringify(serializable);
+  }
+
+  static fromObject(obj: any): Property {
+    const p = {};
+    Object.setPrototypeOf(p, Property.prototype);
+    return p as Property;
   }
 
   /**
    * Removes FMMLx Class from set.
    */
-  deleteClass(fmmlxClass: Class) {
-    this.#classes.remove(fmmlxClass);
-    return this;
+  deleteClass(fmmlxClass: Class): void {
+    this.#classes.delete(fmmlxClass);
   }
 
   deleteValue(value: Value) {
-    this.#values.remove(value);
+    this.#values.delete(value.class);
     return this;
   }
 
@@ -153,9 +138,10 @@ export class Property implements Comparable, Serializable {
 
   /**
    * returns the corresponding index of an Attribute or Operation, or null if not found
+   * @todo avoid using this
    */
   findIndexForClass(fmmlxClass: Class) {
-    let index = this.#classes.findIndex(fmmlxClass);
+    let index = Array.from(this.#classes).findIndex(value => value === fmmlxClass);
     return index !== -1 ? index : null;
   }
   toString() {

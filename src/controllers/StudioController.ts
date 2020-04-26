@@ -1,7 +1,8 @@
 import * as go from 'gojs';
+import {ChangedEvent} from 'gojs';
 import * as Shapes from '../shapes/Shapes';
-import {Helper, CustomSet, Comparable} from '../helpers/Helpers';
-import {Class, Property, Value, Association, Inheritance} from '../models/Models';
+import {Comparable, Helper} from '../helpers/Helpers';
+import {Association, Class, Inheritance, Property, Value} from '../models/Models';
 
 `use strict`;
 
@@ -73,7 +74,7 @@ export class StudioController {
     let classLevel = fmmlxClassNodes[0].data.level;
     let partCreatedHandler = (diagramEvent: go.DiagramEvent) => {
       diagramEvent.diagram.removeDiagramListener('PartCreated', partCreatedHandler);
-      let transId = Helper.beginTransaction('Abstracting Selection...', 'AbsSel');
+      Helper.beginTransaction('Abstracting Selection...', 'AbsSel');
 
       let commonMembers = this.findCommonMembers(fmmlxClassNodes);
       for (let member of commonMembers) {
@@ -100,83 +101,82 @@ export class StudioController {
    * Returns true if successful false otherwise
    */
   addMemberToClass(fmmlxClass: Class, member: Property): boolean {
-    let transId = Helper.beginTransaction(`Adding Member to class...`, 'addMember');
-    try {
-      if (fmmlxClass.lastChangeId !== transId) {
-        this.diagram.model.setDataProperty(fmmlxClass, 'lastChangeId', transId);
-        let collection = fmmlxClass.findCorrespondingArray(member) as CustomSet<Value | Property>;
-        if (!collection.has(member)) {
-          this.diagram.model.addArrayItem(collection.toArray(), member);
-          this.diagram.model.addArrayItem(member.classes.toArray(), fmmlxClass);
-        }
-        this.processClass(fmmlxClass);
-      }
-      let downstream = [...fmmlxClass.instances, ...fmmlxClass.subclasses];
+    const transId = Helper.beginTransaction(`Adding Member to class...`, 'addMember');
+    fmmlxClass.lastChangeId = transId;
+    const collection = fmmlxClass.findCorrespondingCollection(member);
+    const collectionName = fmmlxClass.findCorrespondingCollectionName(member);
+    const oldCollection = new Set(Array.from(collection));
 
-      for (let aClass of downstream) {
-        this.addMemberToClass(aClass, member);
-      }
-      Helper.commitTransaction();
-      return true;
-    } catch (error) {
-      Helper.rollbackTransaction();
-      throw error;
+    member.classes.add(fmmlxClass);
+    collection.add(member);
+    this.diagram.model.raiseChangedEvent(
+      go.ChangedEvent.Insert,
+      collectionName,
+      fmmlxClass,
+      oldCollection,
+      collection
+    );
+    this.processClass(fmmlxClass);
+    let descendants = [...fmmlxClass.instances, ...fmmlxClass.subclasses];
+    for (let descendant of descendants) {
+      this.addMemberToClass(descendant, member);
     }
+    Helper.commitTransaction();
+    return true;
   }
 
   /**
    * Adds the corresponding value to a class
    * returns the value or undefined if nothing was done
    */
-  addValueToClass(fmmlxClass: Class, member: Property, value?: string): Value | null {
+  addValueToClass(fmmlxClass: Class, member: Property, value?: string) {
     console.debug(`Adding a value (${value}) of ${member.name} to ${fmmlxClass.name}`);
-    value = !value ? Helper.randomString() : value;
+    value = value === undefined ? Helper.randomString() : value;
 
     if (
-      (member.intrinsicness === undefined && fmmlxClass.level === undefined) ||
+      (!member.hasDefinedIntrinsicness && fmmlxClass.hasDefinedLevel) ||
       member.intrinsicness !== fmmlxClass.level
     ) {
       console.debug(
-        `Class (${fmmlxClass.name}) level (${fmmlxClass.level}) is different from the member's (${member.name}) intrinsicness (${member.intrinsicness}). Doing nothing`
+        `${fmmlxClass.name}'s level is different from the member's (${member.name}) intrinsicness. Doing nothing`
       );
-      return null;
+      return;
     }
 
-    let transId = Helper.beginTransaction('Adding Value to class...', 'addValue');
-    try {
-      let val = new Value(member, value, fmmlxClass);
-
-      let array = fmmlxClass.findCorrespondingArray(val);
-      this.deleteMember(fmmlxClass, member);
-      if (!array.has(val)) {
-        this.diagram.model.addArrayItem(array.toArray(), val);
-        this.diagram.model.addArrayItem(member.values.toArray(), val);
-      }
-
-      this.diagram.model.setDataProperty(fmmlxClass, 'lastChangeId', transId);
-      Helper.commitTransaction();
-      return val;
-    } catch (error) {
-      Helper.commitTransaction();
-      throw error;
-    }
+    fmmlxClass.lastChangeId = Helper.beginTransaction('Adding Value to class...', 'addValue');
+    this.deleteMember(fmmlxClass, member);
+    const val = new Value(member, value, fmmlxClass);
+    const collection = fmmlxClass.findCorrespondingCollection(val);
+    const oldCollection = new Set(Array.from(collection));
+    const collectionName = fmmlxClass.findCorrespondingCollectionName(val);
+    member.values.set(fmmlxClass, val);
+    collection.add(val);
+    this.diagram.model.raiseChangedEvent(
+      go.ChangedEvent.Insert,
+      collectionName,
+      fmmlxClass,
+      oldCollection,
+      collection
+    );
+    Helper.commitTransaction();
+    //return val;
   }
 
   /**
    * Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes downstream
    * returns false if the change was not done, true otherwise
    */
-  changeClassLevel(fmmlxClass: Class, newLevel: string | number, transId: string) {
-    if (fmmlxClass.lastChangeId === transId) return false;
-
+  changeClassLevel(fmmlxClass: Class, newLevel: number | undefined, transId: string) {
+    if (fmmlxClass.lastChangeId === transId) return;
+    fmmlxClass.lastChangeId = transId;
     if (newLevel === fmmlxClass.level) {
-      console.debug('Initial and target levels are the same. Doing nothing.');
-      return false;
-    } else if (newLevel < 0) throw new Error(`Level would be negative for ${fmmlxClass.name}`);
+      console.debug('Change class level: Initial and target levels are the same. Doing nothing.');
+      return;
+    } else if (newLevel !== undefined && newLevel < 0)
+      throw new Error(`Level would be negative for ${fmmlxClass.name}`);
 
     console.debug(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
-    const instanceLevel = newLevel === '?' ? '?' : +newLevel - 1;
-    newLevel = newLevel === '?' ? '?' : +newLevel;
+    const instanceLevel = newLevel === undefined ? undefined : newLevel - 1;
 
     /* -- Level change only works downstream
                 if (fmmlxClass.metaclass !== null && fmmlxClass.lastChangeId !== transId) {
@@ -190,27 +190,22 @@ export class StudioController {
                     this.changeClassLevel(fmmlxClass.superclass, newLevel, transId);
                 }
                 */
-
     this.diagram.model.setDataProperty(fmmlxClass, 'level', newLevel);
     this.processClass(fmmlxClass);
-    this.diagram.model.setDataProperty(fmmlxClass, 'lastChangeId', transId);
 
-    if (fmmlxClass.instances.length > 0) {
+    if (fmmlxClass.instances.size > 0) {
       console.debug('Processing instances...');
       for (let instance of fmmlxClass.instances) {
         this.changeClassLevel(instance, instanceLevel, transId);
       }
     }
 
-    if (fmmlxClass.subclasses.length > 0) {
+    if (fmmlxClass.subclasses.size > 0) {
       console.debug('Processing subclasses...');
-      let subclasses = fmmlxClass.subclasses.toArray().slice(0);
-      for (let subclass of subclasses) {
+      for (let subclass of fmmlxClass.subclasses) {
         this.deleteSuperclass(subclass);
       }
     }
-
-    return true;
   }
 
   /**
@@ -249,7 +244,7 @@ export class StudioController {
     let transactionMessage = `Change ${fmmlxClass.name}'s metaclass from  ${
       fmmlxClass.metaclass === undefined ? 'Metaclass' : fmmlxClass.metaclass.name
     } to ${metaclass.name}`;
-    let transId = Helper.beginTransaction(transactionMessage, 'changeMeta');
+    Helper.beginTransaction(transactionMessage, 'changeMeta');
     try {
       this.deleteMetaclass(fmmlxClass);
       this.diagram.model.setDataProperty(fmmlxClass, 'metaclass', metaclass);
@@ -521,19 +516,6 @@ export class StudioController {
     Helper.commitTransaction();
   }
 
-  deleteMemberById(
-    classId: string,
-    memberId: string,
-    upstream: boolean = false,
-    downstream: boolean = true
-  ) {
-    const fmmlxClass: Class = this.diagram.model.findNodeDataForKey(classId);
-    const member: Value | Property = fmmlxClass.findMemberById(memberId);
-    const property =
-      member.constructor === Value ? (member as Value).property : (member as Property);
-    return this.deleteMember(fmmlxClass, property, upstream, downstream);
-  }
-
   /**
    * Deletes <Property> (and/or its corresponding <Value>) from <fmmlxClass>,
    * its predecessors (`upstream`) and descendants (`downstream`)
@@ -543,7 +525,67 @@ export class StudioController {
     member: Property,
     upstream: boolean = false,
     downstream: boolean = true
-  ) {}
+  ) {
+    //delete own
+    console.log(`Delete member ${member.name} (and/or its value) from ${fmmlxClass.name}`);
+    fmmlxClass.lastChangeId = Helper.beginTransaction('Deleting member...', 'deleteMember');
+    const collection = fmmlxClass.findCorrespondingCollection(member);
+    const collectionName = fmmlxClass.findCorrespondingCollectionName(member);
+    if (!collection.has(member)) return;
+    const oldCollection = new Set([...collection]);
+    collection.delete(member);
+
+    this.diagram.model.raiseChangedEvent(
+      ChangedEvent.Remove,
+      collectionName,
+      fmmlxClass,
+      oldCollection,
+      collection
+    );
+    if (member.values.has(fmmlxClass)) {
+      this.deleteValueFromClass(fmmlxClass, member.values.get(fmmlxClass)!);
+    }
+
+    //del downstream
+    if (downstream) {
+      for (let instance of fmmlxClass.instances) {
+        this.deleteMember(instance, member, false, downstream);
+      }
+      for (let subclass of fmmlxClass.subclasses) {
+        this.deleteMember(subclass, member, false, downstream);
+      }
+    }
+
+    //del upstream
+    if (upstream) {
+      if (fmmlxClass.superclass !== undefined) {
+        this.deleteMember(fmmlxClass.superclass, member, true, false);
+      }
+      if (fmmlxClass.metaclass !== undefined) {
+        this.deleteMember(fmmlxClass.metaclass, member, true, false);
+      }
+    }
+    Helper.commitTransaction();
+  }
+
+  private deleteValueFromClass(fmmlxClass: Class, value: Value) {
+    Helper.beginTransaction('Delete value from class');
+    const collection = fmmlxClass.findCorrespondingCollection(value);
+    const collectionName = fmmlxClass.findCorrespondingCollectionName(value);
+    const oldCollection = new Set([...collection]);
+    collection.delete(value);
+    value.property.values.delete(fmmlxClass);
+    delete value.property;
+    delete value.class;
+    this.diagram.model.raiseChangedEvent(
+      ChangedEvent.Remove,
+      collectionName,
+      fmmlxClass,
+      oldCollection,
+      collection
+    );
+    Helper.commitTransaction();
+  }
 
   /**
    * Deletes a Class' Metaclass. Returns true if successful, false otherwise
@@ -602,35 +644,27 @@ export class StudioController {
    * Deletes (if exists) <Value> from FmmlxClass
    * Returns true if succesful, false otherwise
    */
-  deleteValue(fmmlxClass: Class, value: Value): boolean {
+  deleteValue(fmmlxClass: Class, value: Value) {
     console.debug(
       `Delete Value of ${value.property.name}:${value.property.type} in ${fmmlxClass.name}`
     );
-    let index = fmmlxClass.findIndexForMember(value);
-    if (index === null) {
-      console.debug(`Value not found in class. Doing nothing.`);
-      return false;
-    }
 
-    let transId = Helper.beginTransaction('Deleting value...', 'deleteValue');
-
-    try {
-      this.diagram.model.setDataProperty(fmmlxClass, 'lastChangeId', transId);
-
-      //remove value from class
-      let array = fmmlxClass.findCorrespondingArray(value);
-      this.diagram.model.removeArrayItem(array.toArray(), index);
-
-      //remove value from property
-      const allValues = value.property.values;
-      index = allValues.findIndex(value);
-      if (index) this.diagram.model.removeArrayItem(allValues.toArray(), index);
-      Helper.commitTransaction();
-      return true;
-    } catch (error) {
-      Helper.commitTransaction();
-      throw error;
-    }
+    const transId = Helper.beginTransaction('Deleting value...', 'deleteValue');
+    this.diagram.model.setDataProperty(fmmlxClass, 'lastChangeId', transId);
+    const collection = fmmlxClass.findCorrespondingCollection(value) as Set<Value>;
+    const collectionName = fmmlxClass.findCorrespondingCollectionName(value);
+    collection.delete(value);
+    value.property.values.delete(value.class);
+    delete value.class;
+    delete value.property;
+    this.diagram.model.raiseChangedEvent(
+      go.ChangedEvent.Insert,
+      collectionName,
+      fmmlxClass,
+      new Set(),
+      collection
+    );
+    Helper.commitTransaction();
   }
 
   editAssociation(
@@ -668,7 +702,7 @@ export class StudioController {
   editFmmlxClass(
     classId: string,
     name: string,
-    level: string | number,
+    level: number | undefined,
     isAbstract: boolean,
     metaclassId?: string,
     externalLanguage?: string,
@@ -786,7 +820,7 @@ export class StudioController {
       } else if (member.isValue === false) {
         //If the instrinsicness is unchanged, it is necessary to refresh the classes that have the edited member
         for (let fmmlxClass of member.classes) {
-          let arrayName = fmmlxClass.findCorrespondingArray(member, true);
+          let arrayName = fmmlxClass.findCorrespondingCollection(member, true);
           this.diagram.model.updateTargetBindings(fmmlxClass, arrayName);
         }
       }
@@ -951,7 +985,7 @@ export class StudioController {
     intrinsicness?: number
   ): Class[] {
     let validClasses: Class[] = [];
-    const descendants = [...fmmlxClass.instances.toArray(), ...fmmlxClass.subclasses.toArray()];
+    const descendants = Object.freeze([...fmmlxClass.instances, ...fmmlxClass.subclasses]);
 
     for (const descendant of descendants) {
       if (intrinsicness === undefined) validClasses.push(descendant);
@@ -1123,13 +1157,23 @@ export class StudioController {
    * Exports the diagram as JSON
    */
   toJSON() {
-    type flatData = {
-      classes: Map<number | string, Class>;
-      associations: Association[];
+    const flatData = {
+      classes: new Map() as Map<string, Class>,
+      associations: new Map() as Map<string, Association>,
     };
-    const flatData: flatData = {classes: new Map(), associations: []};
-    
-
+    const nodes = this.diagram.nodes;
+    const links = this.diagram.links;
+    while (nodes.next()) {
+      if (nodes.value.data.constructor !== Class) continue;
+      const currentClass: Class = nodes.value.data;
+      flatData.classes.set(currentClass.id, currentClass);
+    }
+    while (links.next()) {
+      if (links.value.data.constructor !== Association) continue;
+      const currentLink: Association = links.value.data;
+      flatData.associations.set(currentLink.id, currentLink);
+    }
+    return JSON.stringify(flatData);
   }
 
   toPNG() {
