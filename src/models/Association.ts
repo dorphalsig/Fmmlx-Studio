@@ -1,8 +1,8 @@
 'use strict';
 
-import {Class} from './Class';
-import * as Helpers from '../helpers/Helpers';
-import {Serializable, Comparable} from '../helpers/Helpers';
+import {Class} from './Class'; //.js';
+import * as Helpers from '../helpers/Helpers'; //.js';
+import {Serializable, Comparable} from '../helpers/Helpers'; //.js';
 
 /**
  * Represents an Association
@@ -15,8 +15,8 @@ export class Association implements Serializable, Comparable {
   id: string;
   tags: Set<string>;
   // Instance
-  readonly #source: Class;
-  readonly #target: Class;
+  #source: Class;
+  #target: Class;
   primitive?: Association;
   metaAssociation?: Association;
   #refinements: Helpers.CustomSet<Association> = new Helpers.CustomSet<Association>();
@@ -154,9 +154,9 @@ export class Association implements Serializable, Comparable {
     flatData: Association,
     source: Class,
     target: Class,
-    primitive: Association,
-    meta: Association
-  ) {
+    primitive?: Association,
+    meta?: Association
+  ): Association {
     let assoc = new Association(
       source,
       target,

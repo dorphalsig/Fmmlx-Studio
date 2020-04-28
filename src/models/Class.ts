@@ -1,7 +1,7 @@
-import {Value} from './Value';
-import {Property} from './Property';
-import {Association} from './Association';
-import * as Helpers from '../helpers/Helpers';
+import * as Helpers from '../helpers/Helpers'; //.js';
+import {Association} from './Association'; //.js';
+import {Property} from './Property'; //.js';
+import {Value} from './Value'; //.js';
 
 export class Class implements Helpers.Comparable, Helpers.Serializable {
   distanceFromRoot = 0;

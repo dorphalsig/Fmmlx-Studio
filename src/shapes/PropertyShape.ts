@@ -1,4 +1,5 @@
-import * as go from 'gojs';
+import * as go from 'gojs/release/go-module'; //.js';
+import {displayContextMenu, displayMemberForm} from '../fmmlxstudio'; //.js';
 
 const behaviourBlockTemplate = go.GraphObject.make(
   go.Panel,
@@ -53,18 +54,26 @@ const assignmentBlock = go.GraphObject.make(
 const typeBlock = go.GraphObject.make(
   go.TextBlock,
   new go.Binding('text', '', prop => (prop.isValue ? prop.value : prop.type)),
-  {
-    margin: new go.Margin(0, 5, 0, 0),
-  }
+  {margin: new go.Margin(0, 5, 0, 0)}
 );
 
 //@todo handle click events properly
-export const propertyShape = go.GraphObject.make(
+export const propertyShape: go.Panel = go.GraphObject.make(
   go.Panel,
   'Horizontal',
   /*new gojs.Binding("name", "id"),*/ {
-    //contextClick: Controller.FormController.displayContextMenu,
-    //doubleClick: Controller.FormController.displayMemberForm,
+    doubleClick: (event, panel) => {
+      displayMemberForm((panel as go.Panel).data);
+      event.handled = true;
+    },
+    contextClick: (event, panel) => {
+      displayContextMenu({
+        mouseEvent: event.event as MouseEvent,
+        target1: (panel as go.Panel).data,
+        target2: (panel as go.Panel).part!.data,
+      });
+      event.handled = true;
+    },
     minSize: new go.Size(100, 20),
     padding: new go.Margin(0, 2, 2, 2),
   },
@@ -73,4 +82,3 @@ export const propertyShape = go.GraphObject.make(
   assignmentBlock,
   typeBlock
 ) as go.Panel;
-

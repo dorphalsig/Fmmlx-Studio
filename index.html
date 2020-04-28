@@ -8,41 +8,7 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link rel="stylesheet" href="css/FmmlxStudio.css">
 
-    <script src="js/vendor/jquery/jquery_3.2.1.js"></script>
-    <script src="js/vendor/materialize/materialize.min.js"></script>
-
-    <script src="js/vendor/spark-md5/spark-md5_3.0.0.js"></script>
-    <script src="js/vendor/gojs/go-debug_1.7.19.js"></script>
-
-    <script src="js/helpers/Set.js"></script>
-    <script src="js/helpers/Helper.js"></script>
-    <script src="js/controllers/StudioController.js"></script>
-    <script src="js/controllers/FormController.js"></script>
-    <script src="js/FmmlxShapes/FmmlxProperty.js"></script>
-    <script src="js/FmmlxShapes/FmmlxClass.js"></script>
-    <script src="js/FmmlxShapes/FmmlxAssociation.js"></script>
-    <script src="js/FmmlxShapes/FmmlxInheritance.js"></script>
-    <script src="js/models/FmmlxProperty.js"></script>
-    <script src="js/models/FmmlxClass.js"></script>
-    <script src="js/models/FmmlxValue.js"></script>
-    <script src="js/models/FmmlxAssociation.js"></script>
-    <script src="js/models/FmmlxInheritance.js"></script>
-
-
-    <script>
-
-        //Modal Init
-        $(function () {
-            //Set up Modals
-            Controller.FormController.init();
-            window.studio = new Controller.StudioController();
-            window.onerror = function (messageOrEvent, source, lineno, colno, error) {
-                Controller.FormController.__error(error)
-            };
-            $(document)
-                .on("keydown", (event) => ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "i" && !event.shiftKey) ? Controller.FormController.displayClassForm() : true)
-        });
-    </script>
+    <script src="fmmlxstudio.js" type="module">  </script>
 
 </head>
 <body>
@@ -55,20 +21,20 @@
             <span class="mainTitle">FMML<sup>X</sup> Studio</span>
             <ul id="nav-mobile" class="right">
                 <li>
-                    <a id="export" onclick="Controller.FormController.exportJson()" href="#"><i
+                    <a id="export" onclick="exportJson()" href="#"><i
                             class="fa fa-2x fa-floppy-o"></i></a>
                 </li>
                 <li>
                     <label for="importFile">
                         <i class="fa fa-folder-open fa-2x white-text"></i>
                     </label>
-                    <input type="file" class="hide" id="importFile" onchange="Controller.FormController.importJson()">
+                    <input type="file" class="hide" id="importFile" onchange="importJson()">
                 </li>
                 <li>
-                    <a id="image" onclick="Controller.FormController.downloadImage()" href="#"><i
+                    <a id="image" onclick="downloadImage()" href="#"><i
                             class="fa fa-picture-o fa-2x"></i></a>
                 </li>
-                <li><a href="#" onclick="Controller.FormController.displayFilterForm()"><i
+                <li><a href="#" onclick="displayFilterForm()"><i
                         class="fa fa-filter fa-2x"></i></a></li>
 
             </ul>
@@ -109,7 +75,7 @@
 <!-- Floating + button to add Class -->
 <div class="fixed-action-btn">
     <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse"
-            onclick="Controller.FormController.displayClassForm();">
+            onclick="displayClassForm();">
         <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
 </div>
 <!-- End Floating + button to add Class -->

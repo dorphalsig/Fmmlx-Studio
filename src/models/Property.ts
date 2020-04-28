@@ -1,8 +1,7 @@
-import * as Helpers from '../helpers/Helpers';
-import {Value} from './Value';
-import {Class} from './Class';
-import {CustomSet} from '../helpers/Set';
-import {Comparable, Serializable} from '../helpers/Interfaces';
+import * as Helpers from '../helpers/Helpers'; //.js';
+import {Value} from './Value'; //.js';
+import {Class} from './Class'; //.js';
+import {Comparable, Serializable} from '../helpers/Interfaces'; //.js';
 
 export class Property implements Comparable, Serializable {
   #values: Map<Class, Value> = new Map<Class, Value>();

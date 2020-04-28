@@ -1,7 +1,6 @@
 'use strict';
-import * as Helpers from '../helpers/Helpers';
-import {Class} from './Class';
-import {Serializable} from '../helpers/Helpers';
+import {Class} from './Class'; //.js';
+import {Helper, Serializable} from '../helpers/Helpers'; //.js';
 
 export class Inheritance implements Serializable {
   id: any;
@@ -9,7 +8,7 @@ export class Inheritance implements Serializable {
   superclass: Class;
 
   constructor(subclass: Class, superclass: Class) {
-    this.id = Helpers.Helper.randomString();
+    this.id = Helper.randomString();
     this.subclass = subclass;
     this.superclass = superclass;
   }

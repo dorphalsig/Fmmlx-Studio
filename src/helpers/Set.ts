@@ -1,5 +1,5 @@
 //@todo the underlying array should be observed to check for duplicates on change, because gojs does stuff with it
-import {Comparable} from './Interfaces';
+import {Comparable} from './Interfaces'; //.js';
 export class CustomSet<T> {
   #data: (T & Comparable)[] = [];
 

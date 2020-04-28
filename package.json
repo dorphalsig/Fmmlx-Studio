@@ -1,17 +1,18 @@
 {
   "name": "fmmlx-studio",
-  "version": "2.0.0",
+  "version": "1.9.0",
   "description": "Implementation of the FMMLX Multivel modelling language in Javascript",
-  "main": "index.js",
+  "private": true,
+  "author": "David Sarmiento <dorphalsig at gmail dot com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/dorphalsig/Fmmlx-Studio/issues"
+  },
+  "homepage": "https://github.com/dorphalsig/Fmmlx-Studio#readme",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "check": "gts check",
-    "clean": "gts clean",
-    "compile": "tsc",
-    "fix": "gts fix",
-    "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "posttest": "npm run check"
+    "clean": "gts clean && rm fmmlxstudio.js",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -24,18 +25,20 @@
     "Metamodelling",
     "Modelling"
   ],
-  "author": "David Sarmiento <dorphalsig at gmail dot com>",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/dorphalsig/Fmmlx-Studio/issues"
-  },
-  "homepage": "https://github.com/dorphalsig/Fmmlx-Studio#readme",
   "dependencies": {
-    "crypto-es": "^1.2.4",
-    "gojs": "^1.7.29"
+    "gojs": "~2.1.15",
+    "jquery": "^3.5.0",
+    "materialize-css": "~1.0.0"
   },
+
   "devDependencies": {
+    "webpack": "^4.43.0",
+    "@types/jquery": "3.3.35",
+    "@types/materialize-css": "~1.0.6",
     "gts": "^2.0.0",
-    "typescript": "~3.8.0"
+    "source-map-loader": "^0.2.4",
+    "ts-loader": "^7.0.1",
+    "typescript": "^3.8.3",
+    "webpack-cli": "^3.3.11"
   }
 }

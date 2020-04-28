@@ -1,4 +1,4 @@
-export {classShape} from './ClassShape';
-export {associationShape} from './AssociationShape';
-export {inheritanceShape} from './InheritanceShape';
-export {propertyShape} from './PropertyShape';
+export {classShape} from './ClassShape'; //.js';
+export {associationShape} from './AssociationShape'; //.js';
+export {inheritanceShape} from './InheritanceShape'; //.js';
+export {propertyShape} from './PropertyShape'; //.js';

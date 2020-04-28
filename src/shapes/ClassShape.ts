@@ -1,6 +1,7 @@
-import * as Models from '../models/Models';
-import * as go from 'gojs';
-import {propertyShape} from './PropertyShape';
+import * as Models from '../models/Models'; //.js';
+import {propertyShape} from './PropertyShape'; //.js';
+import {displayClassForm, displayContextMenu} from '../fmmlxstudio'; //.js';
+import * as go from 'gojs/release/go-module'; //.js';
 
 function externalLanguageBlock() {
   return go.GraphObject.make(
@@ -44,7 +45,7 @@ function mainBlock() {
     go.Panel,
     'Vertical',
     {name: 'mainBlock'},
-    nameBlock,
+    nameBlock(),
     genericBlock('attributes'),
     genericBlock('operations'),
     genericBlock('slotValues'),
@@ -116,7 +117,7 @@ function genericBlock(collectionName: string) {
         },
         new go.Binding('itemArray', collectionName)
       ),
-      ellipsis
+      ellipsis()
     )
   );
 }
@@ -184,15 +185,23 @@ function MetaclassName(fmmlxClass: Models.Class) {
   return `^${fmmlxClass.metaclassName!.toUpperCase()}^\n${fmmlxClass.name} (${fmmlxClass.level})`;
 }
 
-//@todo add callbacks for clicks and doubleclicks
 export const classShape = go.GraphObject.make(
   go.Panel,
   'Spot',
   {
-    //  doubleClick: Controller.FormController.displayClassForm,
-    //contextClick: Controller.FormController.displayContextMenu,
+    doubleClick: (event, graphObject) => {
+      displayClassForm(graphObject.part!.data);
+      event.handled = true;
+    },
+
+    contextClick: (event, panel) => {
+      const data: Models.Class = (panel as go.Panel).data;
+      displayContextMenu({mouseEvent: event.event as MouseEvent, target1: data});
+      event.handled = true;
+    },
   },
+
   new go.Binding('location', 'location', go.Point.parse),
-  mainBlock,
-  externalLanguageBlock
+  mainBlock(),
+  externalLanguageBlock()
 ) as go.Panel;

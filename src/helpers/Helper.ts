@@ -1,4 +1,4 @@
-import * as go from 'gojs';
+import * as go from 'gojs/release/go-module'; //.js';
 
 export const Helper = {
   diagram: undefined as go.Diagram | undefined,
@@ -32,5 +32,4 @@ export const Helper = {
     console.groupEnd();
     console.log(`✅ ${transId} :: Transaction committed`);
   },
-
 };

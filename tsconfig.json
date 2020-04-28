@@ -1,13 +1,16 @@
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "outDir": "dist/",
+    "outDir": "js/",
     "rootDir": "src/",
-    "moduleResolution": "Node",
-    "module": "ES6",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
     "target": "ES2018",
-    "lib": ["dom", "ES2018"]
+    "lib": ["dom", "ES2018"],
+    "noImplicitAny": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
-  "exclude": ["dist"]
+  "exclude": ["dist", "node_modules"]
 }

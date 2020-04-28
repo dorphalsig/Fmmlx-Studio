@@ -1,26 +1,27 @@
 'use strict';
-import * as Models from '../models/Models';
-import * as go from 'gojs';
-import {Helper} from '../helpers/Helpers';
+import * as Models from '../models/Models'; //.js';
+import * as go from 'gojs/release/go-module'; //.js';
+import {Helper} from '../helpers/Helper'; //.js';
+import {displayAssociationForm, displayContextMenu} from '../fmmlxstudio'; //.js';
 
 function fixNameBlock(nameBlock: go.Panel, targetRight = true) {
-  let sourceIntrinsicness = nameBlock.findObject('sourceIntrinsicness');
-  let targetIntrinsicness = nameBlock.findObject('targetIntrinsicness');
+  let sourceIntrinsicness = nameBlock.findObject('sourceIntrinsicness')!;
+  let targetIntrinsicness = nameBlock.findObject('targetIntrinsicness')!;
   nameBlock.remove(sourceIntrinsicness);
   nameBlock.remove(targetIntrinsicness);
 
   if (targetRight) {
     nameBlock.insertAt(0, sourceIntrinsicness);
     nameBlock.add(targetIntrinsicness);
-    nameBlock.findObject('leftArrow').visible = false;
-    nameBlock.findObject('rightArrow').visible = true;
+    nameBlock.findObject('leftArrow')!.visible = false;
+    nameBlock.findObject('rightArrow')!.visible = true;
     return;
   }
 
   nameBlock.insertAt(0, targetIntrinsicness);
   nameBlock.add(sourceIntrinsicness);
-  nameBlock.findObject('leftArrow').visible = true;
-  nameBlock.findObject('rightArrow').visible = false;
+  nameBlock.findObject('leftArrow')!.visible = true;
+  nameBlock.findObject('rightArrow')!.visible = false;
   nameBlock.segmentOffset = new go.Point(0, 15);
 }
 
@@ -30,12 +31,12 @@ function fixNameBlock(nameBlock: go.Panel, targetRight = true) {
  * @param link
  */
 function fixLabels(link: go.Link) {
-  const nameBlock = link.findObject('nameBlock') as go.Panel;
-  const referenceBlock = link.findObject('referenceBlock');
-  const sourceRole = link.findObject('sourceRole');
-  const sourceCardinality = link.findObject('sourceCardinality');
-  const targetRole = link.findObject('targetRole');
-  const targetCardinality = link.findObject('targetCardinality');
+  const nameBlock = link.findObject('nameBlock')! as go.Panel;
+  const referenceBlock = link.findObject('referenceBlock')!;
+  const sourceRole = link.findObject('sourceRole')!;
+  const sourceCardinality = link.findObject('sourceCardinality')!;
+  const targetRole = link.findObject('targetRole')!;
+  const targetCardinality = link.findObject('targetCardinality')!;
   try {
     let transId = Helper.beginTransaction('Fixing labels...');
     if (link.midAngle !== 180) {
@@ -116,8 +117,6 @@ function strokeType(isInstace: boolean) {
   return isInstace ? [1, 3] : null;
 }
 
-//@todo add callbacks for clicks and doubleclicks
-
 let sourceRole = go.GraphObject.make(go.TextBlock, new go.Binding('text', 'sourceRole'), {
   margin: new go.Margin(0, 15, 0, 15),
   name: 'sourceRole',
@@ -192,8 +191,17 @@ export const associationShape = go.GraphObject.make(
     toSpot: go.Spot.AllSides,
     fromSpot: go.Spot.AllSides,
     curve: go.Link.JumpGap,
-    //doubleClick: Controller.FormController.displayAssociationForm,
-    //contextClick: Controller.FormController.displayContextMenu,
+    doubleClick: (event, link) => {
+      displayAssociationForm((link as fmmlxAssociationLink).data);
+      event.handled = true;
+    },
+    contextClick: (event, link) => {
+      displayContextMenu({
+        mouseEvent: event.event as MouseEvent,
+        target1: (link as fmmlxAssociationLink).data,
+      });
+      event.handled = true;
+    },
   },
   go.GraphObject.make(go.Shape, new go.Binding('strokeDashArray', 'isInstance', strokeType)), // this is the link shape
   sourceRole,

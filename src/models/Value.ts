@@ -1,6 +1,6 @@
-import {Class} from './Class';
-import {Property} from './Property';
-import {Serializable, Comparable} from '../helpers/Helpers';
+import {Class} from './Class'; //.js';
+import {Property} from './Property'; //.js';
+import {Serializable, Comparable} from '../helpers/Helpers'; //.js';
 
 export class Value implements Serializable, Comparable {
   value: string;

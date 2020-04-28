@@ -1,5 +1,5 @@
-export {Association as Association} from './Association';
-export {Class} from './Class';
-export {Inheritance as Inheritance} from './Inheritance';
-export { Property as Property } from './Property';
-export { Value as Value } from './Value';
+export {Association} from './Association'; //.js';
+export {Class} from './Class'; //.js';
+export {Inheritance} from './Inheritance'; //.js';
+export {Property} from './Property'; //.js';
+export {Value} from './Value'; //.js';

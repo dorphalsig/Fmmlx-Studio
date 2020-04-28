@@ -1,12 +1,10 @@
-import * as go from 'gojs';
-import {ChangedEvent} from 'gojs';
-import * as Shapes from '../shapes/Shapes';
-import {Comparable, Helper} from '../helpers/Helpers';
-import {Association, Class, Inheritance, Property, Value} from '../models/Models';
+//import * as go from 'g'; //.js';
+import * as go from 'gojs/release/go-module'; //.js';
+import * as Shapes from '../shapes/Shapes'; //.js';
+import {Comparable, Helper} from '../helpers/Helpers'; //.js';
+import {Association, Class, Inheritance, Property, Value} from '../models/Models'; //.js';
 
-`use strict`;
-
-const tags = new Set<String>();
+export const tags = new Set<string>();
 export class StudioController {
   diagram: go.Diagram;
 
@@ -29,7 +27,7 @@ export class StudioController {
     this.diagram.linkTemplateMap.add(Association.category, Shapes.associationShape);
     this.diagram.linkTemplateMap.add(Inheritance.category, Shapes.inheritanceShape);
     this.diagram.model.nodeKeyProperty = `id`;
-    (this.diagram.model as go.GraphLinksModel).linkKeyProperty = `id`;
+    // (this.diagram.model as go.GraphLinksModel).linkKeyProperty = `id`;
   }
 
   /**
@@ -94,6 +92,10 @@ export class StudioController {
     let level = classLevel === '?' ? '?' : classLevel + 1;
     this.diagram.addDiagramListener('PartCreated', partCreatedHandler);
     this.createFmmlxClass(randomName, level, false);
+  }
+
+  addClickListener(listener: (e: go.DiagramEvent) => void): void {
+    this.diagram.addDiagramListener('ObjectSingleClicked', listener);
   }
 
   /**
@@ -302,10 +304,8 @@ export class StudioController {
   /**
    * Copies a member definition to the superclass
    */
-  copyMemberToSuperclass(classId: string, memberId: string) {
-    const fmmlxClass: Class = this.diagram.model.findNodeDataForKey(classId);
+  copyMemberToSuperclass(fmmlxClass: Class, member: Property | Value) {
     if (fmmlxClass.superclass === undefined) throw new Error('Class has no defined superclass');
-    let member = fmmlxClass.findMemberById(memberId);
     if (member.constructor === Value) member = (member as Value).property;
     this.addMemberToClass(fmmlxClass.superclass, member as Property);
   }
@@ -433,9 +433,9 @@ export class StudioController {
     operationBody?: string,
     tags: string[] = []
   ) {
-    const fmmlxClass = this.diagram.model.findNodeDataForKey(fmmlxClassId);
+    const fmmlxClass = this.diagram.model.findNodeDataForKey(fmmlxClassId)! as Class;
     if (Boolean(isValue)) {
-      intrinsicness = fmmlxClass.level;
+      intrinsicness = fmmlxClass!.level;
     }
 
     let member = new Property(
@@ -470,7 +470,7 @@ export class StudioController {
       if (association.metaAssociation !== undefined)
         association.metaAssociation.deleteInstance(association);
       if (association.primitive !== undefined) association.primitive.deleteRefinement(association);
-      this.diagram.remove(this.diagram.findLinkForData(association));
+      this.diagram.remove(this.diagram.findLinkForData(association)!);
       Helper.commitTransaction();
       return true;
     } catch (err) {
@@ -506,7 +506,7 @@ export class StudioController {
         this.deleteMember(fmmlxClass, member);
       }
 
-      let node = this.diagram.findNodeForData(fmmlxClass);
+      let node = this.diagram.findNodeForData(fmmlxClass)!;
       this.diagram.remove(node);
       this.diagram.model.removeNodeData(fmmlxClass);
     } catch (error) {
@@ -536,7 +536,7 @@ export class StudioController {
     collection.delete(member);
 
     this.diagram.model.raiseChangedEvent(
-      ChangedEvent.Remove,
+      go.ChangedEvent.Remove,
       collectionName,
       fmmlxClass,
       oldCollection,
@@ -578,7 +578,7 @@ export class StudioController {
     delete value.property;
     delete value.class;
     this.diagram.model.raiseChangedEvent(
-      ChangedEvent.Remove,
+      go.ChangedEvent.Remove,
       collectionName,
       fmmlxClass,
       oldCollection,
@@ -616,28 +616,38 @@ export class StudioController {
   }
 
   /**
-   * Sets the superclass to null, removes the subclass reference from the superclass, removes inherited members and deletes the link
+   * Returns the model for whatever was clicked in the Diagram
    */
-  deleteSuperclass(subclassOrId: Class | string) {
-    let subclass =
-      typeof subclassOrId === 'string'
-        ? this.diagram.model.findNodeDataForKey(subclassOrId)
-        : subclassOrId;
-    let superclass = subclass.superclass;
-
-    superclass.removeSubclass(subclass);
-    for (let member of superclass.members) {
-      this.deleteMember(subclass, member);
+  getClicked(): Promise<Class | Value | Property | Association | Inheritance> {
+    return new Promise<any>(resolve => {
+      const handler = (event: go.DiagramEvent) => {
+        this.diagram.removeDiagramListener('ObjectSingleClicked', handler);
+        resolve(event.subject.part.data);
+      };
+      this.diagram.addDiagramListener('ObjectSingleClicked', handler);
+    });
+  }
+  /**
+   * deletes the superclass, removes the fmmlxClass reference from the superclass, removes inherited members and
+   * deletes the link
+   */
+  deleteSuperclass(fmmlxClass: Class) {
+    const superclass = fmmlxClass.superclass;
+    if (superclass !== undefined) {
+      delete fmmlxClass.superclass;
+      let linkData = this.diagram
+        .findLinksByExample({
+          from: fmmlxClass.id,
+          to: superclass.id,
+          category: 'Inheritance',
+        })
+        .first()!.data;
+      (this.diagram.model as go.GraphLinksModel).removeLinkData(linkData);
+      superclass.removeSubclass(fmmlxClass);
+      for (let member of superclass.members) {
+        this.deleteMember(fmmlxClass, member);
+      }
     }
-    subclass.superclass = null;
-    let linkData = this.diagram
-      .findLinksByExample({
-        from: subclass.id,
-        to: superclass.id,
-        category: 'fmmlxInheritance',
-      })
-      .first().data;
-    (this.diagram.model as go.GraphLinksModel).removeLinkData(linkData);
   }
 
   /**
@@ -677,23 +687,18 @@ export class StudioController {
     targetIntrinsicness: string | number,
     targetRole: string
   ) {
-    let association: Association = (this.diagram.model as go.GraphLinksModel).findLinkDataForKey(
+    let association = (this.diagram.model as go.GraphLinksModel).findLinkDataForKey(
       assocId
-    );
-    let transId = Helper.beginTransaction('Edit Association', 'EditAssoc');
-    try {
-      this.diagram.model.setDataProperty(association, 'name', name);
-      this.diagram.model.setDataProperty(association, 'sourceCardinality', sourceCardinality);
-      this.diagram.model.setDataProperty(association, 'sourceRole', sourceRole);
-      this.diagram.model.setDataProperty(association, 'sourceIntrinsicness', sourceIntrinsicness);
-      this.diagram.model.setDataProperty(association, 'targetCardinality', targetCardinality);
-      this.diagram.model.setDataProperty(association, 'targetIntrinsicness', targetIntrinsicness);
-      this.diagram.model.setDataProperty(association, 'targetRole', targetRole);
-      Helper.commitTransaction();
-    } catch (error) {
-      Helper.rollbackTransaction();
-      throw error;
-    }
+    ) as Association;
+    Helper.beginTransaction('Edit Association', 'EditAssoc');
+    this.diagram.model.setDataProperty(association, 'name', name);
+    this.diagram.model.setDataProperty(association, 'sourceCardinality', sourceCardinality);
+    this.diagram.model.setDataProperty(association, 'sourceRole', sourceRole);
+    this.diagram.model.setDataProperty(association, 'sourceIntrinsicness', sourceIntrinsicness);
+    this.diagram.model.setDataProperty(association, 'targetCardinality', targetCardinality);
+    this.diagram.model.setDataProperty(association, 'targetIntrinsicness', targetIntrinsicness);
+    this.diagram.model.setDataProperty(association, 'targetRole', targetRole);
+    Helper.commitTransaction();
   }
 
   /**
@@ -709,7 +714,7 @@ export class StudioController {
     externalMetaclass?: string,
     tags: string[] = []
   ) {
-    const fmmlxClass: Class = this.diagram.model.findNodeDataForKey(classId);
+    const fmmlxClass = this.diagram.model.findNodeDataForKey(classId) as Class;
     console.debug(`Editing class ${fmmlxClass.name}`);
 
     metaclassId = metaclassId === '' ? undefined : metaclassId;
@@ -768,7 +773,7 @@ export class StudioController {
     tags: string[] = []
   ) {
     let node = this.diagram.findNodeForKey(classId);
-    let fmmlxClass: Class = node.data;
+    let fmmlxClass: Class = node!.data;
     let member = fmmlxClass.findMemberById(memberId);
     let otherAttributes = {
       name: name,
@@ -837,7 +842,7 @@ export class StudioController {
    * filter = [{tags:["tag1","tag2"], levels:["1","2","?"]},...]
    * @todo figure how this works. I think it never actually worked properly
    */
-  filterModel(filters: any[] = []) {
+  filterModel(filters: {operator: string; tags: string; levels: string[]}[] = []) {
     let realFilters: any[] = [],
       matchingClasses = new Set(),
       matchingAssociations = new Set(),
@@ -948,17 +953,17 @@ export class StudioController {
   /**
    * Finds the parent of each class in classes and hides all the rest
    */
-  /*  findTrees(selectedClasses: Class[]): Class[] {
+  findTrees(selectedClasses: Class[]): Class[] {
     let chain: Class[] = [];
     this.setNodesVisibility(false);
     // hides all classes
     for (let selectedClass of selectedClasses) {
-      let roots = this.findRoot(selectedClass);
-      chain.push(root);
-      chain = chain.concat(this.findDescendants(root));
+      const roots = this.findRoot(selectedClass);
+      roots.forEach(root => (chain = [...chain, ...this.findDescendants(root)]));
+      chain = [...chain, ...roots];
     }
     return chain;
-  }*/
+  }
 
   /**
    * Changes the visibility of all nodes
@@ -1024,27 +1029,31 @@ export class StudioController {
         if (link.category === Inheritance.category) {
           let subclass = (this.diagram.model as go.GraphLinksModel).findLinkDataForKey(
             link.subclass
-          );
+          ) as Class;
           let superclass = (this.diagram.model as go.GraphLinksModel).findLinkDataForKey(
             link.superclass
-          );
+          ) as Class;
           this.changeClassSuperclass(superclass, subclass);
         } else if (link.category === Association.category) {
-          let source = this.diagram.model.findNodeDataForKey(link.source);
-          let target = this.diagram.model.findNodeDataForKey(link.target);
+          let source = this.diagram.model.findNodeDataForKey(link.source) as Class;
+          let target = this.diagram.model.findNodeDataForKey(link.target) as Class;
           let primitive =
             link.primitive !== undefined
-              ? (this.diagram.model as go.GraphLinksModel).findLinkDataForKey(link.primitive)
-              : null;
+              ? ((this.diagram.model as go.GraphLinksModel).findLinkDataForKey(
+                  link.primitive
+                )! as Association)
+              : undefined;
           let metaAssoc =
             link.metaAssociation !== undefined
-              ? (this.diagram.model as go.GraphLinksModel).findLinkDataForKey(link.metaAssociation)
-              : null;
+              ? ((this.diagram.model as go.GraphLinksModel).findLinkDataForKey(
+                  link.metaAssociation
+                )! as Association)
+              : undefined;
           let assoc = Association.inflate(link, source, target, primitive, metaAssoc);
           (this.diagram.model as go.GraphLinksModel).addLinkData(assoc);
           link.instances.forEach((instance: any) => {
             let assocInstance: Association = (this.diagram
-              .model as go.GraphLinksModel).findLinkDataForKey(instance);
+              .model as go.GraphLinksModel).findLinkDataForKey(instance)! as Association;
             if (assocInstance !== null) {
               this.diagram.model.setDataProperty(assocInstance, 'metaAssoc', assoc);
               assoc.addInstance(assocInstance);
@@ -1054,8 +1063,9 @@ export class StudioController {
             /**
              * @type {Model.FmmlxAssociation}
              */
-            let assocRefinement: Association = (this.diagram
-              .model as go.GraphLinksModel).findLinkDataForKey(refinement);
+            let assocRefinement = (this.diagram.model as go.GraphLinksModel).findLinkDataForKey(
+              refinement
+            ) as Association;
             if (assocRefinement !== null) {
               this.diagram.model.setDataProperty(assocRefinement, 'primitive', assoc);
               assoc.addRefinement(assocRefinement);
@@ -1095,8 +1105,8 @@ export class StudioController {
       this.changeMetaclass(fmmlxClass, flatClass.metaclass);
       this.updateTags(flatClass.tags);
 
-      if (flatClass.superclass !== null) {
-        let superclass = this.diagram.model.findNodeDataForKey(flatClass.superclass);
+      if (flatClass.superclass !== undefined) {
+        let superclass = this.diagram.model.findNodeDataForKey(flatClass.superclass)! as Class;
         this.changeClassSuperclass(superclass, fmmlxClass);
       }
 
@@ -1112,7 +1122,7 @@ export class StudioController {
         this.addValueToClass(fmmlxClass, member, flatValue.value);
       }
 
-      this.diagram.findNodeForKey(fmmlxClass.id).updateTargetBindings();
+      this.diagram.findNodeForKey(fmmlxClass.id)!.updateTargetBindings();
       Helper.commitTransaction();
       return this.diagram.findNodeForKey(fmmlxClass.id);
     } catch (e) {
@@ -1181,5 +1191,15 @@ export class StudioController {
       scale: 1,
       background: 'rgba(255, 255, 255, 0.8)',
     });
+  }
+
+  /**
+   * Hides all classes and shows only the ones in classArray
+   */
+  showClasses(classArray: Class[]) {
+    this.setNodesVisibility(false);
+    const transId = Helper.beginTransaction('Showing selected classes');
+    classArray.forEach(fmmlxClass => (this.diagram.findNodeForData(fmmlxClass)!.visible = true));
+    Helper.commitTransaction(transId);
   }
 }
