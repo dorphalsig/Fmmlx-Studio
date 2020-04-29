@@ -1,9 +1,13 @@
+const path = require('path');
 module.exports = {
-  entry: '/Users/paavum/Documents/WebstormProjects/fmmlx-studio/src/fmmlxstudio.ts',
+  entry: `${path.resolve(__dirname)}/src/fmmlxstudio.ts`,
+
   output: {
-    path: '/Users/paavum/Documents/WebstormProjects/fmmlx-studio/',
+    path: path.resolve(__dirname),
     filename: 'fmmlxstudio.js',
   },
+  devtool: 'eval-source-map',
+  watch: false,
   mode: 'development',
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],

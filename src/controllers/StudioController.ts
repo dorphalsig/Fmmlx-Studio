@@ -26,8 +26,8 @@ export class StudioController {
     this.diagram.nodeTemplateMap.add(Class.category, Shapes.classShape as go.Node);
     this.diagram.linkTemplateMap.add(Association.category, Shapes.associationShape);
     this.diagram.linkTemplateMap.add(Inheritance.category, Shapes.inheritanceShape);
-    this.diagram.model.nodeKeyProperty = `id`;
-    // (this.diagram.model as go.GraphLinksModel).linkKeyProperty = `id`;
+    //this.diagram.model.nodeKeyProperty = `id`;
+    (this.diagram.model as go.GraphLinksModel).linkKeyProperty = `id`;
   }
 
   /**

@@ -5,7 +5,6 @@ export const Helper = {
   randomString: function () {
     return Math.random().toString(36).substring(2);
   },
-
   /**
    * Starts a Transaction and returns he TxID
    */

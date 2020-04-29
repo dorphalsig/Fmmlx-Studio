@@ -1,43 +1,54 @@
-import * as $ from 'jquery/dist/jquery.slim';
 import {StudioController, tags} from './controllers/StudioController'; //.js';
 import {Helper} from './helpers/Helper'; //.js';
 import {Association, Class, Property, Value} from './models/Models'; //.js';
 import * as go from 'gojs/release/go-module'; //.js';
 import * as M from 'materialize-css';
 
-window.onerror = function (messageOrEvent, source, lineno, colno, errorObj) {
-  error(errorObj);
-};
 let studio: StudioController;
-let classForm: JQuery<HTMLElement>;
-let propertyForm: JQuery<HTMLElement>;
-let associationForm: JQuery<HTMLElement>;
-$(function () {
-  console.log('ready!');
-});
+let classForm: HTMLFormElement;
+let propertyForm: HTMLFormElement;
+let associationForm: HTMLFormElement;
+document.addEventListener('DOMContentLoaded', _e => init());
 
-document.addEventListener('DOMContentLoaded', (_ev: Event) => {
+function init() {
+  window.onerror = function (messageOrEvent, source, lineno, colno, errorObj) {
+    error(errorObj);
+  };
+
   studio = new StudioController();
-  classForm = $('#fmmlxClassModal > form').clone();
-  propertyForm = $('#fmmlxAttributeModal > form').clone();
-  associationForm = $('#fmmlxAssociationModal > form').clone();
+  classForm = document.querySelector('#fmmlxClassModal > form')!.cloneNode() as HTMLFormElement;
+  propertyForm = document
+    .querySelector('#fmmlxAttributeModal > form')!
+    .cloneNode() as HTMLFormElement;
+  associationForm = document
+    .querySelector('#fmmlxAssociationModal > form')!
+    .cloneNode() as HTMLFormElement;
 
-  $('#filterModal > select').formSelect();
+  M.FormSelect.init(document.querySelectorAll('#filterModal > select'));
+  M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
   //just setting up selects for filter modal, every other select is done when showing the modal
-  $('.fixed-action-btn').floatingActionButton();
-  $('.modal').modal();
-
-  $(document).on('keydown', event =>
+  M.Modal.init(document.querySelectorAll('.modal'));
+  document.addEventListener('keydown', event => {
     (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'i' && !event.shiftKey
       ? displayClassForm()
-      : true
+      : true;
+  });
+  const buttons = new Map<string, Function>([
+    ['#addClass', displayClassForm],
+    // ['#export', exportJson],
+    // ['#image', downloadImage],
+    // ['fa-filter', displayFilterForm],
+  ]);
+  buttons.forEach((value, key) =>
+    document.querySelector(key)!.addEventListener('click', _evt => value())
   );
-});
+  document.getElementById('importFile')!.addEventListener('click', _e => importJson());
+}
 
-function download(anchor: JQuery<HTMLAnchorElement>, data: string, fileType: string): boolean {
+function download(anchor: HTMLAnchorElement, data: string, fileType: string): boolean {
   let filename = `FMMLxStudio - ${new Date().toISOString()}.${fileType}`;
-  anchor.prop('href', data);
-  anchor.prop('download', filename);
+  anchor.href = data;
+  anchor.download = filename;
   return true;
 }
 
@@ -56,89 +67,93 @@ function error(error?: Error) {
 /**
  * Generic form filler
  */
-function fillForm(modal: JQuery<HTMLElement>, data: any) {
+function fillForm(modal: HTMLElement, data: any) {
   if (data === null) return;
 
-  let fields = modal.find(':input') as JQuery<HTMLInputElement>;
-  for (const field of fields) {
-    const jqField = $(field);
-    let fieldName = jqField.prop('name') as string;
-    let value = data[fieldName];
-    if (typeof value === undefined || value === null) {
-      continue;
-    }
+  let fields = modal.querySelectorAll<HTMLInputElement>(':scope :input')!;
+  fields.forEach(field => {
+    let fieldName = field.name;
+    let value = data[fieldName] as string;
+    if (typeof value === undefined || value === null) return;
 
-    switch (jqField.prop('type')) {
+    switch (field.type) {
       case 'checkbox':
-        if (jqField.val() === value.toString()) {
-          jqField.trigger('click');
-          jqField.trigger('change');
+        if (field.value === value) {
+          field.click(); // this triggers change
+          field.dispatchEvent(new Event('change'));
         }
         break;
 
       case 'select-one':
         M.FormSelect.getInstance(field).destroy();
-        jqField.val(value.toString());
+        field.value = value;
         M.FormSelect.init(field);
         break;
 
       default:
-        jqField.val(value);
-        jqField.next('label').addClass('active');
-        jqField.trigger('change');
+        field.value = value;
+        while (field.nextElementSibling != null) {
+          field = field.nextElementSibling as HTMLInputElement;
+          if (field.matches('label')) break;
+        }
+        field.classList.add('active');
+        field.dispatchEvent(new Event('change'));
         break;
     }
-  }
+  });
 }
 
 /**
  * generic filler for a Select field. Removes all the options not marked with data-keep
  */
-function fillSelect(select: JQuery<HTMLSelectElement>, options: any) {
-  const instance = M.FormSelect.getInstance(select[0]);
-  select.find(':not([data-keep=true])').remove();
-  select.append(options);
+function setupSelect(select: HTMLSelectElement, options: HTMLOptionElement[] = []) {
+  const instance = M.FormSelect.getInstance(select);
+  const removableOptions = select.querySelectorAll(':not([data-keep=true])');
+  removableOptions.forEach(option => {
+    option.remove();
+  });
+  options.forEach(option => select.append(option));
 
   if (instance !== undefined) instance.destroy();
-  select.formSelect();
-  //.material_select();
+  M.FormSelect.init(select);
 }
 
 /**
  * Hides and disables field and its form-group
  */
-function hideField(field: JQuery<HTMLInputElement>) {
-  field.prop('disabled', true);
-  field.closest('.input-field').addClass('hide');
+function hideField(field: HTMLInputElement | HTMLSelectElement) {
+  field.disabled = true; // ('disabled', true);
+  field.closest('.input-field')!.classList.add('hide');
 }
 
 /**
  * Parses a form into an object. The field names are the properties of the object
  */
-function readForm(form: JQuery<HTMLFormElement>) {
-  let fields = form.find(':input:not([disabled])') as JQuery<HTMLInputElement>;
+function readForm(form: HTMLFormElement) {
   let fieldData: any = {};
-  for (let field of fields) {
-    let name = field.getAttribute('name');
-    if (name !== '') {
-      fieldData[`${name}`] =
-        (field.type === 'checkbox' && field.checked) || field.type !== 'checkbox'
-          ? field.value
-          : '';
-    } else {
-      fieldData[`${name}`] = field.value;
+  (form.querySelectorAll(':input:not([disabled])') as NodeListOf<HTMLInputElement>).forEach(
+    field => {
+      let name = field.getAttribute('name');
+      if (name !== '') {
+        fieldData[`${name}`] =
+          (field.type === 'checkbox' && field.checked) || field.type !== 'checkbox'
+            ? field.value
+            : '';
+      } else {
+        fieldData[`${name}`] = field.value;
+      }
     }
-  }
-
-  for (let field of form.find('.chips').filter(':visible')) {
-    let name = field.getAttribute('name')!;
+  );
+  form.querySelectorAll('.chips').forEach(chip => {
+    if (!chip.matches(':visible')) return;
+    const name = chip.getAttribute('name')!;
     fieldData[name] = [];
-    M.Chips.getInstance(field).chipsData.forEach(tag => fieldData[name].push(tag.tag));
-  }
+    M.Chips.getInstance(chip).chipsData.forEach(tag => fieldData[name].push(tag.tag));
+  });
   return fieldData;
 }
 
-function setupChip(div: any, tagList: string[] = [], options: any = {}) {
+function setupChip(div: HTMLDivElement, tagList: string[] = [], options: any = {}) {
   const tokens: {tag: string}[] = [],
     autoCompleteData: any = {};
   const defaultOptions = {
@@ -170,12 +185,10 @@ function setupChip(div: any, tagList: string[] = [], options: any = {}) {
 
   if (chipsInstance === undefined) {
     chipsInstance = M.Chips.init(div, options);
-    $(div)
-      .children('input')
-      .on('blur', event => {
-        //non-committed text is removed
-        $(event.target).val('');
-      });
+
+    div
+      .querySelector('input')!
+      .addEventListener('blur', ev => ((ev.target as HTMLInputElement).value = ''));
   }
   tokens.forEach(token => chipsInstance.addChip(token));
 }
@@ -187,22 +200,31 @@ function setupChips(form: HTMLFormElement, tags: string[] = [], options = {}) {
 /**
  * Checks the fields that have class needsExtraInfo and sets them up according to data-show and data-hide
  */
-function setupExtraDataFields(modal: JQuery) {
-  modal.find('.needsExtraInfo').on('change', event => {
-    let form = (event.target as HTMLInputElement).form!;
-    let target = $(event.target);
-    let show = typeof target.data('show') === undefined ? [] : target.data('show').split(',');
-    let hide = typeof target.data('hide') === undefined ? [] : target.data('hide').split(',');
-    for (let fieldName of hide) {
-      let field = form.find(`#${fieldName}`);
-      target.prop('checked') ? hideField(field) : showField(field);
-    }
-    for (let fieldName of show) {
-      let field = $(`#${fieldName.trim()}`) as JQuery<HTMLInputElement>;
-      target.prop('checked') ? showField(field) : hideField(field);
-    }
-  });
+function setupExtraDataFields(modal: HTMLElement) {
+  modal.querySelectorAll('.needsExtraInfo').forEach(item =>
+    item.addEventListener('change', event => {
+      let target = event.target! as HTMLInputElement;
+      let form = target.form!;
+      let show =
+        typeof target.getAttribute('data-show') === null
+          ? []
+          : target.getAttribute('data-show')!.split(',');
+      let hide =
+        typeof target.getAttribute('data-hide') === null
+          ? []
+          : target.getAttribute('hide')!.split(',');
+      for (let fieldName of hide) {
+        let field = form.querySelector(`#${fieldName}`)! as HTMLInputElement;
+        target.checked ? hideField(field) : showField(field);
+      }
+      for (let fieldName of show) {
+        let field = document.getElementById(fieldName.trim()) as HTMLInputElement;
+        target.checked ? showField(field) : hideField(field);
+      }
+    })
+  );
 }
+
 function showClasses(classArray: Class[]) {
   studio.showClasses(classArray);
 }
@@ -210,9 +232,9 @@ function showClasses(classArray: Class[]) {
 /**
  * Shows and enables field and its form-group
  */
-function showField(field: JQuery<HTMLInputElement>) {
-  field.prop('disabled', false);
-  field.closest('.input-field').removeClass('hide');
+function showField(field: HTMLInputElement) {
+  field.disabled = false;
+  field.closest('.input-field')!.classList.remove('hide');
 }
 
 export function abstractClass() {
@@ -227,57 +249,52 @@ export function abstractClass() {
 }
 
 export function addEditFmmlxClass() {
-  const modal = $('#fmmlxClassModal');
-  const form = modal.find('form') as JQuery<HTMLFormElement>;
+  const modal = document.getElementById('fmmlxClassModal')! as HTMLDivElement;
+  const form = modal.querySelector('form')! as HTMLFormElement;
 
-  try {
-    if (!form[0].checkValidity())
-      throw new Error('Invalid input. Check the highlighted fields and try again.');
-
-    let formVals = readForm(form);
-    if (formVals.id === '') {
-      studio.createFmmlxClass(
-        formVals.name,
-        formVals.level,
-        formVals.isAbstract,
-        formVals.metaclass,
-        formVals.externalLanguage,
-        formVals.externalMetaclass,
-        formVals.tags
-      );
-      M.toast({
-        html: 'Click on the canvas to insert the class',
-      });
-    } else if (
-      confirm(
-        'Please note that changing classification level can possibly break the instantiation and the inheritance chain.\nDo you wish to continue?'
-      )
-    ) {
-      studio.editFmmlxClass(
-        formVals.id,
-        formVals.name,
-        formVals.level,
-        formVals.isAbstract,
-        formVals.metaclass,
-        formVals.externalLanguage,
-        formVals.externalMetaclass,
-        formVals.tags
-      );
-    }
-  } catch (error) {
-    let submitBtn = modal.find('.btn-flat');
-    submitBtn.one('click', addEditFmmlxClass);
-    //modal.find(':input').keydown((e) => e.key.toLowerCase() === "enter" ? submitBtn.click() : true);
-    error(error);
-    return;
+  if (!form.checkValidity()) {
+    setupSubmitButton(modal, addEditFmmlxClass);
+    error(new Error('Invalid input. Please check and try again'));
   }
-  modal.modal('close');
+
+  let formVals = readForm(form);
+  if (formVals.id === '') {
+    studio.createFmmlxClass(
+      formVals.name,
+      formVals.level,
+      formVals.isAbstract,
+      formVals.metaclass,
+      formVals.externalLanguage,
+      formVals.externalMetaclass,
+      formVals.tags
+    );
+    M.toast({
+      html: 'Click on the canvas to insert the class',
+    });
+  } else if (
+    confirm(
+      'Please note that changing classification level can possibly break the instantiation and the inheritance chain.\nDo you wish to continue?'
+    )
+  ) {
+    studio.editFmmlxClass(
+      formVals.id,
+      formVals.name,
+      formVals.level,
+      formVals.isAbstract,
+      formVals.metaclass,
+      formVals.externalLanguage,
+      formVals.externalMetaclass,
+      formVals.tags
+    );
+  }
+
+  M.Modal.getInstance(modal).close();
 }
 
 export function addEditFmmlxClassMember() {
-  const modal = $('#fmmlxAttributeModal');
-  const form = modal.find('form') as JQuery<HTMLFormElement>;
-  if (!form[0].checkValidity()) {
+  const modal = document.getElementById('fmmlxAttributeModal')! as HTMLDivElement;
+  const form = modal.querySelector('form')! as HTMLFormElement;
+  if (!form.checkValidity()) {
     throw new Error('Invalid input. Check the highlighted fields and try again.');
   }
 
@@ -323,48 +340,39 @@ export function addEditFmmlxClassMember() {
       );
     }
   } catch (error) {
-    let submitBtn = modal.find('.btn-flat');
-    submitBtn.one('click', addEditFmmlxClassMember);
-    modal
-      .find(':input')
-      .one('keydown', e => (e.key!.toLowerCase() === 'enter' ? submitBtn.trigger('click') : true));
+    setupSubmitButton(modal, addEditFmmlxClassMember);
     error(error);
     return;
   }
-  modal.modal('close');
-  let another = modal.find('.addAnother').prop('checked');
-  if (another) {
+  M.Modal.getInstance(modal).close();
+  if ((modal.querySelector('.addAnother')! as HTMLInputElement).checked) {
     window.setTimeout(() => displayMemberForm(null, formVals.fmmlxClassId), 500);
   }
 }
 
-export function cloneFilterRow(filterRow: JQuery<HTMLInputElement>) {
+export function cloneFilterRow(filterRow: HTMLInputElement) {
   let newId = `_${Helper.randomString()}`;
 
-  let newRow = filterRow.clone(true);
-
-  //replace old chips
-  for (let chipHolder of newRow.find('.chips')) {
+  let newRow = filterRow.cloneNode(true) as HTMLInputElement;
+  newRow.querySelectorAll('.chips').forEach(chipHolder => {
+    //replace old chips
     let name = chipHolder.getAttribute('name')!.replace(/(_.*|$)/, newId);
     //rename of chip fields
     let newHolder = document.createElement('DIV');
     newHolder.setAttribute('name', name);
     newHolder.classList.add('chips');
     chipHolder.replaceWith(newHolder);
-  }
-
+  });
+  newRow.querySelectorAll<HTMLInputElement>('input').forEach(input => {
+    if (input.id === '') return;
+    const label = newRow.querySelector<HTMLLabelElement>(`[for=${input.id}]`);
+    if (label !== null) label.htmlFor = label.htmlFor.replace(/(_.*|$)/, newId);
+    input.name = input.name.replace(/(_.*|$)/, newId);
+    input.id = input.id.replace(/(_.*|$)/, newId);
+  });
   //rename of input fields
-  for (let input of newRow.find('input')) {
-    if (input.id !== '') {
-      let label = newRow.find(`[for=${input.id}]`);
-      if (label.length > 0) label.prop('for', label.prop('for').replace(/(_.*|$)/, newId));
-      input.name = input.name.replace(/(_.*|$)/, newId);
-      input.id = input.id.replace(/(_.*|$)/, newId);
-    }
-  }
-
-  newRow.insertAfter(filterRow);
-  setupChips(newRow[0].form!, [], {
+  filterRow.insertAdjacentElement('afterend', newRow);
+  setupChips(newRow.form!, [], {
     autocompleteOnly: true,
   });
 }
@@ -399,10 +407,7 @@ export async function createAssociation(source?: Class): Promise<void> {
 /**
  * Given an association, creates an instance (refinement) of it
  */
-export function createAssociationInstanceOrRefinement(
-  fmmlxAssociation: Association,
-  refinement: boolean
-) {
+export function createInstanceOrRefinement(fmmlxAssociation: Association, refinement: boolean) {
   let instanceSrc: Class, instanceTgt: Class;
 
   let toast = M.toast({
@@ -444,16 +449,16 @@ export function createAssociationInstanceOrRefinement(
         }
       };
       Helper.diagram!.addDiagramListener('ObjectSingleClicked', handlerTgt);
-      $('.toast-action').one('click', () =>
-        Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handlerTgt)
+      document.querySelectorAll('.toast-action').forEach(element =>
+        element.addEventListener('click', evt => {
+          Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handlerTgt);
+          Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handlerSrc);
+        })
       );
     }
   };
   Helper.diagram!.addDiagramListener('ObjectSingleClicked', handlerSrc);
   showFilterToast();
-  $('.toast-action').one('click', () =>
-    Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handlerSrc)
-  );
 }
 
 export function createInheritance(subclass: Class) {
@@ -520,127 +525,138 @@ export function deleteSuperclass(fmmlxClass: Class) {
 }
 
 export function displayAssociationForm(association: Association) {
-  let modal = $('#fmmlxAssociationModal');
-
-  modal.find('form').replaceWith(associationForm.clone());
-  modal.find('select').formSelect();
-  setupExtraDataFields(modal);
+  document.getElementById('addClass')!.classList.remove('pulse');
+  const div = document.getElementById('#fmmlxAssociationModal')!;
+  const associationForm = div.querySelector<HTMLFormElement>('form')!;
+  div.querySelector('form')!.replaceWith(associationForm.cloneNode(true));
+  M.FormSelect.init(div.querySelector('select')!);
+  setupExtraDataFields(div);
   const dataObj = {...association, ...{src: association.source.name, tgt: association.target.name}};
-  fillForm(modal, dataObj);
+  fillForm(div, dataObj);
 
   if (association.isInstance) {
-    modal.find('#association_sourceIntrinsicness').prop('disabled', 'disabled').parent().hide();
-    modal.find('#association_targetIntrinsicness').prop('disabled', 'disabled').parent().hide();
+    const sourceInt = div.querySelector<HTMLInputElement>('#association_sourceIntrinsicness')!;
+    sourceInt.setAttribute('disabled', 'disabled');
+    sourceInt.parentElement!.style.display = 'none';
+    const targetInt = div.querySelector<HTMLInputElement>('#association_targetIntrinsicness')!;
+    targetInt.setAttribute('disabled', 'disabled');
+    targetInt.parentElement!.style.display = 'none';
   }
 
-  let submitBtn = modal.find('.btn-flat');
-  submitBtn.off('click', editFmmlxAssociation).one('click', editFmmlxAssociation);
-  modal
-    .find(':input')
-    .remove('keydown')
-    .on('keydown', e => (e.key!.toLowerCase() === 'enter' ? submitBtn.trigger('click') : true));
-  modal.modal('open');
+  let submitBtn = div.querySelector<HTMLInputElement>('.btn-flat')!;
+  submitBtn.addEventListener('click', editFmmlxAssociation, {once: true});
+  submitBtn.addEventListener(
+    'keydown',
+    event => ((event as KeyboardEvent).key.toLowerCase() === 'enter' ? submitBtn.click() : true),
+    {once: true}
+  );
+  M.Modal.getInstance(div).open();
 }
 
-export function displayClassForm(obj?: Class) {
-  let modal = $('#fmmlxClassModal') as JQuery<HTMLFormElement>;
-  modal.find('form').replaceWith(classForm.clone(true));
-  modal.find('select').formSelect();
+export function displayClassForm(fmmlxClass?: Class) {
+  document.getElementById('addClass')!.classList.remove('pulse');
+  const modal = document.getElementById('#fmmlxClassModal')! as HTMLDivElement;
+  modal.querySelector('form')!.replaceWith(classForm.cloneNode(true));
+  M.FormSelect.init(modal.querySelector('select')!);
   setupExtraDataFields(modal);
 
-  $('#class_level').on('change', function (event) {
-    let metaClassSelect = $('#class_metaclass') as JQuery<HTMLSelectElement>;
-    if (!metaClassSelect.prop('disabled')) {
+  const classLevel = modal.querySelector<HTMLInputElement>('#class_Level')!;
+  const classLevelChangeHandler = (event: Event) => {
+    let metaClassSelect = modal.querySelector<HTMLSelectElement>('#class_metaclass')!;
+    if (!metaClassSelect.disabled) {
       const levelStr = (event.target as HTMLInputElement).value;
       const level = levelStr === '?' ? undefined : Number.parseFloat(levelStr);
       let options = [];
       for (let fmmlxClass of studio.getClassesByLevel(level)) {
-        if (fmmlxClass.id !== modal.find(`[name=id]`).val()) {
+        const idField = modal.querySelector<HTMLInputElement>(`[name=id]`)!;
+        if (fmmlxClass.id !== idField.value) {
           options.push(new Option(fmmlxClass.name, fmmlxClass.id));
         }
       }
-      fillSelect(metaClassSelect, options);
+      setupSelect(metaClassSelect, options);
     }
-  });
-
+  };
+  classLevel.addEventListener('change', changeEvent => classLevelChangeHandler(changeEvent));
   let tags: string[] = [];
-  if (obj !== undefined) {
-    fillForm(modal, obj.deflate());
+  if (fmmlxClass !== undefined) {
+    fillForm(modal, fmmlxClass.deflate());
     //its called with deflate so no references are made, only ids are preserved and fields can be filled
-    tags = [...obj.tags];
+    tags = [...fmmlxClass.tags];
   }
 
-  $('#addClass').removeClass('pulse');
-  setupSubmitButton(modal, addEditFmmlxClass, tags);
+  setupSubmitButton(modal, addEditFmmlxClass);
+  const modalForm = modal.querySelector<HTMLFormElement>('form')!;
+  setupChips(modalForm, tags);
+  M.Modal.getInstance(modal).open();
 }
 
-function prepareClassContextMenu(target: Class) {
-  const menu = $('#classMenu');
-  $('#inherit')
-    .off('click')
-    .one('click', () => createInheritance(target));
-  $('#associate')
-    .off('click')
-    .one('click', () => createAssociation(target));
-  $('#deleteClass')
-    .off('click')
-    .one('click', () => deleteClass(target));
-  $('#abstractClass')
-    .off('click')
-    .one('click', () => abstractClass());
-  $('#addMember')
-    .off('click')
-    .one('click', () => displayMemberForm(target));
-  $('#filterChain')
-    .off('click')
-    .one('click', () => filterChains(Helper.diagram!.selection));
+function prepareClassContextMenu(classObject: Class) {
+  const menu = document.getElementById('classMenu')!;
+  const listeners = new Map<string, Function>([
+    ['#inherit', createInheritance],
+    ['#associate', createAssociation],
+    ['#deleteClass', deleteClass],
+    ['#abstractClass', abstractClass],
+    ['#addMember', displayMemberForm],
+    ['#filterChain', filterChains],
+  ]);
+
+  listeners.forEach((callback: Function, selector) =>
+    menu
+      .querySelector(selector)!
+      .addEventListener('click', _evt => callback(classObject), {once: true})
+  );
+
   return menu;
 }
 
-function preparePropertyContextMenu(property: Property, fmmlxClass: Class) {
-  const menu = $('#propertyMenu');
-  $('#deleteMemberUpstream')
-    .off('click')
-    .one('click', () => deleteMemberUpstream(fmmlxClass, property));
-  $('#deleteMember')
-    .off('click')
-    .one('click', () => deleteMember(fmmlxClass, property));
-  $('#toMetaclass')
-    .off('click')
-    .one('click', () => copyMemberToMetaclass(fmmlxClass, property));
-  $('#toSuperclass')
-    .off('click')
-    .one('click', () => copyMemberToSuperclass(fmmlxClass, property));
+function preparePropertyContextMenu(propertyObject: Property, classObject: Class) {
+  const menu = document.getElementById('propertyMenu')!;
+
+  const listeners = new Map<string, Function>([
+    ['#deleteMemberUpstream', deleteMemberUpstream],
+    ['#deleteMember', deleteMember],
+    ['#toMetaclass', copyMemberToMetaclass],
+    ['#toSuperclass', copyMemberToSuperclass],
+  ]);
+  listeners.forEach((callback: Function, selector) =>
+    menu
+      .querySelector(selector)!
+      .addEventListener('click', _evt => callback(classObject, propertyObject), {once: true})
+  );
+
   return menu;
 }
 
 function prepareAssociationContextMenu(association: Association) {
-  const menu = $('#associationMenu');
-  let refine = $('#refineAssociation');
-  let instantiate = $('#instantiateAssociation');
+  const menu = document.getElementById('associationMenu')!;
+  const del = menu.querySelector<HTMLElement>('deleteAssociation')!;
+  const refine = menu.querySelector<HTMLElement>('#refineAssociation')!;
+  const instantiate = menu.querySelector<HTMLElement>('#instantiateAssociation')!;
+
   if ((association as Association).isInstance) {
-    refine.hide();
-    instantiate.hide();
+    refine.style.display = 'none';
+    instantiate.style.display = 'none';
   } else {
-    refine.show();
-    instantiate.show();
+    refine.style.display = 'block';
+    instantiate.style.display = 'none';
   }
-  $('#deleteAssociation')
-    .off('click')
-    .one('click', () => deleteAssociation(association));
-  instantiate
-    .off('click')
-    .one('click', () => createAssociationInstanceOrRefinement(association, false));
-  refine.off('click').one('click', () => createAssociationInstanceOrRefinement(association, true));
+  del.addEventListener('click', _ev => deleteAssociation(association), {once: true});
+  refine.addEventListener('click', _ev => createInstanceOrRefinement(association, true), {
+    once: true,
+  });
+  instantiate.addEventListener('click', _ev => createInstanceOrRefinement(association, false), {
+    once: true,
+  });
   return menu;
 }
 
 function prepareInheritanceContextMenu(fmmlxClass: Class) {
   // Inheritance has no model because its just a plain link
-  const menu = $('#inheritanceMenu');
-  $('#deleteInheritance')
-    .off('click')
-    .one('click', () => deleteSuperclass(fmmlxClass));
+  const menu = document.getElementById('inheritanceMenu')!;
+  menu
+    .querySelector<HTMLElement>('#deleteInheritance')!
+    .addEventListener('click', _ev => deleteSuperclass(fmmlxClass));
   return menu;
 }
 
@@ -653,9 +669,10 @@ export function displayContextMenu({
   target1?: Class | Property | Association | Value;
   target2?: Class | Property | Association | Value;
 }) {
+  document.getElementById('addClass')!.classList.remove('pulse');
   let menu;
-  let contextMenus = $('.contextMenu');
-  contextMenus.hide();
+  let contextMenus = document.querySelectorAll<HTMLElement>('.contextMenu');
+  contextMenus.forEach(menu => (menu.style.display = 'none'));
   const condition = target1 !== undefined ? target1.constructor : undefined;
   switch (condition) {
     case Class:
@@ -673,95 +690,94 @@ export function displayContextMenu({
       menu = prepareInheritanceContextMenu(target2 as Class);
       break;
   }
-  let width = menu.css('width');
-  menu
-    .css({
-      top: mouseEvent.pageY,
-      left: mouseEvent.pageX + 5,
-      display: 'block',
-      width: 0,
-    })
-    .animate(
-      {
-        width: width,
-      },
-      300,
-      'swing'
-    );
 
-  $('body,canvas').one('click', () => contextMenus.hide());
+  let width = menu!.style.width;
+  const listeners = new Map<string, any>([
+    ['top', mouseEvent.pageY],
+    ['left', mouseEvent.pageX + 5],
+    ['display', 'block'],
+    ['width', 0],
+  ]);
+  menu.animate({width: width, easing: 'ease-in'}, 300);
+
+  document
+    .querySelector('body')!
+    .addEventListener('click', _ev => contextMenus.forEach(menu => (menu.style.display = 'none')), {
+      once: true,
+    });
+
+  document
+    .querySelector('canvas')!
+    .addEventListener('click', _ev => contextMenus.forEach(menu => (menu.style.display = 'none')), {
+      once: true,
+    });
 }
 
 /**
  * Sets up and displays the filters
  */
 export function displayFilterForm() {
-  const modal = $('#filterModal') as JQuery<HTMLFormElement>;
-  modal.show();
-  setupChips(modal[0], [], {
+  const modal = document.getElementById('filterModal')!;
+  modal.style.display = 'block';
+  setupChips(modal.querySelector<HTMLFormElement>('form')!, [], {
     autocompleteOnly: true,
   });
-
-  modal
-    .find('.more')
-    .off()
-    .on('click', e => {
-      const filterRow = $(e.target).parents('.filterRow') as JQuery<HTMLInputElement>;
+  modal.querySelectorAll('.more').forEach(element =>
+    element.addEventListener('click', e => {
+      const filterRow = (e.target as HTMLElement)!.closest<HTMLInputElement>('.filterRow')!;
       cloneFilterRow(filterRow);
-    });
+    })
+  );
 
-  modal
-    .find('.less')
-    .off()
-    .on('click', e => {
-      let filterRow = $(e.target).parents('.filterRow');
+  modal.querySelectorAll('.less').forEach(element =>
+    element.addEventListener('click', e => {
+      const filterRow = (e.target as HTMLElement)!.closest<HTMLInputElement>('.filterRow')!;
       filterRow.remove();
-    });
-  modal
-    .find('.modal-action')
-    .off()
-    .on('click', _e => filterModel());
-  modal.modal('open');
+    })
+  );
+
+  modal.querySelectorAll('.modal-action').forEach(element => filterModel());
+  M.Modal.getInstance(modal).open();
 }
 
-function setupSubmitButton(modal: JQuery<any>, callback: Function, tags: any[]) {
-  let submitBtn = modal.find('.btn-flat');
-  submitBtn.off('click', callback()).one('click', callback());
-  modal
-    .find(':input')
-    .remove('keydown')
-    .one('keydown', e =>
-      e.key!.toLowerCase() === 'enter' && $('.chips.focus').length === 0
-        ? submitBtn.trigger('click')
-        : true
-    );
-  const modalForm = modal.find('form')[0] as HTMLFormElement;
-  setupChips(modalForm, tags);
-  modal.modal('open');
+function setupSubmitButton(modal: HTMLDivElement, callback: Function) {
+  let submitBtn = modal.querySelector<HTMLInputElement>('.btn-flat')!;
+  submitBtn.addEventListener('click', callback(), {once: true});
+  modal.querySelectorAll(':input').forEach(element =>
+    element.addEventListener(
+      'keydown',
+      evt => {
+        if ((evt as KeyboardEvent).key.toLowerCase() === 'enter') submitBtn.click();
+      },
+      {once: true}
+    )
+  );
 }
 
 export function displayMemberForm(obj: any, id?: string) {
-  const modal = $('#fmmlxAttributeModal') as JQuery<any>;
-  modal.find('form').replaceWith(propertyForm.clone());
+  document.getElementById('addClass')!.classList.remove('pulse');
+  const modal = document.getElementById('fmmlxAttributeModal') as HTMLDivElement;
+  modal.querySelector('form')!.replaceWith(propertyForm.clone());
   setupExtraDataFields(modal);
-  modal.find('select').formSelect();
+  setupSelect(modal.querySelector('select')!);
 
-  let opBodyManager = function () {
-    let opBody = modal.find('[name=operationBody]') as JQuery<HTMLInputElement>;
-    modal.find('[name=isOperation]').prop('checked') &&
-    !modal.find('[name=isValue]').prop('checked')
+  let showHideOpBodyField = function () {
+    const opBody = modal.querySelector<HTMLInputElement>('[name=operationBody]')!;
+    (modal.querySelector('[name=isOperation]') as HTMLInputElement)!.checked &&
+    !(modal.querySelector('[name=isValue]') as HTMLInputElement)!.checked
       ? showField(opBody)
       : hideField(opBody);
   };
 
-  $('[name=isOperation]').on('change', opBodyManager);
-  modal.find('[name=isValue]').on('change', opBodyManager);
+  modal.querySelector('[name=isOperation]')!.addEventListener('change', showHideOpBodyField);
+  modal.querySelector('[name=isValue]')!.addEventListener('change', showHideOpBodyField);
   let tags = [];
 
   if (obj === null || obj.constructor === Class) {
     /*new property,it was right click on  the Class*/
     id = id === undefined ? obj!.id : id;
-    modal.find('[name=fmmlxClassId]').val(id!);
+
+    modal.querySelector<HTMLInputElement>('[name=fmmlxClassId]')!.value = id!;
     /* id of the Fmmlx Class that will hold the property+*/
   } else {
     if (!obj.data.isValue) {
@@ -784,33 +800,32 @@ export function displayMemberForm(obj: any, id?: string) {
     fillForm(modal, obj.data);
     tags = obj.data.tags;
 
-    $('#attribute_isValue').on('click', () => false);
-    $('#attribute_isOperation').on('click', () => false);
+    modal.querySelector('#attribute_isValue')!.addEventListener('click', () => false);
+    modal.querySelector('#attribute_isOperation')!.addEventListener('click', () => false);
     delete obj.data.isObtainable;
     delete obj.data.isDerivable;
     delete obj.data.isSimulation;
     delete obj.data.fmmlxClassId;
   }
-  setupSubmitButton(modal, addEditFmmlxClassMember, tags);
+  setupSubmitButton(modal, addEditFmmlxClassMember);
+  const modalForm = modal.querySelector<HTMLFormElement>('form')!;
+  setupChips(modalForm, tags);
+  M.Modal.getInstance(modal).open();
 }
 
 export function downloadImage() {
   let data = studio.toPNG() as string;
   let fileType = 'png';
-  let anchor = $('#image') as JQuery<HTMLAnchorElement>;
+  let anchor = document.getElementById('image') as HTMLAnchorElement;
   return download(anchor, data, fileType);
 }
 
 export function editFmmlxAssociation() {
-  const modal = $('#fmmlxAssociationModal');
-  const form = modal.find('form') as JQuery<HTMLFormElement>;
+  const modal = document.getElementById('fmmlxAssociationModal') as HTMLDivElement;
+  const form = modal.querySelector<HTMLFormElement>('form')!;
 
-  if (!form[0].checkValidity()) {
-    let submitBtn = modal.find('.btn-flat');
-    submitBtn.one('click', editFmmlxAssociation);
-    modal
-      .find(':input')
-      .on('keydown', e => (e.key!.toLowerCase() === 'enter' ? submitBtn.trigger('click') : true));
+  if (!form.checkValidity()) {
+    setupSubmitButton(modal, editFmmlxAssociation);
     error(new Error('Invalid input. Check the highlighted fields and try again.'));
   }
   const formVals = readForm(form);
@@ -824,14 +839,13 @@ export function editFmmlxAssociation() {
     formVals.targetIntrinsicness,
     formVals.targetRole
   );
-
-  modal.modal('close');
+  M.Modal.getInstance(modal).close();
 }
 
 export function exportJson() {
   let data = `data:text/plain;UTF-8,${encodeURIComponent(studio.toJSON())}`;
   let fileType = 'txt';
-  let anchor = $('#export') as JQuery<HTMLAnchorElement>;
+  let anchor = document.getElementById('export') as HTMLAnchorElement;
   return download(anchor, data, fileType);
 }
 
@@ -845,49 +859,49 @@ export function filterChains(selection: go.Set<go.Part>) {
   showClasses(studio.findTrees(classes));
 }
 
-export function doFilter(matches: any) {
+export function doFilter(/*matches: any*/) {
   alert('Not implemented');
   throw new Error('Not implemented');
   /*  let transId = Helper.beginTransaction('Filtering Model...');
 
-  for (let association of matches.associations) {
-    Helper.diagram!.findLinkForData(association).visible = false;
-  }
+                                                      for (let association of matches.associations) {
+                                                        Helper.diagram!.findLinkForData(association).visible = false;
+                                                      }
 
-  for (let fmmlxClass of matches.classes) {
-    Helper.diagram!.findNodeForData(fmmlxClass).visible = false;
-  }
+                                                      for (let fmmlxClass of matches.classes) {
+                                                        Helper.diagram!.findNodeForData(fmmlxClass).visible = false;
+                                                      }
 
-  for (let match of matches.members) {
-    let fmmlxClass = match[0];
+                                                      for (let match of matches.members) {
+                                                        let fmmlxClass = match[0];
 
-    let node = Helper.diagram!.findNodeForData(fmmlxClass);
+                                                        let node = Helper.diagram!.findNodeForData(fmmlxClass);
 
-    if (node === null) throw new Error(`Could not find node for ${fmmlxClass.name}.`);
+                                                        if (node === null) throw new Error(`Could not find node for ${fmmlxClass.name}.`);
 
-    for (let member of match[1]) {
-      let section, valueSection;
-      if (member.isOperation) {
-        section = node.findObject('operations');
-        valueSection = node.findObject('operationValues');
-      } else {
-        section = node.findObject('attributes');
-        valueSection = node.findObject('attributeValues');
-      }
+                                                        for (let member of match[1]) {
+                                                          let section, valueSection;
+                                                          if (member.isOperation) {
+                                                            section = node.findObject('operations');
+                                                            valueSection = node.findObject('operationValues');
+                                                          } else {
+                                                            section = node.findObject('attributes');
+                                                            valueSection = node.findObject('attributeValues');
+                                                          }
 
-      section.findObject('ellipsis').visible = true;
-      let propertyShape = section.findObject('items').findItemPanelForData(member);
-      if (propertyShape !== null) propertyShape.visible = false;
+                                                          section.findObject('ellipsis').visible = true;
+                                                          let propertyShape = section.findObject('items').findItemPanelForData(member);
+                                                          if (propertyShape !== null) propertyShape.visible = false;
 
-      let value = member.getValueByClass(fmmlxClass);
-      if (value !== undefined) {
-        let section = node.findObject('operationValues');
-        let propertyShape = section.findObject('items').findItemPanelForData(value);
-        if (propertyShape !== null) propertyShape.visible = false;
-      }
-    }
-  }
-  Helper.commitTransaction(transId);*/
+                                                          let value = member.getValueByClass(fmmlxClass);
+                                                          if (value !== undefined) {
+                                                            let section = node.findObject('operationValues');
+                                                            let propertyShape = section.findObject('items').findItemPanelForData(value);
+                                                            if (propertyShape !== null) propertyShape.visible = false;
+                                                          }
+                                                        }
+                                                      }
+                                                      Helper.commitTransaction(transId);*/
 }
 
 /**
@@ -899,24 +913,24 @@ export function doFilter(matches: any) {
  */
 export function filterModel() {
   /*
-  let modal = $('#filterModal'),
-    suffixes = new Set(['']),
-    filters: {operator:string,tags:string,levels:string[] }[] = [];
-  let data = readForm(modal.find('form') as JQuery<HTMLFormElement>);
-  Object.getOwnPropertyNames(data).forEach(name => {
-    if (name.indexOf('_') !== -1) suffixes.add('_' + name.split('_')[1]);
-  });
-  suffixes.forEach(suffix => {
-    filters.push({
-      operator: data[`operator${suffix}`],
-      tags: data[`tags${suffix}`],
-      levels: data[`levels${suffix}`] === '' ? [] : data[`levels${suffix}`].split(/[^\d]+/),
-    });
-  });
-  let matches = studio.filterModel(filters);
-  doFilter(matches);
-  showFilterToast();
-  $(modal.modal('close');*/
+                                                      let modal = jQuery('#filterModal'),
+                                                        suffixes = new Set(['']),
+                                                        filters: {operator:string,tags:string,levels:string[] }[] = [];
+                                                      let data = readForm(modal.find('form') as JQuery<HTMLFormElement>);
+                                                      Object.getOwnPropertyNames(data).forEach(name => {
+                                                        if (name.indexOf('_') !== -1) suffixes.add('_' + name.split('_')[1]);
+                                                      });
+                                                      suffixes.forEach(suffix => {
+                                                        filters.push({
+                                                          operator: data[`operator${suffix}`],
+                                                          tags: data[`tags${suffix}`],
+                                                          levels: data[`levels${suffix}`] === '' ? [] : data[`levels${suffix}`].split(/[^\d]+/),
+                                                        });
+                                                      });
+                                                      let matches = studio.filterModel(filters);
+                                                      doFilter(matches);
+                                                      showFilterToast();
+                                                      jQuery(modal.modal('close');*/
   alert("We're remodelling. Please check back later.");
 }
 
@@ -936,7 +950,8 @@ export function importJson() {
 export function resetFilters() {
   studio.setNodesVisibility(true);
   // Show Everything
-  let toastElement = $('.filterMessage').parent()[0];
+
+  let toastElement = document.querySelector('.filterMessage')!.parentElement!;
   M.Toast.getInstance(toastElement).dismiss();
   M.toast({
     html: 'All filters have been reset',
@@ -947,7 +962,7 @@ export function showFilterToast() {
   let toastContent = 'Filters Updated!',
     timeOut = 4000;
 
-  if ($('.filterMessage').length === 0) {
+  if (document.querySelector('.filterMessage') === null) {
     toastContent =
       '<span class="filterMessage">There are active Filters</span><button class="btn-flat toast-action" onclick="resetFilters()">Reset Filters</button>';
     timeOut = Infinity;

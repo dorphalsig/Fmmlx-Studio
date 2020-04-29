@@ -7,8 +7,7 @@
     <title>FMMLx Studio</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link rel="stylesheet" href="css/FmmlxStudio.css">
-
-    <script src="fmmlxstudio.js" type="module">  </script>
+    <script src="fmmlxstudio.js" type="module"></script>
 
 </head>
 <body>
@@ -21,20 +20,20 @@
             <span class="mainTitle">FMML<sup>X</sup> Studio</span>
             <ul id="nav-mobile" class="right">
                 <li>
-                    <a id="export" onclick="exportJson()" href="#"><i
+                    <a id="export"  href="#"><i
                             class="fa fa-2x fa-floppy-o"></i></a>
                 </li>
                 <li>
                     <label for="importFile">
                         <i class="fa fa-folder-open fa-2x white-text"></i>
                     </label>
-                    <input type="file" class="hide" id="importFile" onchange="importJson()">
+                    <input type="file" class="hide" id="importFile">
                 </li>
                 <li>
-                    <a id="image" onclick="downloadImage()" href="#"><i
+                    <a id="image"  href="#"><i
                             class="fa fa-picture-o fa-2x"></i></a>
                 </li>
-                <li><a href="#" onclick="displayFilterForm()"><i
+                <li><a href="#"><i
                         class="fa fa-filter fa-2x"></i></a></li>
 
             </ul>
@@ -74,8 +73,7 @@
 
 <!-- Floating + button to add Class -->
 <div class="fixed-action-btn">
-    <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse"
-            onclick="displayClassForm();">
+    <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse"            >
         <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
 </div>
 <!-- End Floating + button to add Class -->
