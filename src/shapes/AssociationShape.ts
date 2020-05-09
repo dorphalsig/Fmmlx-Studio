@@ -1,10 +1,22 @@
 'use strict';
 import * as Models from '../models/Models'; //.js';
-import * as go from 'gojs/release/go-module'; //.js';
-import {Helper} from '../helpers/Helper'; //.js';
-import {displayAssociationForm, displayContextMenu} from '../fmmlxstudio'; //.js';
+import {Helper} from '../helpers/Helpers'; //.js';
+import {
+  Binding,
+  GraphObject,
+  Link,
+  Margin,
+  Panel,
+  Point,
+  Shape,
+  Size,
+  Spot,
+  TextBlock,
+} from 'gojs/release/go-module';
+import {ShapeEventType} from './shapeEvents';
+import {reEmitAsShapeEvent} from '../helpers/Helper';
 
-function fixNameBlock(nameBlock: go.Panel, targetRight = true) {
+function fixNameBlock(nameBlock: Panel, targetRight = true) {
   let sourceIntrinsicness = nameBlock.findObject('sourceIntrinsicness')!;
   let targetIntrinsicness = nameBlock.findObject('targetIntrinsicness')!;
   nameBlock.remove(sourceIntrinsicness);
@@ -22,7 +34,7 @@ function fixNameBlock(nameBlock: go.Panel, targetRight = true) {
   nameBlock.add(sourceIntrinsicness);
   nameBlock.findObject('leftArrow')!.visible = true;
   nameBlock.findObject('rightArrow')!.visible = false;
-  nameBlock.segmentOffset = new go.Point(0, 15);
+  nameBlock.segmentOffset = new Point(0, 15);
 }
 
 /**
@@ -30,8 +42,8 @@ function fixNameBlock(nameBlock: go.Panel, targetRight = true) {
  * with the link, but are not upside down
  * @param link
  */
-function fixLabels(link: go.Link) {
-  const nameBlock = link.findObject('nameBlock')! as go.Panel;
+function fixLabels(link: Link) {
+  const nameBlock = link.findObject('nameBlock')! as Panel;
   const referenceBlock = link.findObject('referenceBlock')!;
   const sourceRole = link.findObject('sourceRole')!;
   const sourceCardinality = link.findObject('sourceCardinality')!;
@@ -40,22 +52,22 @@ function fixLabels(link: go.Link) {
   try {
     let transId = Helper.beginTransaction('Fixing labels...');
     if (link.midAngle !== 180) {
-      sourceRole.segmentOffset = new go.Point(NaN, -15);
-      nameBlock.segmentOffset = new go.Point(0, -15);
-      targetRole.segmentOffset = new go.Point(NaN, -15);
-      sourceCardinality.segmentOffset = new go.Point(NaN, 15);
-      referenceBlock.segmentOffset = new go.Point(0, 15);
-      targetCardinality.segmentOffset = new go.Point(NaN, 15);
+      sourceRole.segmentOffset = new Point(NaN, -15);
+      nameBlock.segmentOffset = new Point(0, -15);
+      targetRole.segmentOffset = new Point(NaN, -15);
+      sourceCardinality.segmentOffset = new Point(NaN, 15);
+      referenceBlock.segmentOffset = new Point(0, 15);
+      targetCardinality.segmentOffset = new Point(NaN, 15);
       fixNameBlock(nameBlock, true);
       Helper.commitTransaction(transId);
       return;
     }
-    sourceRole.segmentOffset = new go.Point(NaN, 15);
-    nameBlock.segmentOffset = new go.Point(0, 15);
-    targetRole.segmentOffset = new go.Point(NaN, 15);
-    sourceCardinality.segmentOffset = new go.Point(NaN, -15);
-    referenceBlock.segmentOffset = new go.Point(0, -15);
-    targetCardinality.segmentOffset = new go.Point(NaN, -15);
+    sourceRole.segmentOffset = new Point(NaN, 15);
+    nameBlock.segmentOffset = new Point(0, 15);
+    targetRole.segmentOffset = new Point(NaN, 15);
+    sourceCardinality.segmentOffset = new Point(NaN, -15);
+    referenceBlock.segmentOffset = new Point(0, -15);
+    targetCardinality.segmentOffset = new Point(NaN, -15);
     fixNameBlock(nameBlock, false);
     Helper.commitTransaction(transId);
   } catch (error) {
@@ -64,7 +76,7 @@ function fixLabels(link: go.Link) {
   }
 }
 
-class fmmlxAssociationLink extends go.Link {
+class fmmlxAssociationLink extends Link {
   computePoints() {
     let result = super.computePoints();
     fixLabels(this);
@@ -84,31 +96,31 @@ function referenceText(fmmlxAssociation: Models.Association) {
 
 function arrowBlock(name: string) {
   let text = name === 'rightArrow' ? ' ►' : '◄ ';
-  return go.GraphObject.make(go.TextBlock, {text: text, visible: false, name: name});
+  return GraphObject.make(TextBlock, {text: text, visible: false, name: name});
 }
 
 function intrinsicnessBlock(intrinsicnessProperty: string, attrs = {}) {
   attrs = {
     ...attrs,
-    margin: new go.Margin(0, 10, 0, 10),
-    minSize: new go.Size(10, 15),
+    margin: new Margin(0, 10, 0, 10),
+    minSize: new Size(10, 15),
     name: intrinsicnessProperty,
   };
 
-  return go.GraphObject.make(
-    go.Panel,
+  return GraphObject.make(
+    Panel,
     'Auto',
     attrs,
-    go.GraphObject.make(
-      go.Shape,
+    GraphObject.make(
+      Shape,
       'Rectangle',
-      new go.Binding('fill', '', assoc => (assoc.isInstance ? null : 'black')),
-      new go.Binding('stroke', '', assoc => (assoc.isInstance ? null : 'black'))
+      new Binding('fill', '', assoc => (assoc.isInstance ? null : 'black')),
+      new Binding('stroke', '', assoc => (assoc.isInstance ? null : 'black'))
     ),
-    go.GraphObject.make(go.TextBlock, new go.Binding('text', intrinsicnessProperty), {
+    GraphObject.make(TextBlock, new Binding('text', intrinsicnessProperty), {
       stroke: 'white',
       font: 'bold 14px monospace',
-      verticalAlignment: go.Spot.Center,
+      verticalAlignment: Spot.Center,
     })
   );
 }
@@ -117,57 +129,49 @@ function strokeType(isInstace: boolean) {
   return isInstace ? [1, 3] : null;
 }
 
-let sourceRole = go.GraphObject.make(go.TextBlock, new go.Binding('text', 'sourceRole'), {
-  margin: new go.Margin(0, 15, 0, 15),
+let sourceRole = GraphObject.make(TextBlock, new Binding('text', 'sourceRole'), {
+  margin: new Margin(0, 15, 0, 15),
   name: 'sourceRole',
   segmentIndex: 0,
-  segmentOffset: new go.Point(NaN, -15),
-  segmentOrientation: go.Link.OrientUpright,
+  segmentOffset: new Point(NaN, -15),
+  segmentOrientation: Link.OrientUpright,
 });
 
-let sourceCardinality = go.GraphObject.make(
-  go.TextBlock,
-  new go.Binding('text', 'sourceCardinality'),
-  {
-    margin: new go.Margin(0, 15, 0, 15),
-    name: 'sourceCardinality',
-    segmentIndex: 0,
-    segmentOffset: new go.Point(NaN, 15),
-    segmentOrientation: go.Link.OrientUpright,
-  }
-);
+let sourceCardinality = GraphObject.make(TextBlock, new Binding('text', 'sourceCardinality'), {
+  margin: new Margin(0, 15, 0, 15),
+  name: 'sourceCardinality',
+  segmentIndex: 0,
+  segmentOffset: new Point(NaN, 15),
+  segmentOrientation: Link.OrientUpright,
+});
 
-let targetRole = go.GraphObject.make(go.TextBlock, new go.Binding('text', 'targetRole'), {
-  margin: new go.Margin(0, 15, 0, 15),
+let targetRole = GraphObject.make(TextBlock, new Binding('text', 'targetRole'), {
+  margin: new Margin(0, 15, 0, 15),
   name: 'targetRole',
   segmentIndex: -1,
-  segmentOffset: new go.Point(NaN, -15),
-  segmentOrientation: go.Link.OrientUpright,
+  segmentOffset: new Point(NaN, -15),
+  segmentOrientation: Link.OrientUpright,
 });
 
-let targetCardinality = go.GraphObject.make(
-  go.TextBlock,
-  new go.Binding('text', 'targetCardinality'),
-  {
-    margin: new go.Margin(0, 15, 0, 15),
-    name: 'targetCardinality',
-    segmentIndex: -1,
-    segmentOffset: new go.Point(NaN, 15),
-    segmentOrientation: go.Link.OrientUpright,
-  }
-);
+let targetCardinality = GraphObject.make(TextBlock, new Binding('text', 'targetCardinality'), {
+  margin: new Margin(0, 15, 0, 15),
+  name: 'targetCardinality',
+  segmentIndex: -1,
+  segmentOffset: new Point(NaN, 15),
+  segmentOrientation: Link.OrientUpright,
+});
 
-let relName = go.GraphObject.make(go.TextBlock, new go.Binding('text', 'name'), {
+let relName = GraphObject.make(TextBlock, new Binding('text', 'name'), {
   name: 'relationshipName',
 });
 
-let nameBlock = go.GraphObject.make(
-  go.Panel,
+let nameBlock = GraphObject.make(
+  Panel,
   'Horizontal',
   {
     name: 'nameBlock',
-    segmentOffset: new go.Point(0, -15),
-    segmentOrientation: go.Link.OrientUpright,
+    segmentOffset: new Point(0, -15),
+    segmentOrientation: Link.OrientUpright,
   },
   intrinsicnessBlock('sourceIntrinsicness'),
   arrowBlock('leftArrow'),
@@ -176,34 +180,46 @@ let nameBlock = go.GraphObject.make(
   intrinsicnessBlock('targetIntrinsicness')
 );
 
-let referenceBlock = go.GraphObject.make(go.TextBlock, new go.Binding('text', '', referenceText), {
+let referenceBlock = GraphObject.make(TextBlock, new Binding('text', '', referenceText), {
   name: 'referenceBlock',
-  segmentOffset: new go.Point(0, 15),
-  segmentOrientation: go.Link.OrientUpright,
+  segmentOffset: new Point(0, 15),
+  segmentOrientation: Link.OrientUpright,
 });
 
-export const associationShape = go.GraphObject.make(
+export const associationShape = GraphObject.make(
   fmmlxAssociationLink,
   {
-    routing: go.Link.Orthogonal, // may be either Orthogonal or AvoidsNodes
+    routing: Link.Orthogonal, // may be either Orthogonal or AvoidsNodes
     reshapable: true,
     resegmentable: true,
-    toSpot: go.Spot.AllSides,
-    fromSpot: go.Spot.AllSides,
-    curve: go.Link.JumpGap,
+    toSpot: Spot.AllSides,
+    fromSpot: Spot.AllSides,
+    curve: Link.JumpGap,
+    click: (event, link) => {
+      const eventType = ShapeEventType.shapeClick;
+      reEmitAsShapeEvent(event.event! as InputEvent, link, eventType);
+      event.handled = true;
+    },
     doubleClick: (event, link) => {
-      displayAssociationForm((link as fmmlxAssociationLink).data);
+      const eventType = ShapeEventType.shapeDblclick;
+      reEmitAsShapeEvent(event.event! as InputEvent, link, eventType);
+      event.handled = true;
+
+      //displayAssociationForm((link as fmmlxAssociationLink).data);
       event.handled = true;
     },
     contextClick: (event, link) => {
-      displayContextMenu({
+      const eventType = ShapeEventType.shapeContextmenu;
+      reEmitAsShapeEvent(event.event! as InputEvent, link, eventType);
+      event.handled = true;
+
+      /*displayContextMenu({
         mouseEvent: event.event as MouseEvent,
         target1: (link as fmmlxAssociationLink).data,
-      });
-      event.handled = true;
+      });*/
     },
   },
-  go.GraphObject.make(go.Shape, new go.Binding('strokeDashArray', 'isInstance', strokeType)), // this is the link shape
+  GraphObject.make(Shape, new Binding('strokeDashArray', 'isInstance', strokeType)), // this is the link shape
   sourceRole,
   sourceCardinality,
   nameBlock,

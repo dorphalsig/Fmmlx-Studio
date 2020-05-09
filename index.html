@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>FMMLx Studio</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
@@ -10,377 +11,334 @@
     <script src="fmmlxstudio.js" type="module"></script>
 
 </head>
+
 <body>
+    <div class="mainContainer">
+        <!-- Top Menu -->
+        <nav>
+            <div class="nav-wrapper light-blue darken-4">
 
-<div class="mainContainer">
-    <!-- Top Menu -->
-    <nav>
-        <div class="nav-wrapper light-blue darken-4">
-
-            <span class="mainTitle">FMML<sup>X</sup> Studio</span>
-            <ul id="nav-mobile" class="right">
-                <li>
-                    <a id="export"  href="#"><i
+                <span class="mainTitle">FMML<sup>X</sup> Studio</span>
+                <ul id="nav-mobile" class="right">
+                    <li>
+                        <a id="export" href="#"><i
                             class="fa fa-2x fa-floppy-o"></i></a>
-                </li>
-                <li>
-                    <label for="importFile">
-                        <i class="fa fa-folder-open fa-2x white-text"></i>
-                    </label>
-                    <input type="file" class="hide" id="importFile">
-                </li>
-                <li>
-                    <a id="image"  href="#"><i
+                    </li>
+                    <li>
+                        <label for="importFile">
+                            <i class="fa fa-folder-open fa-2x white-text"></i>
+                        </label>
+                        <input type="file" class="hide" id="importFile">
+                    </li>
+                    <li>
+                        <a id="image" href="#"><i
                             class="fa fa-picture-o fa-2x"></i></a>
-                </li>
-                <li><a href="#"><i
+                    </li>
+                    <li><a href="#"><i
                         class="fa fa-filter fa-2x"></i></a></li>
 
-            </ul>
+                </ul>
+            </div>
+        </nav>
+        <!-- End Top Menu -->
+
+        <!-- Begin Canvas -->
+        <div id="canvas"></div>
+        <!-- End Canvas -->
+
+        <!-- Begin Context Menus -->
+        <div class="contextMenu highlight collection" id="classMenu">
+            <a class="collection-item" href="#" id="addMember">Add Member</a>
+            <a class="collection-item" href="#" id="abstractClass">Abstract Class</a>
+            <a class="collection-item" href="#" id="deleteClass">Delete Selected Classes</a>
+            <a class="collection-item" href="#" id="associate">Associate to another Class</a>
+            <a class="collection-item" href="#" id="inherit">Inherit from another Class</a>
+            <a class="collection-item" href="#" id="filterChain">Hide Other Chains</a>
         </div>
-    </nav>
-    <!-- End Top Menu -->
-
-    <!-- Begin Canvas -->
-    <div id="canvas"></div>
-    <!-- End Canvas -->
-
-    <!-- Begin Context Menus -->
-    <div class="contextMenu highlight collection" id="classMenu">
-        <a class="collection-item" href="#" id="addMember">Add Member</a>
-        <a class="collection-item" href="#" id="abstractClass">Abstract Class</a>
-        <a class="collection-item" href="#" id="deleteClass">Delete Selected Classes</a>
-        <a class="collection-item" href="#" id="associate">Associate to another Class</a>
-        <a class="collection-item" href="#" id="inherit">Inherit from another Class</a>
-        <a class="collection-item" href="#" id="filterChain">Hide Other Chains</a>
+        <div class="contextMenu highlight collection" id="propertyMenu">
+            <a class="collection-item" href="#" id="deleteMemberUpstream">Delete Member Upstream</a>
+            <a class="collection-item" href="#" id="deleteMember">Delete Member Completely</a>
+            <a class="collection-item" href="#" id="toMetaclass">Copy Member to Metaclass</a>
+            <a class="collection-item" href="#" id="toSuperclass">Copy Member to Superclass</a>
+        </div>
+        <div class="contextMenu highlight collection" id="inheritanceMenu">
+            <a class="collection-item" href="#" id="deleteInheritance">Delete Inheritance</a>
+        </div>
+        <div class="contextMenu highlight collection" id="associationMenu">
+            <a class="collection-item" href="#" id="deleteAssociation">Delete Association</a>
+            <a class="collection-item" href="#" id="instantiateAssociation">Instantiate Association</a>
+            <a class="collection-item" href="#" id="refineAssociation">Refine Association</a>
+        </div>
+        <!-- End Context Menus -->
     </div>
-    <div class="contextMenu highlight collection" id="propertyMenu">
-        <a class="collection-item" href="#" id="deleteMemberUpstream">Delete Member Upstream</a>
-        <a class="collection-item" href="#" id="deleteMember">Delete Member Completely</a>
-        <a class="collection-item" href="#" id="toMetaclass">Copy Member to Metaclass</a>
-        <a class="collection-item" href="#" id="toSuperclass">Copy Member to Superclass</a>
+
+    <!-- Floating + button to add Class -->
+    <div class="fixed-action-btn">
+        <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse">
+            <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
     </div>
-    <div class="contextMenu highlight collection" id="inheritanceMenu">
-        <a class="collection-item" href="#" id="deleteInheritance">Delete Inheritance</a>
-    </div>
-    <div class="contextMenu highlight collection" id="associationMenu">
-        <a class="collection-item" href="#" id="deleteAssociation">Delete Association</a>
-        <a class="collection-item" href="#" id="instantiateAssociation">Instantiate Association</a>
-        <a class="collection-item" href="#" id="refineAssociation">Refine Association</a>
-    </div>
-    <!-- End Context Menus -->
-</div>
+    <!-- End Floating + button to add Class -->
 
-<!-- Floating + button to add Class -->
-<div class="fixed-action-btn">
-    <button id="addClass" class="btn-floating btn-large waves-effect waves-light red pulse"            >
-        <i class="fa fa-plus" style="text-shadow: 3px 3px rgba(0, 0, 0, 0.35);"></i></button>
-</div>
-<!-- End Floating + button to add Class -->
+    <!-- Add / Edit Class Modal -->
+    <div id="fmmlxClassModal" class="modal bottom-sheet">
+        <div class="modal-content">
+            <h3 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup> Class</h3>
+            <form id="classForm" data-toggle="validator">
+                <input type="hidden" name="id">
+                <input type="hidden" name="coords">
+                <div class="row">
+                    <div class="input-field col s5">
+                        <input type="text" id="class_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
+                        <label for="class_name" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Class Name
+                        </label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
+                    </div>
+                    <div class="input-field col s2">
+                        <input type="text" id="class_level" class="validate" name="level" pattern="^(\d+|\?)$" required/>
+                        <label for="class_level" data-error="Only Numbers or &quot;?&quot;">Level</label>
+                        <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
+                    </div>
+                    <div class="input-field col s5">
+                        <select id="class_metaclass" class="validate" name="metaclass">
+                            <option value="" data-keep="true" selected>Metaclass</option>
+                        </select>
+                        <label for="class_metaclass">Metaclass</label>
+                    </div>
+                    <div class="input-field col s5 hide">
 
-<!-- Add / Edit Class Modal -->
-<div id="fmmlxClassModal" class="modal bottom-sheet">
-    <div class="modal-content">
-        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMML<sup>X</sup> Class</h4>
-        <form id="classForm" data-toggle="validator">
-            <input type="hidden" name="id">
-            <input type="hidden" name="coords">
-            <div class="row">
-                <div class="input-field col s5">
-                    <input type="text" id="class_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
-                    <label for="class_name"
-                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Class
-                        Name</label>
-                    <span class="helper-text"
-                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
+                        <input type="text" id="class_externalMetaclass" class="validate" name="externalMetaclass" pattern="^[\w\.,]+$" disabled required/>
+                        <label for="class_externalMetaclass" data-error="Only Alphanumeric or &quot;. , _&quot;">Ext. Metaclass
+                        </label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;. , _&quot;"></span>
+                    </div>
                 </div>
-                <div class="input-field col s2">
-                    <input type="text" id="class_level" class="validate" name="level" pattern="^(\d+|\?)$" required/>
-                    <label for="class_level" data-error="Only Numbers or &quot;?&quot;">Level</label>
-                    <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
-                </div>
-                <div class="input-field col s5">
-                    <select id="class_metaclass" class="validate" name="metaclass">
-                        <option value="" data-keep="true" selected>Metaclass</option>
-                    </select>
-                    <label for="class_metaclass">Metaclass</label>
-                </div>
-                <div class="input-field col s5 hide">
+                <div class="row">
+                    <div class="col s6">
+                        <div class="chips" data-name="tags"></div>
+                    </div>
+                    <div class="col s6 input-field hide">
+                        <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled pattern="^[\w\.,]+$" required/>
+                        <label for="class_externalLanguage" data-error="Only Alphanumeric or &quot;. , _&quot;">External Language
+                        </label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;. , _&quot;"></span>
 
-                    <input type="text" id="class_externalMetaclass" class="validate" name="externalMetaclass"
-                           pattern="^[\w\.,]+$" disabled required/>
-                    <label for="class_externalMetaclass" data-error="Only Alphanumeric or &quot;. , _&quot;">Ext.
-                        Metaclass</label>
-                    <span class="helper-text" data-error="Only Alphanumeric or &quot;. , _&quot;"></span>
+                    </div>
+                    <div class="col s3 right-align">
+                        <label>
+                            <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract" />
+                            <span>Abstract</span>
+                        </label>
+                    </div>
+                    <div class="col s3 left-align">
+                        <label>
+                            <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox" name="isExternal" data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass" />
+                            <span>Ext. Lang</span>
+                        </label>
+                    </div>
                 </div>
-            </div>
-            <div class="row valign-wrapper">
-                <div class="col s6">
-                    <div class="chips" name="tags"></div>
-                </div>
-                <div class="col s6 input-field hide">
-                    <input type="text" id="class_externalLanguage" class="validate" name="externalLanguage" disabled
-                           pattern="^[\w\.,]+$" required/>
-                    <label for="class_externalLanguage" data-error="Only Alphanumeric or &quot;. , _&quot;">External
-                        Language</label>
-                    <span class="helper-text" data-error="Only Alphanumeric or &quot;. , _&quot;"></span>
-
-                </div>
-                <div class="col s3 right-align">
-                    <label>
-                        <input id="class_isAbstract" value="true" type="checkbox" name="isAbstract"/>
-                        <span>Abstract</span>
-                    </label>
-                </div>
-                <div class="col s3 left-align">
-                    <label>
-                        <input id="class_isExternal" class="needsExtraInfo" value="true" type="checkbox"
-                               name="isExternal"
-                               data-show="class_externalLanguage, class_externalMetaclass" data-hide="class_metaclass"/>
-                        <span>Ext. Lang</span>
-                    </label>
-                </div>
-            </div>
-        </form>
-        <!--    </div>
-
+                <!--    </div>
             <div class="modal-footer"> -->
-        <a href="#" class="modal-action waves-effect waves-green btn-flat right">Proceed</a>
+                <button type="submit" class="modal-action waves-effect waves-green btn-flat right">Proceed</button>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- End Add / Edit Class Modal -->
+    <!-- End Add / Edit Class Modal -->
 
-<!-- Add / Edit Class Member Modal -->
-<div id="fmmlxAttributeModal" class="modal bottom-sheet">
-    <div class="modal-content">
-        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMMLx Class
+    <!-- Add / Edit Class Member Modal -->
+    <div id="fmmlxAttributeModal" class="modal bottom-sheet">
+        <div class="modal-content">
+            <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMMLx Class
             Member </h4>
-        <form id="propertyForm">
-            <input type="hidden" name="id">
-            <input type="hidden" name="fmmlxClassId">
-            <div class="row">
-                <div class="input-field col s5">
-                    <input type="text" id="attribute_name" class="validate" name="name" pattern="^[\w\.\(\)]+$" required/>
-                    <label for="attribute_name"
-                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
-                    <span class="helper-text"
-                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
-                </div>
-                <div class="input-field col s4">
-                    <input type="text" id="attribute_type" class="validate" name="type" pattern="^[\w\.,]+$" required/>
-                    <label for="attribute_type"
-                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Type</label>
-                    <span class="helper-text"
-                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
-                </div>
-                <div class="input-field col s3 hide">
-                    <input type="text" id="attribute_value" class="validate" name="value" disabled/>
-                    <label for="attribute_value">Value</label>
-                </div>
-                <div class="input-field col s3">
-                    <input type="text" id="attribute_intrinsicness" class="validate" name="intrinsicness"
-                           pattern="^(\d+|\?)$" required/>
-                    <label for="attribute_intrinsicness"
-                           data-error="Only Numbers or &quot;?&quot;">Intrinsicness</label>
-                    <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
+            <form id="propertyForm">
+                <input type="hidden" name="id">
+                <input type="hidden" name="fmmlxClassId">
+                <div class="row">
+                    <div class="input-field col s5">
+                        <input type="text" id="attribute_name" class="validate" name="name" pattern="^[\w\.\(\)]+$" required/>
+                        <label for="attribute_name" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
+                    </div>
+                    <div class="input-field col s4">
+                        <input type="text" id="attribute_type" class="validate" name="type" pattern="^[\w\.,]+$" required/>
+                        <label for="attribute_type" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Type</label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
+                    </div>
+                    <div class="input-field col s3 hide">
+                        <input type="text" id="attribute_value" class="validate" name="value" disabled/>
+                        <label for="attribute_value">Value</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <input type="text" id="attribute_intrinsicness" class="validate" name="intrinsicness" pattern="^(\d+|\?)$" required/>
+                        <label for="attribute_intrinsicness" data-error="Only Numbers or &quot;?&quot;">Intrinsicness</label>
+                        <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
 
+                    </div>
                 </div>
-            </div>
-            <div class="row valign-wrapper">
-                <div class="col s5 input-field">
-                    <div class="chips" name="tags"></div>
-                </div>
-                <div class="col s7 left-align">
-                    <label>
-                        <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo"
-                               data-show="attribute_operationBody" value="true" type="checkbox"/>
-                        <span>Is Operation?</span>&nbsp;
-                    </label>
+                <div class="row valign-wrapper">
+                    <div class="col s5 input-field">
+                        <div class="chips" data-name="tags"></div>
+                    </div>
+                    <div class="col s7 left-align">
+                        <label>
+                            <input id="attribute_isOperation" name="isOperation" class="needsExtraInfo" data-show="attribute_operationBody" value="true" type="checkbox" />
+                            <span>Is Operation?</span>&nbsp;
+                        </label>
 
-                    <span class="horizontal-separator"></span>
-                    <label>
-                        <input id="attribute_isValue" name="isValue"
-                               class="needsExtraInfo" data-show="attribute_value"
-                               data-hide="attribute_intrinsicness,attribute_type,attribute_isOperation,attribute_isValue,attribute_isObtainable,attribute_isDerivable,attribute_isSimulation"
-                               value="true"
-                               type="checkbox"/>
-                        <span>Is Value?</span> &nbsp;
-                    </label>
-                    <span class="horizontal-separator"></span>
-                    <label>
-                        <input id="attribute_isObtainable" name="isObtainable"
-                               value="O" type="checkbox"/>
-                        <span>Is Obtainable?</span> &nbsp;
-                    </label>
-                    <span class="horizontal-separator"></span>
-                    <label>
-                        <input id="attribute_isDerivable" name="isDerivable"
-                               value="D" type="checkbox"/>
-                        <span>Is Derivable?</span>&nbsp;
-                    </label>
-                    <span class="horizontal-separator"></span>
-                    <label>
-                        <input id="attribute_isSimulation" name="isSimulation" value="S" type="checkbox"/>
-                        <span>Is Simulation?</span>
-                    </label>
+                        <span class="horizontal-separator"></span>
+                        <label>
+                            <input id="attribute_isValue" name="isValue" class="needsExtraInfo" data-show="attribute_value" data-hide="attribute_intrinsicness,attribute_type,attribute_isOperation,attribute_isValue,attribute_isObtainable,attribute_isDerivable,attribute_isSimulation" value="true" type="checkbox" />
+                            <span>Is Value?</span> &nbsp;
+                        </label>
+                        <span class="horizontal-separator"></span>
+                        <label>
+                            <input id="attribute_isObtainable" name="isObtainable" value="O" type="checkbox" />
+                            <span>Is Obtainable?</span> &nbsp;
+                        </label>
+                        <span class="horizontal-separator"></span>
+                        <label>
+                            <input id="attribute_isDerivable" name="isDerivable" value="D" type="checkbox" />
+                            <span>Is Derivable?</span>&nbsp;
+                        </label>
+                        <span class="horizontal-separator"></span>
+                        <label>
+                            <input id="attribute_isSimulation" name="isSimulation" value="S" type="checkbox" />
+                            <span>Is Simulation?</span>
+                        </label>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col s8 offset-s2 input-field hide">
-                    <textarea id="attribute_operationBody" disabled name="operationBody"></textarea>
-                    <label for="attribute_operationBody">Operation Body</label>
+                <div class="row">
+                    <div class="col s8 offset-s2 input-field hide">
+                        <textarea id="attribute_operationBody" disabled name="operationBody"></textarea>
+                        <label for="attribute_operationBody">Operation Body</label>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <label>
+                <input id="addAnother" class="addAnother" value="true" type="checkbox" />
+                <span>Add another?</span>
+            </label>
+            <a href="#" class="modal-action waves-effect waves-green btn-flat">Add</a>
+        </div>
     </div>
-    <div class="modal-footer">
-        <label>
-            <input id="addAnother" class="addAnother" value="true" type="checkbox"/>
-            <span>Add another?</span>
-        </label>
-        <a href="#" class="modal-action waves-effect waves-green btn-flat">Add</a>
+    <!-- End Add / Edit Class Member Modal -->
+
+    <!-- Add / Edit Association -->
+    <div id="fmmlxAssociationModal" class="modal bottom-sheet">
+        <div class="modal-content">
+            <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMMLx Association</h4>
+            <form id="associationForm" data-toggle="validator">
+                <input type="hidden" name="id">
+                <div class="row">
+                    <div class="input-field col s4">
+                        <input type="text" id="association_name" class="validate" name="name" pattern="^[\w\.,]+$" required/>
+                        <label for="association_name" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
+                    </div>
+                    <div class="input-field col s4">
+                        <input id="association_source" name="src" type="text" readonly>
+                        <label for="association_source">Source</label>
+                    </div>
+                    <div class="input-field col s4">
+                        <input id="association_target" name="tgt" type="text" readonly>
+                        <label for="association_target">Target</label>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="input-field col s4">
+                        <input pattern="^[\w\.,]+$" id="association_sourceRole" name="sourceRole" class="validate" type="text" required>
+                        <label for="association_sourceRole" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Source Role
+                        </label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
+                    </div>
+                    <div class="input-field col s4">
+                        <input pattern="[\d+|\*],[\d+|\*]" id="association_sourceCardinality" name="sourceCardinality" class="validate" type="text" required>
+                        <label for="association_sourceCardinality" data-error="Must be #,# where # is a number or &quot;*&quot;">Source Cardinality</label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
+                    </div>
+                    <div class="input-field col s4">
+                        <input type="text" id="association_sourceIntrinsicness" class="validate" name="sourceIntrinsicness" pattern="^(\d+|\?)$" required/>
+                        <label for="association_sourceIntrinsicness" data-error="Only Numbers or &quot;?&quot;">Source Intrinsicness</label>
+                        <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s4">
+                        <input pattern="^[\w\.,]+$" id="association_targetRole" name="targetRole" class="validate" type="text" required>
+                        <label for="association_targetRole" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Target Role
+                        </label>
+                        <span class="helper-text" data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
+                    </div>
+                    <div class="input-field col s4">
+                        <input pattern="[\d+|\*],[\d+|\*]" id="association_targetCardinality" name="targetCardinality" type="text" class="validate" required>
+                        <label for="association_targetCardinality" data-error="Must be #,# where # is a number or &quot;*&quot;">Target Cardinality</label>
+                        <span class="helper-text" data-error="Must be #,# where # is a number or &quot;*&quot;"></span>
+                    </div>
+                    <div class="input-field col s4">
+                        <input type="text" id="association_targetIntrinsicness" class="validate" name="targetIntrinsicness" pattern="^(\d+|\?)$" required/>
+                        <label for="association_targetIntrinsicness" data-error="Only Numbers or &quot;?&quot;">Target Intrinsicness</label>
+                        <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-action waves-effect waves-green btn-flat">Proceed</a>
+        </div>
     </div>
-</div>
-<!-- End Add / Edit Class Member Modal -->
+    <!-- End Add / Edit Association -->
 
-<!-- Add / Edit Association -->
-<div id="fmmlxAssociationModal" class="modal bottom-sheet">
-    <div class="modal-content">
-        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Add / Edit FMMLx Association</h4>
-        <form id="associationForm" data-toggle="validator">
-            <input type="hidden" name="id">
-            <div class="row">
-                <div class="input-field col s4">
-                    <input type="text" id="association_name" class="validate" name="name" pattern="^[\w\.,]+$"
-                           required/>
-                    <label for="association_name"
-                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Name</label>
-                    <span class="helper-text"
-                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
-                </div>
-                <div class="input-field col s4">
-                    <input id="association_source" name="src" type="text" readonly>
-                    <label for="association_source">Source</label>
-                </div>
-                <div class="input-field col s4">
-                    <input id="association_target" name="tgt" type="text" readonly>
-                    <label for="association_target">Target</label>
-                </div>
+    <!-- Search Modal -->
+    <div id="filterModal" class="modal z-depth-5">
+        <div class="modal-content">
+            <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Filter Model</h4>
+            <br/>
+            <p>The model is filterable either by its level (classes only) or by its tags (classes and members).
+                <br/> These two criteria are combined with a logical AND. Each tag specified within the same field is also combined as an AND.
+            </p>
+            <form>
 
-            </div>
-            <div class="row">
-                <div class="input-field col s4">
-                    <input pattern="^[\w\.,]+$" id="association_sourceRole" name="sourceRole"
-                           class="validate" type="text" required>
-                    <label for="association_sourceRole"
-                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Source
-                        Role</label>
-                    <span class="helper-text"
-                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
-                </div>
-                <div class="input-field col s4">
-                    <input pattern="[\d+|\*],[\d+|\*]" id="association_sourceCardinality" name="sourceCardinality"
-                           class="validate" type="text" required>
-                    <label for="association_sourceCardinality"
-                           data-error="Must be #,# where # is a number or &quot;*&quot;">Source Cardinality</label>
-                    <span class="helper-text"
-                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
-                </div>
-                <div class="input-field col s4">
-                    <input type="text" id="association_sourceIntrinsicness" class="validate"
-                           name="sourceIntrinsicness"
-                           pattern="^(\d+|\?)$" required/>
-                    <label for="association_sourceIntrinsicness"
-                           data-error="Only Numbers or &quot;?&quot;">Source Intrinsicness</label>
-                    <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="input-field col s4">
-                    <input pattern="^[\w\.,]+$" id="association_targetRole" name="targetRole"
-                           class="validate" type="text" required>
-                    <label for="association_targetRole"
-                           data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;">Target
-                        Role</label>
-                    <span class="helper-text"
-                          data-error="Only Alphanumeric or &quot;.&quot;, &quot;,&quot;, &quot; _&quot;"></span>
-                </div>
-                <div class="input-field col s4">
-                    <input pattern="[\d+|\*],[\d+|\*]" id="association_targetCardinality" name="targetCardinality"
-                           type="text"
-                           class="validate" required>
-                    <label for="association_targetCardinality"
-                           data-error="Must be #,# where # is a number or &quot;*&quot;">Target Cardinality</label>
-                    <span class="helper-text" data-error="Must be #,# where # is a number or &quot;*&quot;"></span>
-                </div>
-                <div class="input-field col s4">
-                    <input type="text" id="association_targetIntrinsicness" class="validate"
-                           name="targetIntrinsicness"
-                           pattern="^(\d+|\?)$" required/>
-                    <label for="association_targetIntrinsicness"
-                           data-error="Only Numbers or &quot;?&quot;">Target Intrinsicness</label>
-                    <span class="helper-text" data-error="Only Numbers or &quot;?&quot;"></span>
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <a href="#" class="modal-action waves-effect waves-green btn-flat">Proceed</a>
-    </div>
-</div>
-<!-- End Add / Edit Association -->
+                <div class="filterRow row valign-wrapper">
 
-<!-- Search Modal -->
-<div id="filterModal" class="modal z-depth-5">
-    <div class="modal-content">
-        <h4 data-role="title" class="light-blue darken-4 white-text modal-header">Filter Model</h4><br/>
-        <p>The model is filterable either by its level (classes only) or by its tags (classes and
-            members).<br/>
-            These two criteria are combined with a logical AND. Each tag specified within the same field is also
-            combined as an AND.
-        </p>
-        <form>
-
-            <div class="filterRow row valign-wrapper">
-
-                <div class="col s9">
-                    <div class="col s12 center-align filterOperators">
-                        <div class="switch">
-                            <label>
-                                And
-                                <input type="checkbox" name="operator" value="or" id="operator">
-                                <span class="lever"></span>
-                                Or
-                            </label>
-                        </div>
-                        <!--<input type="radio" name="operator" value="AND" id="filterAnd">
+                    <div class="col s9">
+                        <div class="col s12 center-align filterOperators">
+                            <div class="switch">
+                                <label>
+                                    And
+                                    <input type="checkbox" name="operator" value="or" id="operator">
+                                    <span class="lever"></span> Or
+                                </label>
+                            </div>
+                            <!--<input type="radio" name="operator" value="AND" id="filterAnd">
                         <label for="filterAnd">AND</label>
                         <input type="radio" name="operator" value="OR" id="filterOr">
                         <label for="filterOr">OR</label>-->
-                    </div>
+                        </div>
 
-                    <div class="tokenField input-field">
-                        <div class="chips" name="tags"></div>
+                        <div class="tokenField input-field">
+                            <div class="chips" name="tags"></div>
+                        </div>
+                        <div class="input-field">
+                            <input id="levels" type="text" name="levels" placeholder="i.e 1,2,?">
+                            <label for="levels">levels</label>
+                        </div>
                     </div>
-                    <div class="input-field">
-                        <input id="levels" type="text" name="levels" placeholder="i.e 1,2,?">
-                        <label for="levels">levels</label>
+                    <div class="col s3 center-align">
+                        <i class="fa fa-plus more"></i>
+                        <i class="fa fa-minus less"></i>
                     </div>
                 </div>
-                <div class="col s3 center-align">
-                    <i class="fa fa-plus more"></i>
-                    <i class="fa fa-minus less"></i>
-                </div>
-            </div>
 
-
-        </form>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+        </div>
     </div>
-    <div class="modal-footer">
-        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
-    </div>
-</div>
-<!-- End Search Modal-->
+    <!-- End Search Modal-->
 </body>
+
 </html>

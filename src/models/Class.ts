@@ -1,15 +1,16 @@
-import * as Helpers from '../helpers/Helpers'; //.js';
 import {Association} from './Association'; //.js';
 import {Property} from './Property'; //.js';
-import {Value} from './Value'; //.js';
+import {Value} from './Value';
+import {Comparable, Serializable} from '../helpers/Interfaces';
+import {randomString} from '../helpers/Helper';
 
-export class Class implements Helpers.Comparable, Helpers.Serializable {
+export class Class implements Comparable, Serializable {
   distanceFromRoot = 0;
   name = '';
-  superclass?: Class;
+  superclass: Class | null = null;
   lastChangeId = '';
-  externalLanguage?: string;
-  externalMetaclassName?: string;
+  externalLanguage: string | null;
+  externalMetaclassName: string | null;
   isAbstract = false;
   tags: Set<string>;
   id: string;
@@ -20,17 +21,23 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   #operations: Set<Property> = new Set();
   #slotValues: Set<Value> = new Set();
   #operationValues: Set<Value> = new Set();
-  #level?: number;
-  #metaclass?: Class;
+  #level: number | null = null;
+  #metaclass: Class | null = null;
+  x: number;
+  y: number;
 
   constructor(
     name: string,
-    level?: number,
+    level: number | null = null,
     isAbstract = false,
-    externalLanguage?: string,
-    externalMetaclass?: string,
-    tags: string[] = []
+    externalLanguage: string | null = null,
+    externalMetaclass: string | null = null,
+    tags: Set<string>,
+    x: number,
+    y: number
   ) {
+    this.x = x;
+    this.y = y;
     //  Object.setPrototypeOf(this, null);
     this.level = level;
     this.name = name;
@@ -39,7 +46,7 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
     this.externalMetaclassName = externalMetaclass;
     this.isAbstract = isAbstract;
     this.tags = new Set(tags);
-    this.id = Helpers.Helper.randomString();
+    this.id = randomString();
   }
 
   get subclasses() {
@@ -58,8 +65,12 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
     return [...this.#subclasses, ...this.#instances];
   }
 
-  set level(level: number | undefined) {
-    if (level !== undefined && (!Number.isInteger(level) || level! < 0))
+  get loc() {
+    return `${this.x} ${this.y}`;
+  }
+
+  set level(level: number | null) {
+    if (level !== null && (!Number.isInteger(level) || level! < 0))
       throw new Error(`Erroneous level ${level} for class ${this.name}`);
     this.#level = level;
   }
@@ -68,11 +79,11 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
     return this.#metaclass;
   }
 
-  set metaclass(metaclass: Class | undefined) {
+  set metaclass(metaclass: Class | null) {
     //@todo check this
     //possible bug? shouldn't the distanceFromRoot be 1+ that of the metaclass?
 
-    this.distanceFromRoot = metaclass === undefined ? 0 : metaclass.distanceFromRoot + 1;
+    this.distanceFromRoot = metaclass === null ? 0 : metaclass.distanceFromRoot + 1;
     this.#metaclass = metaclass;
   }
 
@@ -88,19 +99,21 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
       flatClass.isAbstract,
       flatClass.externalLanguage,
       flatClass.externalMetaclass,
-      flatClass.tags
+      flatClass.tags,
+      flatClass.x,
+      flatClass.y
     );
     partial.id = flatClass.id;
     return partial;
   }
 
   get isExternal() {
-    return this.externalLanguage === undefined;
+    return this.externalLanguage === null;
   }
 
   get metaclassName() {
     if (this.isExternal) return this.externalMetaclassName;
-    if (this.metaclass === undefined) return 'Metaclass';
+    if (this.metaclass === null) return 'Metaclass';
     return this.metaclass.name;
   }
 
@@ -118,7 +131,7 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
         equals &&
         this.externalLanguage === obj.externalLanguage &&
         this.externalMetaclassName === obj.externalMetaclassName;
-    } else if (this.metaclass !== undefined && obj.metaclass !== undefined) {
+    } else if (this.metaclass !== null && obj.metaclass !== null) {
       equals = equals && this.metaclass.id === obj.metaclass.id;
     }
 
@@ -146,8 +159,8 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   toJSON(): Object {
     return Object.assign(
       {
-        metaclass: this.#metaclass !== undefined ? this.#metaclass.id : null,
-        superclass: this.superclass !== undefined ? this.superclass.id : null,
+        metaclass: this.#metaclass !== null ? this.#metaclass.id : null,
+        superclass: this.superclass !== null ? this.superclass.id : null,
         subclasses: Array.from(this.#subclasses).map(item => item.id),
         instances: Array.from(this.#instances).map(item => item.id),
         associations: Array.from(this.#associations).map(item => item.id),
@@ -177,7 +190,7 @@ export class Class implements Helpers.Comparable, Helpers.Serializable {
   }
 
   get hasDefinedLevel(): boolean {
-    return this.#level !== undefined;
+    return this.#level !== null;
   }
 
   //@todo make these properties public

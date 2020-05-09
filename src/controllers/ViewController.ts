@@ -1,28 +1,102 @@
-import {StudioController, tags} from './controllers/StudioController'; //.js';
-import {Helper} from './helpers/Helper'; //.js';
-import {Association, Class, Property, Value} from './models/Models'; //.js';
+import {
+  abstractClasses,
+  changeClassSuperclass,
+  createAssociation,
+  createAssociationInstanceOrRefinement,
+  createClass,
+  createMember,
+  deleteFmmlxClass,
+  deleteMember,
+  editAssociation,
+  editFmmlxClass,
+  editMember,
+  findTrees,
+  findValidRelationshipClasses,
+  fromJSON,
+  getClassesByLevel,
+  getClickedPoint,
+  setNodesVisibility,
+  showClasses,
+  tags,
+  toJSON,
+  toPNG,
+  copyMemberToSuperclass,
+  copyMemberToMetaclass,
+  deleteAssociation,
+  deleteSuperclass,
+} from './StudioController'; //.js';
+export {copyMemberToSuperclass} from './StudioController';
+import {Association, Class, Inheritance, Property, Value} from '../models/Models'; //.js';
 import * as go from 'gojs/release/go-module'; //.js';
 import * as M from 'materialize-css';
+import {Behaviours} from '../models/Property';
+import * as Shapes from '../shapes/Shapes';
+import {ShapeEventType} from '../shapes/shapeEvents';
 
-let studio: StudioController;
+export let diagram: go.Diagram;
 let classForm: HTMLFormElement;
 let propertyForm: HTMLFormElement;
 let associationForm: HTMLFormElement;
 document.addEventListener('DOMContentLoaded', _e => init());
 
+document.addEventListener(ShapeEventType.shapeContextmenu, (evt => {}));
+/**
+ * returns a promise with the clicked coordinates
+ */
+function getClickedPoint2() {
+  return new Promise<[number, number][]>((resolve, reject) => {
+    window.setTimeout(() => reject(new Error('No click detected. Cancelling action')), 30000);
+    diagram.addDiagramListener('BackgroundSingleClicked', e => {
+      const li = e.diagram.lastInput;
+      const event = e.diagram.lastInput.event! as MouseEvent;
+
+      const rect = (event.target! as Element).getBoundingClientRect();
+      const x = event.clientX - rect.left; //x position within the element.
+      const y = event.clientY - rect.top; //y position within the element.
+
+      console.log(`ViewP: (${li.viewPoint.x},${li.viewPoint.x}) `);
+      console.log(`Doc: (${li.documentPoint.x},${li.documentPoint.x}) `);
+      console.log(`HTML: ${x},${y}`);
+    });
+    /*
+    canvas.addEventListener('click', e => {
+      points.push([e.screenX, e.screenY]);
+      ev = e;
+      if (points.length == 2) {
+        console.log(points);
+        resolve(points);
+      }
+    });*/
+  });
+}
 function init() {
   window.onerror = function (messageOrEvent, source, lineno, colno, errorObj) {
     error(errorObj);
   };
 
-  studio = new StudioController();
-  classForm = document.querySelector('#fmmlxClassModal > form')!.cloneNode() as HTMLFormElement;
+  // @ts-ignore
+  go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
+  diagram = go.GraphObject.make(go.Diagram, 'canvas', {
+    'undoManager.isEnabled': true,
+    // enable Ctrl-Z to undo and Ctrl-Y to redo
+    model: new go.GraphLinksModel(),
+    allowDelete: false,
+  });
+  Object.defineProperty(window, 'PIXELRATIO', diagram.computePixelRatio);
+  diagram.computePixelRatio();
+  diagram.nodeTemplateMap.add(Class.category, Shapes.classShape as go.Node);
+  diagram.linkTemplateMap.add(Association.category, Shapes.associationShape);
+  diagram.linkTemplateMap.add(Inheritance.category, Shapes.inheritanceShape);
+  //diagram.model.nodeKeyProperty = `id`;
+  (diagram.model as go.GraphLinksModel).linkKeyProperty = `id`;
+
+  classForm = document.querySelector('#fmmlxClassModal form')!.cloneNode(true) as HTMLFormElement;
   propertyForm = document
-    .querySelector('#fmmlxAttributeModal > form')!
-    .cloneNode() as HTMLFormElement;
+    .querySelector('#fmmlxAttributeModal form')!
+    .cloneNode(true) as HTMLFormElement;
   associationForm = document
-    .querySelector('#fmmlxAssociationModal > form')!
-    .cloneNode() as HTMLFormElement;
+    .querySelector('#fmmlxAssociationModal form')!
+    .cloneNode(true) as HTMLFormElement;
 
   M.FormSelect.init(document.querySelectorAll('#filterModal > select'));
   M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
@@ -35,8 +109,8 @@ function init() {
   });
   const buttons = new Map<string, Function>([
     ['#addClass', displayClassForm],
-    // ['#export', exportJson],
-    // ['#image', downloadImage],
+    ['#export', exportJson],
+    ['#image', downloadImage],
     // ['fa-filter', displayFilterForm],
   ]);
   buttons.forEach((value, key) =>
@@ -70,7 +144,7 @@ function error(error?: Error) {
 function fillForm(modal: HTMLElement, data: any) {
   if (data === null) return;
 
-  let fields = modal.querySelectorAll<HTMLInputElement>(':scope :input')!;
+  let fields = modal.querySelectorAll<HTMLInputElement>(':scope input')!;
   fields.forEach(field => {
     let fieldName = field.name;
     let value = data[fieldName] as string;
@@ -127,36 +201,40 @@ function hideField(field: HTMLInputElement | HTMLSelectElement) {
 }
 
 /**
- * Parses a form into an object. The field names are the properties of the object
+ * Parses the form values into a Map.
+ * chips and select multiple are arrays
  */
 function readForm(form: HTMLFormElement) {
-  let fieldData: any = {};
-  (form.querySelectorAll(':input:not([disabled])') as NodeListOf<HTMLInputElement>).forEach(
-    field => {
-      let name = field.getAttribute('name');
-      if (name !== '') {
-        fieldData[`${name}`] =
-          (field.type === 'checkbox' && field.checked) || field.type !== 'checkbox'
-            ? field.value
-            : '';
-      } else {
-        fieldData[`${name}`] = field.value;
-      }
-    }
-  );
-  form.querySelectorAll('.chips').forEach(chip => {
-    if (!chip.matches(':visible')) return;
-    const name = chip.getAttribute('name')!;
-    fieldData[name] = [];
-    M.Chips.getInstance(chip).chipsData.forEach(tag => fieldData[name].push(tag.tag));
-  });
+  let fieldData = new Map<string, string | string[]>();
+  const fieldSelector = 'input[name]:not([disabled]):not([style*="display:none"])';
+  for (const field of form.querySelectorAll<HTMLInputElement>(fieldSelector)) {
+    if (field.type === 'checkbox' && !field.checked) continue;
+    if (field.value === '') continue;
+    fieldData.set(field.name, field.value);
+  }
+  for (const field of form.querySelectorAll<HTMLElement>('.chips:not([style*="display:none"])')) {
+    const tags: string[] = [];
+    M.Chips.getInstance(field).chipsData.forEach(tag => tags.push(tag.tag));
+    fieldData.set(field.dataset.name!, tags);
+  }
   return fieldData;
 }
 
 function setupChip(div: HTMLDivElement, tagList: string[] = [], options: any = {}) {
-  const tokens: {tag: string}[] = [],
-    autoCompleteData: any = {};
-  const defaultOptions = {
+  const chipsInstance = M.Chips.getInstance(div);
+  if (chipsInstance !== undefined) chipsInstance.destroy();
+
+  const tokens: any = [];
+  const autoCompleteData: any = {};
+  for (const tag of tagList) {
+    tokens.push({tag: tag});
+  }
+  for (const tag of tags) {
+    autoCompleteData[tag] = null;
+  }
+
+  const defaultOptions: any = {
+    data: tokens,
     placeholder: 'Enter a tag',
     secondaryPlaceholder: '+Tag',
     limit: Infinity,
@@ -166,35 +244,19 @@ function setupChip(div: HTMLDivElement, tagList: string[] = [], options: any = {
       data: autoCompleteData,
     },
   };
-
-  tags.forEach(tag => (autoCompleteData[tag] = null));
-  // formats all the existing tags for the autocomplete
-  tagList.forEach(tag => {
-    tags.add(tag);
-    tokens.push({
-      tag: tag,
-    });
-    // formats the tokens
-    autoCompleteData[tag] = null;
-    // formats the autoselect options
+  M.Chips.init(div, {
+    ...defaultOptions,
+    ...{options},
   });
-
-  options = Object.assign({}, defaultOptions, options);
-  let chipsInstance = M.Chips.getInstance(div);
-  div.dataset.initialized = 'true';
-
-  if (chipsInstance === undefined) {
-    chipsInstance = M.Chips.init(div, options);
-
-    div
-      .querySelector('input')!
-      .addEventListener('blur', ev => ((ev.target as HTMLInputElement).value = ''));
-  }
-  tokens.forEach(token => chipsInstance.addChip(token));
+  div
+    .querySelector('input')!
+    .addEventListener('blur', ev => ((ev.target as HTMLInputElement).value = ''));
 }
 
-function setupChips(form: HTMLFormElement, tags: string[] = [], options = {}) {
-  for (let chipHolder of form.find('.chips')) setupChip(chipHolder, tags, options);
+function setupChips(form: HTMLElement, tags: string[] = [], options = {}) {
+  form
+    .querySelectorAll('.chips')
+    .forEach(chipHolder => setupChip(chipHolder as HTMLDivElement, tags, options));
 }
 
 /**
@@ -212,7 +274,7 @@ function setupExtraDataFields(modal: HTMLElement) {
       let hide =
         typeof target.getAttribute('data-hide') === null
           ? []
-          : target.getAttribute('hide')!.split(',');
+          : target.getAttribute('data-hide')!.split(',');
       for (let fieldName of hide) {
         let field = form.querySelector(`#${fieldName}`)! as HTMLInputElement;
         target.checked ? hideField(field) : showField(field);
@@ -225,10 +287,6 @@ function setupExtraDataFields(modal: HTMLElement) {
   );
 }
 
-function showClasses(classArray: Class[]) {
-  studio.showClasses(classArray);
-}
-
 /**
  * Shows and enables field and its form-group
  */
@@ -239,7 +297,7 @@ function showField(field: HTMLInputElement) {
 
 export function abstractClass() {
   try {
-    studio.abstractClasses();
+    abstractClasses();
     M.toast({
       html: 'Click on the canvas to insert the class',
     });
@@ -248,108 +306,121 @@ export function abstractClass() {
   }
 }
 
-export function addEditFmmlxClass() {
-  const modal = document.getElementById('fmmlxClassModal')! as HTMLDivElement;
-  const form = modal.querySelector('form')! as HTMLFormElement;
-
+export async function addEditClass() {
+  const modalDiv = document.getElementById('fmmlxClassModal')! as HTMLDivElement;
+  const form = modalDiv.querySelector('form')! as HTMLFormElement;
+  const submitButton = modalDiv.querySelector<HTMLButtonElement>('.modal-action')!;
+  const modal = M.Modal.getInstance(modalDiv);
+  submitButton.disabled = true;
+  const formVals = readForm(form);
+  modal.close();
   if (!form.checkValidity()) {
-    setupSubmitButton(modal, addEditFmmlxClass);
+    submitButton.disabled = false;
     error(new Error('Invalid input. Please check and try again'));
   }
 
-  let formVals = readForm(form);
-  if (formVals.id === '') {
-    studio.createFmmlxClass(
-      formVals.name,
-      formVals.level,
-      formVals.isAbstract,
-      formVals.metaclass,
-      formVals.externalLanguage,
-      formVals.externalMetaclass,
-      formVals.tags
-    );
+  if (!formVals.has('id')) {
     M.toast({
       html: 'Click on the canvas to insert the class',
     });
-  } else if (
-    confirm(
-      'Please note that changing classification level can possibly break the instantiation and the inheritance chain.\nDo you wish to continue?'
-    )
-  ) {
-    studio.editFmmlxClass(
-      formVals.id,
-      formVals.name,
-      formVals.level,
-      formVals.isAbstract,
-      formVals.metaclass,
-      formVals.externalLanguage,
-      formVals.externalMetaclass,
-      formVals.tags
-    );
+
+    createClass({
+      name: formVals.get('name') as string,
+      level: formVals.has('level') ? Number.parseFloat(formVals.get('level') as string) : null,
+      isAbstract: formVals.has('isAbstract'),
+      metaclassId: formVals.get('metaclass') as string,
+      externalLanguage: formVals.has('externalLanguage')
+        ? (formVals.get('externalLanguage') as string)
+        : null,
+      externalMetaclass: formVals.has('externalMetaclass')
+        ? (formVals.get('externalLanguage') as string)
+        : null,
+      tags: formVals.has('tags') ? new Set(formVals.get('tags') as string[]) : undefined,
+    });
+
+    return;
   }
 
-  M.Modal.getInstance(modal).close();
+  const confirmMessage =
+    'Please note that changing classification level can possibly break the instantiation and' +
+    ' the inheritance chain. Do you wish to continue?';
+  if (!confirm(confirmMessage)) {
+    modal.close();
+    return;
+  }
+
+  editFmmlxClass(
+    formVals.get('id') as string,
+    formVals.get('name') as string,
+    formVals.has('level') ? parseFloat(formVals.get('level') as string) : null,
+    formVals.has('isAbstract'),
+    formVals.get('metaclass') as string,
+    formVals.has('externalLanguage') ? (formVals.get('externalLanguage') as string) : null,
+    formVals.has('externalMetaclass') ? (formVals.get('externalMetaclass') as string) : null,
+    formVals.has('tags') ? (formVals.get('tags') as string[]) : undefined
+  );
+  modal.close();
 }
 
-export function addEditFmmlxClassMember() {
-  const modal = document.getElementById('fmmlxAttributeModal')! as HTMLDivElement;
-  const form = modal.querySelector('form')! as HTMLFormElement;
+export function addEditClassMember() {
+  const modalDiv = document.getElementById('fmmlxAttributeModal')! as HTMLDivElement;
+  const form = modalDiv.querySelector('form')! as HTMLFormElement;
+  const submitButton = form.querySelector<HTMLButtonElement>('.modal-action')!;
+  const modal = M.Modal.getInstance(modalDiv);
+  submitButton.disabled = true;
+
   if (!form.checkValidity()) {
-    throw new Error('Invalid input. Check the highlighted fields and try again.');
+    submitButton.disabled = false;
+    error(new Error('Invalid input. Check the highlighted fields and try again.'));
   }
 
   let formVals = readForm(form);
 
-  formVals.behaviors = [];
+  const behaviors: Behaviours = {
+    derivable: formVals.has('isDerivable'),
+    obtainable: formVals.has('isObtainable'),
+    simulation: formVals.has('isSimulation'),
+  };
 
-  if (formVals.isObtainable !== undefined && formVals.isObtainable.length > 0) {
-    formVals.behaviors.push(formVals.isObtainable);
-  }
-  if (formVals.isDerivable !== undefined && formVals.isDerivable.length > 0) {
-    formVals.behaviors.push(formVals.isDerivable);
-  }
-  if (formVals.isSimulation !== undefined && formVals.isSimulation.length > 0) {
-    formVals.behaviors.push(formVals.isSimulation);
+  if (formVals.has('id')) {
+    createMember(
+      formVals.get('fmmlxClassId') as string,
+      formVals.get('name') as string,
+      formVals.get('type') as string,
+      formVals.has('intrinsicness')
+        ? Number.parseFloat(formVals.get('intrinsicness') as string)
+        : null,
+      formVals.has('isOperation'),
+      behaviors,
+      formVals.get('isValue') as string,
+      formVals.get('value') as string,
+      formVals.get('operationBody') as string,
+      new Set(formVals.get('tags') as string[])
+    );
+  } else {
+    editMember(
+      formVals.get('fmmlxClassId') as string,
+      formVals.get('id') as string,
+      formVals.get('name') as string,
+      formVals.get('type') as string,
+      formVals.get('intrinsicness') as string,
+      {
+        derivable: formVals.has('isDerivable'),
+        obtainable: formVals.has('isObtainable'),
+        simulation: formVals.has('isSimulation'),
+      },
+      formVals.get('value') as string,
+      formVals.get('operationBody') as string,
+      new Set(formVals.get('tags') as string[])
+    );
   }
 
-  try {
-    if (formVals.id === '') {
-      studio.createMember(
-        formVals.fmmlxClassId,
-        formVals.name,
-        formVals.type,
-        formVals.intrinsicness,
-        formVals.isOperation,
-        formVals.behaviors,
-        formVals.isValue,
-        formVals.value,
-        formVals.operationBody,
-        formVals.tags
-      );
-    } else {
-      studio.editMember(
-        formVals.fmmlxClassId,
-        formVals.id,
-        formVals.name,
-        formVals.type,
-        formVals.intrinsicness,
-        formVals.behaviors,
-        formVals.value,
-        formVals.operationBody,
-        formVals.tags
-      );
-    }
-  } catch (error) {
-    setupSubmitButton(modal, addEditFmmlxClassMember);
-    error(error);
-    return;
-  }
-  M.Modal.getInstance(modal).close();
-  if ((modal.querySelector('.addAnother')! as HTMLInputElement).checked) {
-    window.setTimeout(() => displayMemberForm(null, formVals.fmmlxClassId), 500);
+  modal.close();
+  if ((modalDiv.querySelector('.addAnother')! as HTMLInputElement).checked) {
+    displayMemberForm(null, formVals.get('fmmlxClassId') as string);
   }
 }
-
+/*
 export function cloneFilterRow(filterRow: HTMLInputElement) {
   let newId = `_${Helper.randomString()}`;
 
@@ -375,124 +446,99 @@ export function cloneFilterRow(filterRow: HTMLInputElement) {
   setupChips(newRow.form!, [], {
     autocompleteOnly: true,
   });
-}
+}*/
 
-export function copyMemberToMetaclass(fmmlxClass: Class, member: Property) {
-  try {
-    studio.copyMemberToMetaclass(fmmlxClass, member);
-  } catch (e) {
-    error(e);
-  }
-}
-
-export function copyMemberToSuperclass(fmmlxClass: Class, member: Property) {
-  try {
-    studio.copyMemberToSuperclass(fmmlxClass, member);
-  } catch (e) {
-    error(e);
-  }
-}
-
-export async function createAssociation(source?: Class): Promise<void> {
+async function actionCreateAssociation(source?: Class): Promise<void> {
   if (!source) {
     M.toast({html: 'Select the source class'});
-    const source = (await studio.getClicked()) as Class;
-    return createAssociation(source);
+    const source = (await getClickedPoint()) as Class;
+    return actionCreateAssociation(source);
   }
   M.toast({html: 'Select the target class'});
-  const target = (await studio.getClicked()) as Class;
-  studio.createAssociation(source, target);
+  const target = (await getClickedPoint()) as Class;
+  createAssociation(source, target);
 }
 
 /**
  * Given an association, creates an instance (refinement) of it
  */
-export function createInstanceOrRefinement(fmmlxAssociation: Association, refinement: boolean) {
+function createInstanceOrRefinement(association: Association, refinement: boolean) {
   let instanceSrc: Class, instanceTgt: Class;
 
   let toast = M.toast({
     html: 'Choose source',
   });
-  studio.setNodesVisibility(false);
-  let validDescendants = studio.findValidRelationshipClasses(
-    fmmlxAssociation.source,
-    refinement,
-    fmmlxAssociation.sourceIntrinsicness
-  );
-  showClasses(validDescendants);
-  let handlerSrc = function (event: go.DiagramEvent) {
-    if (event.subject.part.constructor === Node) {
-      Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handlerSrc);
+  const canvas = document.querySelector<HTMLCanvasElement>('canvas')!;
+
+  canvas.addEventListener(
+    'click',
+    _e => {
       toast.dismiss();
-      instanceSrc = event.subject.part.data;
+      toast.options.html = 'Choose target...';
       toast = M.toast({
         html: 'Choose target',
       });
-      studio.setNodesVisibility(false);
-      let validDescendants = studio.findValidRelationshipClasses(
-        fmmlxAssociation.target,
-        refinement,
-        fmmlxAssociation.targetIntrinsicness
-      );
-      showClasses(validDescendants);
-      let handlerTgt = function (event: go.DiagramEvent) {
-        if (event.subject.part.constructor === Node) {
-          Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handlerTgt);
-          studio.setNodesVisibility(true);
-          instanceTgt = event.subject.part.data;
-          studio.createAssociationInstanceOrRefinement(
-            fmmlxAssociation,
-            instanceSrc,
-            instanceTgt,
-            refinement
-          );
-        }
-      };
-      Helper.diagram!.addDiagramListener('ObjectSingleClicked', handlerTgt);
-      document.querySelectorAll('.toast-action').forEach(element =>
-        element.addEventListener('click', evt => {
-          Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handlerTgt);
-          Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handlerSrc);
-        })
-      );
+    },
+    {once: true}
+  );
+
+  let handlerSrc = function (event: go.DiagramEvent) {
+    if (event.subject.part.constructor === Node) {
+      diagram.removeDiagramListener('ObjectSingleClicked', handlerSrc);
+      toast.dismiss();
+      instanceSrc = event.subject.part.data;
     }
+    setNodesVisibility(false);
+    let validDescendants = findValidRelationshipClasses(
+      association.target,
+      refinement,
+      association.targetIntrinsicness
+    );
+    showClasses(validDescendants);
+    let handlerTgt = function (event: go.DiagramEvent) {
+      if (event.subject.part.constructor === Node) {
+        diagram.removeDiagramListener('ObjectSingleClicked', handlerTgt);
+        setNodesVisibility(true);
+        instanceTgt = event.subject.part.data;
+        createAssociationInstanceOrRefinement(association, instanceSrc, instanceTgt, refinement);
+      }
+    };
+    diagram.addDiagramListener('ObjectSingleClicked', handlerTgt);
+    document.querySelectorAll('.toast-action').forEach(element =>
+      element.addEventListener('click', _evt => {
+        diagram.removeDiagramListener('ObjectSingleClicked', handlerTgt);
+        diagram.removeDiagramListener('ObjectSingleClicked', handlerSrc);
+      })
+    );
   };
-  Helper.diagram!.addDiagramListener('ObjectSingleClicked', handlerSrc);
+
   showFilterToast();
 }
 
-export function createInheritance(subclass: Class) {
+function createInheritance(subclass: Class) {
   M.toast({
     html: 'Select the superclass',
   });
   let handler = function (event: go.DiagramEvent) {
     try {
-      Helper.diagram!.removeDiagramListener('ObjectSingleClicked', handler);
+      diagram.removeDiagramListener('ObjectSingleClicked', handler);
       let superclass = event.subject.part.data;
-      studio.changeClassSuperclass(superclass, subclass);
+      changeClassSuperclass(superclass, subclass);
     } catch (err) {
       error(err);
     }
   };
 
-  Helper.diagram!.addDiagramListener('ObjectSingleClicked', handler);
-}
-
-export function deleteAssociation(assoc: Association) {
-  try {
-    studio.deleteAssociation(assoc);
-  } catch (err) {
-    error(err);
-  }
+  diagram.addDiagramListener('ObjectSingleClicked', handler);
 }
 
 /**
  * Deletes an FMMLx Class
  *
  */
-export function deleteClass(fmmlxClass: Class) {
+function deleteClass(fmmlxClass: Class) {
   try {
-    studio.deleteFmmlxClass(fmmlxClass);
+    deleteFmmlxClass(fmmlxClass);
   } catch (e) {
     error(e);
   }
@@ -501,9 +547,9 @@ export function deleteClass(fmmlxClass: Class) {
 /**
  * Deletes the member definition everywhere.
  */
-export function deleteMember(fmmlxClass: Class, member: Property) {
+function deleteMemberEverywhere(fmmlxClass: Class, member: Property) {
   try {
-    studio.deleteMember(fmmlxClass, member, true, true);
+    deleteMember(fmmlxClass, member, true, true);
   } catch (e) {
     error(e);
   }
@@ -512,22 +558,17 @@ export function deleteMember(fmmlxClass: Class, member: Property) {
 /**
  * Deletes the member definition upstream - that means from the metaclass upwards
  */
-export function deleteMemberUpstream(fmmlxClass: Class, member: Property) {
+function deleteMemberUpstream(fmmlxClass: Class, member: Property) {
   try {
-    studio.deleteMember(fmmlxClass, member, true, false);
+    deleteMember(fmmlxClass, member, true, false);
   } catch (e) {
     error(e);
   }
 }
 
-export function deleteSuperclass(fmmlxClass: Class) {
-  studio.deleteSuperclass(fmmlxClass);
-}
-
 export function displayAssociationForm(association: Association) {
   document.getElementById('addClass')!.classList.remove('pulse');
-  const div = document.getElementById('#fmmlxAssociationModal')!;
-  const associationForm = div.querySelector<HTMLFormElement>('form')!;
+  const div = document.getElementById('fmmlxAssociationModal')!;
   div.querySelector('form')!.replaceWith(associationForm.cloneNode(true));
   M.FormSelect.init(div.querySelector('select')!);
   setupExtraDataFields(div);
@@ -536,10 +577,10 @@ export function displayAssociationForm(association: Association) {
 
   if (association.isInstance) {
     const sourceInt = div.querySelector<HTMLInputElement>('#association_sourceIntrinsicness')!;
-    sourceInt.setAttribute('disabled', 'disabled');
+    sourceInt.disabled = true;
     sourceInt.parentElement!.style.display = 'none';
     const targetInt = div.querySelector<HTMLInputElement>('#association_targetIntrinsicness')!;
-    targetInt.setAttribute('disabled', 'disabled');
+    sourceInt.disabled = true;
     targetInt.parentElement!.style.display = 'none';
   }
 
@@ -555,19 +596,18 @@ export function displayAssociationForm(association: Association) {
 
 export function displayClassForm(fmmlxClass?: Class) {
   document.getElementById('addClass')!.classList.remove('pulse');
-  const modal = document.getElementById('#fmmlxClassModal')! as HTMLDivElement;
+  const modal = document.getElementById('fmmlxClassModal')! as HTMLDivElement;
   modal.querySelector('form')!.replaceWith(classForm.cloneNode(true));
-  M.FormSelect.init(modal.querySelector('select')!);
   setupExtraDataFields(modal);
 
-  const classLevel = modal.querySelector<HTMLInputElement>('#class_Level')!;
+  const classLevel = modal.querySelector<HTMLInputElement>('#class_level')!;
   const classLevelChangeHandler = (event: Event) => {
     let metaClassSelect = modal.querySelector<HTMLSelectElement>('#class_metaclass')!;
     if (!metaClassSelect.disabled) {
       const levelStr = (event.target as HTMLInputElement).value;
-      const level = levelStr === '?' ? undefined : Number.parseFloat(levelStr);
+      const level = levelStr === '?' ? null : Number.parseFloat(levelStr);
       let options = [];
-      for (let fmmlxClass of studio.getClassesByLevel(level)) {
+      for (let fmmlxClass of getClassesByLevel(level)) {
         const idField = modal.querySelector<HTMLInputElement>(`[name=id]`)!;
         if (fmmlxClass.id !== idField.value) {
           options.push(new Option(fmmlxClass.name, fmmlxClass.id));
@@ -583,10 +623,14 @@ export function displayClassForm(fmmlxClass?: Class) {
     //its called with deflate so no references are made, only ids are preserved and fields can be filled
     tags = [...fmmlxClass.tags];
   }
+  M.FormSelect.init(modal.querySelector('select')!);
+  setupChips(modal, tags);
 
-  setupSubmitButton(modal, addEditFmmlxClass);
-  const modalForm = modal.querySelector<HTMLFormElement>('form')!;
-  setupChips(modalForm, tags);
+  modal.querySelector('.modal-action')!.addEventListener('click', () => addEditClass());
+  modal.querySelector<HTMLFormElement>('form')!.addEventListener('submit', event => {
+    event.preventDefault();
+    addEditClass();
+  });
   M.Modal.getInstance(modal).open();
 }
 
@@ -594,7 +638,7 @@ function prepareClassContextMenu(classObject: Class) {
   const menu = document.getElementById('classMenu')!;
   const listeners = new Map<string, Function>([
     ['#inherit', createInheritance],
-    ['#associate', createAssociation],
+    ['#associate', actionCreateAssociation],
     ['#deleteClass', deleteClass],
     ['#abstractClass', abstractClass],
     ['#addMember', displayMemberForm],
@@ -615,7 +659,7 @@ function preparePropertyContextMenu(propertyObject: Property, classObject: Class
 
   const listeners = new Map<string, Function>([
     ['#deleteMemberUpstream', deleteMemberUpstream],
-    ['#deleteMember', deleteMember],
+    ['#deleteMember', deleteMemberEverywhere],
     ['#toMetaclass', copyMemberToMetaclass],
     ['#toSuperclass', copyMemberToSuperclass],
   ]);
@@ -670,34 +714,32 @@ export function displayContextMenu({
   target2?: Class | Property | Association | Value;
 }) {
   document.getElementById('addClass')!.classList.remove('pulse');
-  let menu;
+  let menu: HTMLElement;
   let contextMenus = document.querySelectorAll<HTMLElement>('.contextMenu');
   contextMenus.forEach(menu => (menu.style.display = 'none'));
   const condition = target1 !== undefined ? target1.constructor : undefined;
   switch (condition) {
     case Class:
-      menu = prepareClassContextMenu(target1 as Class);
+      menu = prepareClassContextMenu(target1 as Class)!;
       break;
     case Property:
-      menu = preparePropertyContextMenu(target1 as Property, target1 as Class);
+      menu = preparePropertyContextMenu(target1 as Property, target1 as Class)!;
       break;
     case Association:
-      menu = prepareAssociationContextMenu(target1 as Association);
+      menu = prepareAssociationContextMenu(target1 as Association)!;
       break;
     case Value:
       return;
     default:
-      menu = prepareInheritanceContextMenu(target2 as Class);
+      menu = prepareInheritanceContextMenu(target2 as Class)!;
       break;
   }
 
-  let width = menu!.style.width;
-  const listeners = new Map<string, any>([
-    ['top', mouseEvent.pageY],
-    ['left', mouseEvent.pageX + 5],
-    ['display', 'block'],
-    ['width', 0],
-  ]);
+  let width = menu.style.width;
+  menu.style.cssText = `top: ${mouseEvent.pageY}; left: ${
+    mouseEvent.pageX + 5
+  }; display: block; width: 0`;
+
   menu.animate({width: width, easing: 'ease-in'}, 300);
 
   document
@@ -716,10 +758,11 @@ export function displayContextMenu({
 /**
  * Sets up and displays the filters
  */
+/*
 export function displayFilterForm() {
   const modal = document.getElementById('filterModal')!;
   modal.style.display = 'block';
-  setupChips(modal.querySelector<HTMLFormElement>('form')!, [], {
+  setupChips(modal, [], {
     autocompleteOnly: true,
   });
   modal.querySelectorAll('.more').forEach(element =>
@@ -736,23 +779,9 @@ export function displayFilterForm() {
     })
   );
 
-  modal.querySelectorAll('.modal-action').forEach(element => filterModel());
+  modal.querySelectorAll('.modal-action').forEach(_element => filterModel());
   M.Modal.getInstance(modal).open();
-}
-
-function setupSubmitButton(modal: HTMLDivElement, callback: Function) {
-  let submitBtn = modal.querySelector<HTMLInputElement>('.btn-flat')!;
-  submitBtn.addEventListener('click', callback(), {once: true});
-  modal.querySelectorAll(':input').forEach(element =>
-    element.addEventListener(
-      'keydown',
-      evt => {
-        if ((evt as KeyboardEvent).key.toLowerCase() === 'enter') submitBtn.click();
-      },
-      {once: true}
-    )
-  );
-}
+}*/
 
 export function displayMemberForm(obj: any, id?: string) {
   document.getElementById('addClass')!.classList.remove('pulse');
@@ -807,43 +836,46 @@ export function displayMemberForm(obj: any, id?: string) {
     delete obj.data.isSimulation;
     delete obj.data.fmmlxClassId;
   }
-  setupSubmitButton(modal, addEditFmmlxClassMember);
-  const modalForm = modal.querySelector<HTMLFormElement>('form')!;
-  setupChips(modalForm, tags);
+  modal.querySelector('.modal-action')!.addEventListener('click', () => addEditClass());
+  modal.querySelector<HTMLFormElement>('form')!.addEventListener('submit', event => {
+    event.preventDefault();
+    addEditClassMember();
+  });
+  setupChips(modal, tags);
   M.Modal.getInstance(modal).open();
 }
 
-export function downloadImage() {
-  let data = studio.toPNG() as string;
+function downloadImage() {
+  let data = toPNG() as string;
   let fileType = 'png';
   let anchor = document.getElementById('image') as HTMLAnchorElement;
   return download(anchor, data, fileType);
 }
 
-export function editFmmlxAssociation() {
+function editFmmlxAssociation() {
   const modal = document.getElementById('fmmlxAssociationModal') as HTMLDivElement;
   const form = modal.querySelector<HTMLFormElement>('form')!;
 
   if (!form.checkValidity()) {
-    setupSubmitButton(modal, editFmmlxAssociation);
+    //setupSubmitButton(modal, editFmmlxAssociation);
     error(new Error('Invalid input. Check the highlighted fields and try again.'));
   }
   const formVals = readForm(form);
-  studio.editAssociation(
-    formVals.id,
-    formVals.name,
-    formVals.sourceCardinality,
-    formVals.sourceIntrinsicness,
-    formVals.sourceRole,
-    formVals.targetCardinality,
-    formVals.targetIntrinsicness,
-    formVals.targetRole
+  editAssociation(
+    formVals.get('id') as string,
+    formVals.get('name') as string,
+    formVals.get('sourceCardinality') as string,
+    formVals.get('sourceIntrinsicness') as string,
+    formVals.get('sourceRole') as string,
+    formVals.get('targetCardinality') as string,
+    formVals.get('targetIntrinsicness') as string,
+    formVals.get('formVals.targetRole') as string
   );
   M.Modal.getInstance(modal).close();
 }
 
-export function exportJson() {
-  let data = `data:text/plain;UTF-8,${encodeURIComponent(studio.toJSON())}`;
+function exportJson() {
+  let data = `data:text/plain;UTF-8,${encodeURIComponent(toJSON())}`;
   let fileType = 'txt';
   let anchor = document.getElementById('export') as HTMLAnchorElement;
   return download(anchor, data, fileType);
@@ -852,93 +884,92 @@ export function exportJson() {
 /**
  * Shows only the inheritance trees of the selected classes
  */
-export function filterChains(selection: go.Set<go.Part>) {
+function filterChains(selection: go.Set<go.Part>) {
   showFilterToast();
   let classes: Class[] = [];
   selection.each(part => classes.push(part.data));
-  showClasses(studio.findTrees(classes));
+  showClasses(findTrees(classes));
 }
 
-export function doFilter(/*matches: any*/) {
-  alert('Not implemented');
-  throw new Error('Not implemented');
-  /*  let transId = Helper.beginTransaction('Filtering Model...');
+/*
+export function doFilter(matches: any) {
+  let transId = Helper.beginTransaction('Filtering Model...');
+    for (let association of matches.associations) {
+      diagram.findLinkForData(association).visible = false;
+    }
 
-                                                      for (let association of matches.associations) {
-                                                        Helper.diagram!.findLinkForData(association).visible = false;
-                                                      }
+    for (let fmmlxClass of matches.classes) {
+      diagram.findNodeForData(fmmlxClass).visible = false;
+    }
 
-                                                      for (let fmmlxClass of matches.classes) {
-                                                        Helper.diagram!.findNodeForData(fmmlxClass).visible = false;
-                                                      }
+    for (let match of matches.members) {
+      let fmmlxClass = match[0];
 
-                                                      for (let match of matches.members) {
-                                                        let fmmlxClass = match[0];
+      let node = diagram.findNodeForData(fmmlxClass);
 
-                                                        let node = Helper.diagram!.findNodeForData(fmmlxClass);
+      if (node === null) throw new Error(`Could not find node for ${fmmlxClass.name}.`);
 
-                                                        if (node === null) throw new Error(`Could not find node for ${fmmlxClass.name}.`);
+      for (let member of match[1]) {
+        let section, valueSection;
+        if (member.isOperation) {
+          section = node.findObject('operations');
+          valueSection = node.findObject('operationValues');
+        } else {
+          section = node.findObject('attributes');
+          valueSection = node.findObject('attributeValues');
+        }
 
-                                                        for (let member of match[1]) {
-                                                          let section, valueSection;
-                                                          if (member.isOperation) {
-                                                            section = node.findObject('operations');
-                                                            valueSection = node.findObject('operationValues');
-                                                          } else {
-                                                            section = node.findObject('attributes');
-                                                            valueSection = node.findObject('attributeValues');
-                                                          }
+        section.findObject('ellipsis').visible = true;
+        let propertyShape = section.findObject('items').findItemPanelForData(member);
+        if (propertyShape !== null) propertyShape.visible = false;
 
-                                                          section.findObject('ellipsis').visible = true;
-                                                          let propertyShape = section.findObject('items').findItemPanelForData(member);
-                                                          if (propertyShape !== null) propertyShape.visible = false;
-
-                                                          let value = member.getValueByClass(fmmlxClass);
-                                                          if (value !== undefined) {
-                                                            let section = node.findObject('operationValues');
-                                                            let propertyShape = section.findObject('items').findItemPanelForData(value);
-                                                            if (propertyShape !== null) propertyShape.visible = false;
-                                                          }
-                                                        }
-                                                      }
-                                                      Helper.commitTransaction(transId);*/
+        let value = member.getValueByClass(fmmlxClass);
+        if (value !== undefined) {
+          let section = node.findObject('operationValues');
+          let propertyShape = section.findObject('items').findItemPanelForData(value);
+          if (propertyShape !== null) propertyShape.visible = false;
+        }
+      }
+    }
+    Helper.commitTransaction(transId);
 }
+*/
 
 /**
  * @todo redo this. It should work so:
- * Filtering can be done to classes, associations and tags.
+ * Filtering can be done to classes and/or associations and/or members.
  * Different forms should be shown for each filter type. tags can be applied to classes, associations, members or any
  * combination of the above.
  * This is moved to Stage 3. - after the live models
  */
+/*
 export function filterModel() {
-  /*
-                                                      let modal = jQuery('#filterModal'),
-                                                        suffixes = new Set(['']),
-                                                        filters: {operator:string,tags:string,levels:string[] }[] = [];
-                                                      let data = readForm(modal.find('form') as JQuery<HTMLFormElement>);
-                                                      Object.getOwnPropertyNames(data).forEach(name => {
-                                                        if (name.indexOf('_') !== -1) suffixes.add('_' + name.split('_')[1]);
-                                                      });
-                                                      suffixes.forEach(suffix => {
-                                                        filters.push({
-                                                          operator: data[`operator${suffix}`],
-                                                          tags: data[`tags${suffix}`],
-                                                          levels: data[`levels${suffix}`] === '' ? [] : data[`levels${suffix}`].split(/[^\d]+/),
-                                                        });
-                                                      });
-                                                      let matches = studio.filterModel(filters);
-                                                      doFilter(matches);
-                                                      showFilterToast();
-                                                      jQuery(modal.modal('close');*/
-  alert("We're remodelling. Please check back later.");
+  let modal = jQuery('#filterModal'),
+    suffixes = new Set(['']),
+    filters: {operator:string,tags:string,levels:string[] }[] = [];
+  let data = readForm(modal.find('form') as JQuery<HTMLFormElement>);
+  Object.getOwnPropertyNames(data).forEach(name => {
+    if (name.indexOf('_') !== -1) suffixes.add('_' + name.split('_')[1]);
+  });
+  suffixes.forEach(suffix => {
+    filters.push({
+      operator: data[`operator${suffix}`],
+      tags: data[`tags${suffix}`],
+      levels: data[`levels${suffix}`] === '' ? [] : data[`levels${suffix}`].split(/[^\d]+/),
+    });
+  });
+  let matches = filterModel(filters);
+  doFilter(matches);
+  showFilterToast();
+  jQuery(modal.modal('close');
 }
+*/
 
-export function importJson() {
+function importJson() {
   let reader = new FileReader();
   reader.onload = () => {
     let json = reader.result as string;
-    studio.fromJSON(json);
+    fromJSON(json);
   };
   const form = document.getElementById('importFile') as HTMLFormElement;
   reader.readAsText(form.files[0]);
@@ -948,7 +979,7 @@ export function importJson() {
  * Resets all filters, showing all classes
  */
 export function resetFilters() {
-  studio.setNodesVisibility(true);
+  setNodesVisibility(true);
   // Show Everything
 
   let toastElement = document.querySelector('.filterMessage')!.parentElement!;
@@ -958,7 +989,7 @@ export function resetFilters() {
   });
 }
 
-export function showFilterToast() {
+function showFilterToast() {
   let toastContent = 'Filters Updated!',
     timeOut = 4000;
 

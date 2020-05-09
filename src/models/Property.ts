@@ -3,35 +3,37 @@ import {Value} from './Value'; //.js';
 import {Class} from './Class'; //.js';
 import {Comparable, Serializable} from '../helpers/Interfaces'; //.js';
 
+export type Behaviours = {obtainable: boolean; derivable: boolean; simulation: boolean};
+
 export class Property implements Comparable, Serializable {
   #values: Map<Class, Value> = new Map<Class, Value>();
   #classes: Set<Class> = new Set<Class>();
   name: string = '';
   type: string;
   isOperation: boolean;
-  behaviors: string[];
-  operationBody?: string;
+  behaviors: Behaviours;
+  operationBody: string | null;
   tags: Set<String> = new Set();
   #id: string;
-  #intrinsicness?: number;
+  #intrinsicness: number | null = null;
 
   constructor(
     name: string,
     type: string,
-    intrinsicness?: number,
+    intrinsicness: number | null,
     isOperation = false,
-    behaviors: string[] = [],
-    operationBody?: string,
-    tags: string[] = []
+    behaviors = {obtainable: false, derivable: false, simulation: false}, //string[] = [],
+    operationBody: string | null,
+    tags: Set<string> = new Set<string>()
   ) {
     this.#id = Helpers.Helper.randomString();
     this.name = name;
     this.type = type;
     this.intrinsicness = intrinsicness;
     this.isOperation = isOperation;
-    this.behaviors = behaviors === null ? [] : behaviors;
+    this.behaviors = behaviors;
     this.operationBody = operationBody;
-    tags.forEach(tag => this.tags.add(tag));
+    this.tags = new Set([...this.tags, ...tags]);
   }
 
   get hasDefinedIntrinsicness() {
@@ -50,8 +52,8 @@ export class Property implements Comparable, Serializable {
     return this.#intrinsicness;
   }
 
-  set intrinsicness(val: number | undefined) {
-    if (val !== undefined && (!Number.isInteger(val) || val! < 0))
+  set intrinsicness(val: number | null) {
+    if (val !== null && (!Number.isInteger(val) || val! < 0))
       throw new Error('Intrinsicness values can only be posotive integers or');
     this.#intrinsicness = val;
   }

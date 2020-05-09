@@ -1,9 +1,9 @@
-import * as go from 'gojs/release/go-module'; //.js';
-import {displayContextMenu} from '../fmmlxstudio'; //.js';
-import {Class} from '../models/Class'; //.js';
+import {displayContextMenu} from '../controllers/ViewController'; //.js';
+import {Class} from '../models/Class';
+import {GraphObject, Link, Shape, InputEvent} from 'gojs/release/go-module'; //.js';
 
-const arrowHead = go.GraphObject.make(
-  go.Shape, // the arrowhead
+const arrowHead = GraphObject.make(
+  Shape, // the arrowhead
   {
     toArrow: 'Triangle',
     fill: 'white',
@@ -11,21 +11,21 @@ const arrowHead = go.GraphObject.make(
 );
 
 const initializers = {
-  routing: go.Link.Orthogonal, // may be either Orthogonal or AvoidsNodes
+  routing: Link.Orthogonal, // may be either Orthogonal or AvoidsNodes
   reshapable: true,
   resegmentable: true,
-  curve: go.Link.JumpGap,
-  contextClick: (event: go.InputEvent, link: go.GraphObject) => {
+  curve: Link.JumpGap,
+  contextClick: (event: InputEvent, link: GraphObject) => {
     displayContextMenu({
       mouseEvent: event.event as MouseEvent,
-      target2: (link as go.Link).fromNode!.panel!.data as Class,
+      target2: (link as Link).fromNode!.panel!.data as Class,
     });
     event.handled = true;
   },
 };
-export const inheritanceShape: go.Link = go.GraphObject.make(
-  go.Link,
+export const inheritanceShape: Link = GraphObject.make(
+  Link,
   initializers,
-  go.GraphObject.make(go.Shape), // the link shape
+  GraphObject.make(Shape), // the link shape
   arrowHead
-) as go.Link;
+) as Link;

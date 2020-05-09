@@ -7,7 +7,7 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "target": "ES2018",
-    "lib": ["dom", "ES2018"],
+    "lib": ["dom","dom.iterable", "ES2018"],
     "noImplicitAny": true,
     "allowSyntheticDefaultImports": true
   },

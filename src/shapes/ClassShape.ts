@@ -1,39 +1,49 @@
 import * as Models from '../models/Models'; //.js';
 import {propertyShape} from './PropertyShape'; //.js';
-import {displayClassForm, displayContextMenu} from '../fmmlxstudio'; //.js';
-import * as go from 'gojs/release/go-module'; //.js';
+import {displayClassForm, displayContextMenu} from '../controllers/ViewController';
+import {
+  Adornment,
+  Binding,
+  GraphObject,
+  Panel,
+  Point,
+  Shape,
+  Size,
+  Spot,
+  TextBlock,
+} from 'gojs/release/go-module'; //.js';
 
 function externalLanguageBlock() {
-  return go.GraphObject.make(
-    go.Panel,
+  return GraphObject.make(
+    Panel,
     'Auto',
     {
-      stretch: go.GraphObject.Fill,
-      alignment: new go.Spot(1, 0),
-      maxSize: new go.Size(54, Infinity),
+      stretch: GraphObject.Fill,
+      alignment: new Spot(1, 0),
+      maxSize: new Size(54, Infinity),
       name: 'externalLanguageBlock',
     },
-    new go.Binding('visible', '', IsExternal),
-    go.GraphObject.make(go.Shape, 'Rectangle', {
+    new Binding('visible', '', IsExternal),
+    GraphObject.make(Shape, 'Rectangle', {
       fill: 'orange',
     }),
-    go.GraphObject.make(go.TextBlock, new go.Binding('text', 'externalLanguage'), {
+    GraphObject.make(TextBlock, new Binding('text', 'externalLanguage'), {
       margin: 2,
-      wrap: go.TextBlock.None,
+      wrap: TextBlock.None,
       stroke: 'black',
-      overflow: go.TextBlock.OverflowEllipsis,
-      toolTip: go.GraphObject.make(
-        go.Adornment,
+      overflow: TextBlock.OverflowEllipsis,
+      toolTip: GraphObject.make(
+        Adornment,
         'Auto',
-        go.GraphObject.make(go.Shape, {
+        GraphObject.make(Shape, {
           fill: '#FFFFCC',
         }),
-        go.GraphObject.make(
-          go.TextBlock,
+        GraphObject.make(
+          TextBlock,
           {
             margin: 4,
           },
-          new go.Binding('text', 'externalLanguage')
+          new Binding('text', 'externalLanguage')
         )
       ), // end of Adornment
     })
@@ -41,8 +51,8 @@ function externalLanguageBlock() {
 }
 
 function mainBlock() {
-  return go.GraphObject.make(
-    go.Panel,
+  return GraphObject.make(
+    Panel,
     'Vertical',
     {name: 'mainBlock'},
     nameBlock(),
@@ -54,20 +64,20 @@ function mainBlock() {
 }
 
 function nameBlock() {
-  return go.GraphObject.make(
-    go.Panel,
+  return GraphObject.make(
+    Panel,
     'Auto',
     {
-      stretch: go.GraphObject.Fill,
-      minSize: new go.Size(100, 20),
+      stretch: GraphObject.Fill,
+      minSize: new Size(100, 20),
       name: 'nameBlock',
     },
-    go.GraphObject.make(go.Shape, 'Rectangle', new go.Binding('fill', 'level', BgColor)),
-    go.GraphObject.make(
-      go.TextBlock,
-      new go.Binding('text', '', MetaclassName),
-      new go.Binding('font', 'isAbstract', FontStyle),
-      new go.Binding('stroke', 'level', FontColor),
+    GraphObject.make(Shape, 'Rectangle', new Binding('fill', 'level', BgColor)),
+    GraphObject.make(
+      TextBlock,
+      new Binding('text', '', MetaclassName),
+      new Binding('font', 'isAbstract', FontStyle),
+      new Binding('stroke', 'level', FontColor),
       {
         textAlign: 'center',
         margin: 7,
@@ -77,10 +87,10 @@ function nameBlock() {
 }
 
 function ellipsis() {
-  return go.GraphObject.make(go.TextBlock, {
+  return GraphObject.make(TextBlock, {
     name: 'ellipsis',
-    stretch: go.GraphObject.Fill,
-    minSize: new go.Size(100, 20),
+    stretch: GraphObject.Fill,
+    minSize: new Size(100, 20),
     text: '…',
     font: 'bold 20px monospace',
     textAlign: 'center',
@@ -89,33 +99,33 @@ function ellipsis() {
 }
 
 function genericBlock(collectionName: string) {
-  return go.GraphObject.make(
-    go.Panel,
+  return GraphObject.make(
+    Panel,
     'Auto',
     {
-      stretch: go.GraphObject.Fill,
-      minSize: new go.Size(100, 20),
+      stretch: GraphObject.Fill,
+      minSize: new Size(100, 20),
     },
-    go.GraphObject.make(go.Shape, 'Rectangle', {
+    GraphObject.make(Shape, 'Rectangle', {
       fill: 'white',
     }),
-    go.GraphObject.make(
-      go.Panel,
+    GraphObject.make(
+      Panel,
       'Vertical',
       {
         margin: 4,
         name: collectionName,
-        defaultAlignment: go.Spot.Left,
+        defaultAlignment: Spot.Left,
       },
-      go.GraphObject.make(
-        go.Panel,
+      GraphObject.make(
+        Panel,
         'Vertical',
         {
           name: 'items',
-          defaultAlignment: go.Spot.Left,
+          defaultAlignment: Spot.Left,
           itemTemplate: propertyShape,
         },
-        new go.Binding('itemArray', collectionName)
+        new Binding('itemArray', collectionName)
       ),
       ellipsis()
     )
@@ -185,8 +195,8 @@ function MetaclassName(fmmlxClass: Models.Class) {
   return `^${fmmlxClass.metaclassName!.toUpperCase()}^\n${fmmlxClass.name} (${fmmlxClass.level})`;
 }
 
-export const classShape = go.GraphObject.make(
-  go.Panel,
+export const classShape = GraphObject.make(
+  Panel,
   'Spot',
   {
     doubleClick: (event, graphObject) => {
@@ -195,13 +205,13 @@ export const classShape = go.GraphObject.make(
     },
 
     contextClick: (event, panel) => {
-      const data: Models.Class = (panel as go.Panel).data;
+      const data: Models.Class = (panel as Panel).data;
       displayContextMenu({mouseEvent: event.event as MouseEvent, target1: data});
       event.handled = true;
     },
   },
 
-  new go.Binding('location', 'location', go.Point.parse),
+  new Binding('location', 'location', Point.parse),
   mainBlock(),
   externalLanguageBlock()
-) as go.Panel;
+) as Panel;

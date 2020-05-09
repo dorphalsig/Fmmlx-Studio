@@ -17,14 +17,14 @@ export class Association implements Serializable, Comparable {
   // Instance
   #source: Class;
   #target: Class;
-  primitive?: Association;
-  metaAssociation?: Association;
+  primitive: Association | null;
+  metaAssociation: Association | null;
   #refinements: Helpers.CustomSet<Association> = new Helpers.CustomSet<Association>();
   #instances: Helpers.CustomSet<Association> = new Helpers.CustomSet<Association>();
   #sourceCardinality: string = '0..*';
-  #sourceIntrinsicness?: number;
+  #sourceIntrinsicness: number | null;
   #targetCardinality: string = '0..*';
-  #targetIntrinsicness?: number;
+  #targetIntrinsicness: number | null;
 
   get source() {
     return this.#source;
@@ -42,11 +42,11 @@ export class Association implements Serializable, Comparable {
     targetCardinality: string,
     sourceRole: string,
     targetRole: string,
-    sourceIntrinsicness?: number,
-    targetIntrinsicness?: number,
-    primitive?: Association,
-    metaAssociation?: Association,
-    tags: string[] = []
+    sourceIntrinsicness: number | null,
+    targetIntrinsicness: number | null,
+    primitive: Association | null,
+    metaAssociation: Association | null,
+    tags: Set<string> = new Set<string>()
   ) {
     Object.setPrototypeOf(this, {});
     this.#source = source;
@@ -62,9 +62,7 @@ export class Association implements Serializable, Comparable {
     this.#targetIntrinsicness = targetIntrinsicness;
     //@todo change these array types to sets with custom equality
     this.id = Helpers.Helper.randomString();
-    this.tags = new Set<string>();
-    tags = Array.isArray(tags) ? tags : [tags];
-    tags.forEach(tag => this.tags.add(tag));
+    this.tags = tags;
   }
 
   static readonly category = 'fmmlxAssociation';
@@ -87,7 +85,7 @@ export class Association implements Serializable, Comparable {
 
   set sourceCardinality(cardinality: string) {
     if (
-      this.primitive !== undefined &&
+      this.primitive !== null &&
       !Association.validateCardinality(cardinality, this.primitive.sourceCardinality)
     )
       throw new Error(
@@ -100,11 +98,11 @@ export class Association implements Serializable, Comparable {
     return this.#sourceIntrinsicness;
   }
 
-  set sourceIntrinsicness(intrinsicness: number | undefined) {
-    if (intrinsicness !== undefined && (!Number.isInteger(intrinsicness) || intrinsicness < 0))
+  set sourceIntrinsicness(intrinsicness: number | null) {
+    if (intrinsicness !== null && (!Number.isInteger(intrinsicness) || intrinsicness < 0))
       throw new Error(`Invalid source intrinsicness.`);
     if (
-      this.primitive !== undefined &&
+      this.primitive !== null &&
       !Association.validateIntrinsicness(intrinsicness, this.#source.level)
     )
       throw new Error(`Invalid source intrinsicness.`);
@@ -118,7 +116,7 @@ export class Association implements Serializable, Comparable {
 
   set targetCardinality(cardinality) {
     if (
-      this.primitive !== undefined &&
+      this.primitive !== null &&
       !Association.validateCardinality(cardinality, this.primitive.targetCardinality)
     )
       throw new Error(
@@ -132,10 +130,10 @@ export class Association implements Serializable, Comparable {
   }
 
   set targetIntrinsicness(intrinsicness) {
-    if (intrinsicness !== undefined && (!Number.isInteger(intrinsicness) || intrinsicness < 0))
+    if (intrinsicness !== null && (!Number.isInteger(intrinsicness) || intrinsicness < 0))
       throw new Error(`Invalid target intrinsicness.`);
     if (
-      this.primitive !== undefined &&
+      this.primitive !== null &&
       !Association.validateIntrinsicness(intrinsicness, this.#target.level)
     )
       throw new Error(`Invalid target intrinsicness. Should be smaller than ${this.#target.level}`);
@@ -154,8 +152,8 @@ export class Association implements Serializable, Comparable {
     flatData: Association,
     source: Class,
     target: Class,
-    primitive?: Association,
-    meta?: Association
+    primitive: Association | null,
+    meta: Association | null
   ): Association {
     let assoc = new Association(
       source,
@@ -192,12 +190,9 @@ export class Association implements Serializable, Comparable {
   /**
    * Validates an intrinsicness value vs a reference.
    */
-  private static validateIntrinsicness(
-    intrinsicness: number | undefined,
-    reference: number | undefined
-  ) {
-    if (reference === undefined) return true;
-    if (intrinsicness === undefined) return false;
+  private static validateIntrinsicness(intrinsicness: number | null, reference: number | null) {
+    if (reference === null) return true;
+    if (intrinsicness === null) return false;
     return intrinsicness <= reference;
   }
 
@@ -226,7 +221,7 @@ export class Association implements Serializable, Comparable {
       source: this.#source.id,
       target: this.#target.id,
       primitive: this.primitive,
-      metaAssociation: this.metaAssociation !== undefined ? this.metaAssociation.id : undefined,
+      metaAssociation: this.metaAssociation,
       sourceIntrinsicness: this.#sourceIntrinsicness,
       sourceCardinality: this.#sourceCardinality,
       targetIntrinsicness: this.#targetIntrinsicness,

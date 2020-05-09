@@ -1,84 +1,104 @@
 import * as go from 'gojs/release/go-module'; //.js';
-import {displayContextMenu, displayMemberForm} from '../fmmlxstudio'; //.js';
+import {displayContextMenu, displayMemberForm} from '../controllers/ViewController';
+import {Property, Value} from '../models/Models';
+import {
+  Binding,
+  GraphObject,
+  Margin,
+  Panel,
+  Shape,
+  Size,
+  Spot,
+  TextBlock,
+} from 'gojs/release/go-module';
+import {ShapeEventType} from './shapeEvents'; //.js';
 
-const behaviourBlockTemplate = go.GraphObject.make(
-  go.Panel,
+const behaviourBlockTemplate = GraphObject.make(
+  Panel,
   'Auto',
   {
-    stretch: go.GraphObject.Fill,
-    minSize: new go.Size(10, 20),
-    margin: new go.Margin(0, 2, 0, 0),
+    stretch: GraphObject.Fill,
+    minSize: new Size(10, 20),
+    margin: new Margin(0, 2, 0, 0),
   },
-  go.GraphObject.make(go.Shape, 'Rectangle', {
+  GraphObject.make(Shape, 'Rectangle', {
     fill: 'black',
   }),
-  go.GraphObject.make(
-    go.TextBlock,
+  GraphObject.make(
+    TextBlock,
     {
       stroke: 'white',
-      margin: new go.Margin(0, 2, 0, 2),
+      margin: new Margin(0, 2, 0, 2),
       font: 'bold 14px monospace',
     },
-    new go.Binding('text', '')
+    new Binding('text', '')
   )
 );
 
-const behaviourBlock = go.GraphObject.make(
-  go.Panel,
+function createBehaviourArray(member: Property | Value) {
+  if (member.constructor === Value) return [];
+  const intrinsicness = member.intrinsicness == null ? '?' : member.intrinsicness.toString();
+  const obtainable = (member as Property).behaviors.obtainable ? 'O' : '';
+  const derivable = (member as Property).behaviors.derivable ? 'D' : '';
+  const simulation = (member as Property).behaviors.simulation ? 'S' : '';
+  return [intrinsicness, obtainable, derivable, simulation];
+}
+
+const behaviourBlock = GraphObject.make(
+  Panel,
   'Horizontal',
   {
-    minSize: new go.Size(48, 20),
-    alignment: go.Spot.Left,
+    minSize: new Size(48, 20),
+    alignment: Spot.Left,
     margin: 0,
   },
-  new go.Binding('itemArray', '', prop =>
-    !prop.isValue ? [prop.intrinsicness].concat(prop.behaviors) : []
-  ),
+  new Binding('itemArray', '', createBehaviourArray),
   {
     itemTemplate: behaviourBlockTemplate,
   }
 );
 
-const nameBlock = go.GraphObject.make(go.TextBlock, new go.Binding('text', 'name'), {
-  margin: new go.Margin(0, 0, 0, 2),
+const nameBlock = GraphObject.make(TextBlock, new Binding('text', 'name'), {
+  margin: new Margin(0, 0, 0, 2),
 });
 
-const assignmentBlock = go.GraphObject.make(
-  go.TextBlock,
-  new go.Binding('text', '', prop => {
+const assignmentBlock = GraphObject.make(
+  TextBlock,
+  new Binding('text', '', prop => {
     return Boolean(prop.isValue) ? (prop.isOperation ? '→' : '=') : ':';
   }),
-  {margin: new go.Margin(0, 2, 0, 2), font: 'bold 14px monospace'}
+  {margin: new Margin(0, 2, 0, 2), font: 'bold 14px monospace'}
 );
 
-const typeBlock = go.GraphObject.make(
-  go.TextBlock,
-  new go.Binding('text', '', prop => (prop.isValue ? prop.value : prop.type)),
-  {margin: new go.Margin(0, 5, 0, 0)}
+const typeBlock = GraphObject.make(
+  TextBlock,
+  new Binding('text', '', prop => (prop.isValue ? prop.value : prop.type)),
+  {margin: new Margin(0, 5, 0, 0)}
 );
 
 //@todo handle click events properly
-export const propertyShape: go.Panel = go.GraphObject.make(
-  go.Panel,
+export const propertyShape: Panel = GraphObject.make(
+  Panel,
   'Horizontal',
   /*new gojs.Binding("name", "id"),*/ {
     doubleClick: (event, panel) => {
-      displayMemberForm((panel as go.Panel).data);
+      //edit
+      //const click = new CustomEvent(ShapeEventType.shapeDblclick, {});
       event.handled = true;
     },
     contextClick: (event, panel) => {
       displayContextMenu({
         mouseEvent: event.event as MouseEvent,
-        target1: (panel as go.Panel).data,
-        target2: (panel as go.Panel).part!.data,
+        target1: (panel as Panel).data,
+        target2: (panel as Panel).part!.data,
       });
       event.handled = true;
     },
-    minSize: new go.Size(100, 20),
-    padding: new go.Margin(0, 2, 2, 2),
+    minSize: new Size(100, 20),
+    padding: new Margin(0, 2, 2, 2),
   },
   behaviourBlock,
   nameBlock,
   assignmentBlock,
   typeBlock
-) as go.Panel;
+) as Panel;

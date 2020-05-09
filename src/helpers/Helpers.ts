@@ -1,3 +1,3 @@
 export * from './Set'; //.js';
-export * from './Helper'; //.js';
+export * as Helper from './Helper'; //.js';
 export * from './Interfaces'; //.js';
