@@ -1,112 +1,26 @@
-import {
-  abstractClasses,
-  changeClassSuperclass,
-  createAssociation,
-  createAssociationInstanceOrRefinement,
-  createClass,
-  createMember,
-  deleteFmmlxClass,
-  deleteMember,
-  editAssociation,
-  editFmmlxClass,
-  editMember,
-  findTrees,
-  findValidRelationshipClasses,
-  fromJSON,
-  getClassesByLevel,
-  getClickedPoint,
-  setNodesVisibility,
-  showClasses,
-  tags,
-  toJSON,
-  toPNG,
-  copyMemberToSuperclass,
-  copyMemberToMetaclass,
-  deleteAssociation,
-  deleteSuperclass,
-} from './StudioController'; //.js';
-export {copyMemberToSuperclass} from './StudioController';
-import {Association, Class, Inheritance, Property, Value} from '../models/Models'; //.js';
-import * as go from 'gojs/release/go-module'; //.js';
-import * as M from 'materialize-css';
-import {Behaviours} from '../models/Property';
-import * as Shapes from '../shapes/Shapes';
-import {ShapeEventType} from '../shapes/shapeEvents';
+import * as studio from './StudioController';
 
-export let diagram: go.Diagram;
+import * as M from 'materialize-css';
+import {Behaviours, Property} from '../models/Property';
+import {ShapeEventType} from '../shapes/shapeEvents';
+import {IShapeMouseEvent} from '../helpers/Interfaces';
+import {Association} from '../models/Association';
+import {Inheritance} from '../models/Inheritance';
+import {Value} from '../models/Value';
+import {Class} from '../models/Class';
+
 let classForm: HTMLFormElement;
 let propertyForm: HTMLFormElement;
 let associationForm: HTMLFormElement;
-document.addEventListener('DOMContentLoaded', _e => init());
+let canvasDiv: HTMLDivElement;
 
-document.addEventListener(ShapeEventType.shapeContextmenu, (evt => {}));
-/**
- * returns a promise with the clicked coordinates
- */
-function getClickedPoint2() {
-  return new Promise<[number, number][]>((resolve, reject) => {
-    window.setTimeout(() => reject(new Error('No click detected. Cancelling action')), 30000);
-    diagram.addDiagramListener('BackgroundSingleClicked', e => {
-      const li = e.diagram.lastInput;
-      const event = e.diagram.lastInput.event! as MouseEvent;
+window.onerror = function (messageOrEvent, source, lineno, colno, errorObj) {
+  error(errorObj);
+};
 
-      const rect = (event.target! as Element).getBoundingClientRect();
-      const x = event.clientX - rect.left; //x position within the element.
-      const y = event.clientY - rect.top; //y position within the element.
+window.addEventListener('DOMContentLoaded', _e => init());
 
-      console.log(`ViewP: (${li.viewPoint.x},${li.viewPoint.x}) `);
-      console.log(`Doc: (${li.documentPoint.x},${li.documentPoint.x}) `);
-      console.log(`HTML: ${x},${y}`);
-    });
-    /*
-    canvas.addEventListener('click', e => {
-      points.push([e.screenX, e.screenY]);
-      ev = e;
-      if (points.length == 2) {
-        console.log(points);
-        resolve(points);
-      }
-    });*/
-  });
-}
-function init() {
-  window.onerror = function (messageOrEvent, source, lineno, colno, errorObj) {
-    error(errorObj);
-  };
-
-  // @ts-ignore
-  go.licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
-  diagram = go.GraphObject.make(go.Diagram, 'canvas', {
-    'undoManager.isEnabled': true,
-    // enable Ctrl-Z to undo and Ctrl-Y to redo
-    model: new go.GraphLinksModel(),
-    allowDelete: false,
-  });
-  Object.defineProperty(window, 'PIXELRATIO', diagram.computePixelRatio);
-  diagram.computePixelRatio();
-  diagram.nodeTemplateMap.add(Class.category, Shapes.classShape as go.Node);
-  diagram.linkTemplateMap.add(Association.category, Shapes.associationShape);
-  diagram.linkTemplateMap.add(Inheritance.category, Shapes.inheritanceShape);
-  //diagram.model.nodeKeyProperty = `id`;
-  (diagram.model as go.GraphLinksModel).linkKeyProperty = `id`;
-
-  classForm = document.querySelector('#fmmlxClassModal form')!.cloneNode(true) as HTMLFormElement;
-  propertyForm = document
-    .querySelector('#fmmlxAttributeModal form')!
-    .cloneNode(true) as HTMLFormElement;
-  associationForm = document
-    .querySelector('#fmmlxAssociationModal form')!
-    .cloneNode(true) as HTMLFormElement;
-
-  M.FormSelect.init(document.querySelectorAll('#filterModal > select'));
-  M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
-  //just setting up selects for filter modal, every other select is done when showing the modal
-  M.Modal.init(document.querySelectorAll('.modal'));
-  document.addEventListener('keydown', event => {
-    (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'i' && !event.shiftKey
-      ? displayClassForm()
-      : true;
-  });
+function setupEventListeners() {
   const buttons = new Map<string, Function>([
     ['#addClass', displayClassForm],
     ['#export', exportJson],
@@ -117,6 +31,53 @@ function init() {
     document.querySelector(key)!.addEventListener('click', _evt => value())
   );
   document.getElementById('importFile')!.addEventListener('click', _e => importJson());
+  canvasDiv.addEventListener(ShapeEventType.shapeDblclick, e =>
+    displayShapeForms((e as IShapeMouseEvent).shape)
+  );
+  canvasDiv.addEventListener(ShapeEventType.shapeContextmenu, e =>
+    displayShapeContextMenus(e as IShapeMouseEvent)
+  );
+}
+
+function displayShapeForms(shape: Class | Association | Inheritance | Property | Value) {
+  switch (shape.constructor) {
+    case Association:
+      displayAssociationForm(shape as Association);
+      break;
+    case Class:
+      displayClassForm(shape as Class);
+      break;
+    case Property:
+    case Value:
+      displayMemberForm(shape as Property | Value);
+      break;
+  }
+}
+
+function setupMaterialize() {
+  M.FormSelect.init(document.querySelectorAll('#filterModal > select'));
+  M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
+  //just setting up selects for filter modal, every other select is done when showing the modal
+  M.Modal.init(document.querySelectorAll('.modal'));
+  document.addEventListener('keydown', event => {
+    (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'i' && !event.shiftKey
+      ? displayClassForm()
+      : true;
+  });
+}
+
+function init() {
+  canvasDiv = document.querySelector<HTMLDivElement>('#canvas')!;
+  classForm = document.querySelector('#fmmlxClassModal form')!.cloneNode(true) as HTMLFormElement;
+  propertyForm = document
+    .querySelector('#fmmlxAttributeModal form')!
+    .cloneNode(true) as HTMLFormElement;
+  associationForm = document
+    .querySelector('#fmmlxAssociationModal form')!
+    .cloneNode(true) as HTMLFormElement;
+  setupMaterialize();
+  setupEventListeners();
+  studio.init(canvasDiv);
 }
 
 function download(anchor: HTMLAnchorElement, data: string, fileType: string): boolean {
@@ -229,7 +190,7 @@ function setupChip(div: HTMLDivElement, tagList: string[] = [], options: any = {
   for (const tag of tagList) {
     tokens.push({tag: tag});
   }
-  for (const tag of tags) {
+  for (const tag of studio.tags) {
     autoCompleteData[tag] = null;
   }
 
@@ -295,12 +256,17 @@ function showField(field: HTMLInputElement) {
   field.closest('.input-field')!.classList.remove('hide');
 }
 
-export function abstractClass() {
+export async function abstractClass() {
   try {
-    abstractClasses();
     M.toast({
       html: 'Click on the canvas to insert the class',
     });
+    const point = await new Promise<{x: number; y: number}>(resolve =>
+      canvasDiv.addEventListener('click', ev => resolve({x: ev.offsetX, y: ev.offsetY}), {
+        once: true,
+      })
+    );
+    studio.abstractClasses(point);
   } catch (e) {
     error(e);
   }
@@ -312,35 +278,49 @@ export async function addEditClass() {
   const submitButton = modalDiv.querySelector<HTMLButtonElement>('.modal-action')!;
   const modal = M.Modal.getInstance(modalDiv);
   submitButton.disabled = true;
-  const formVals = readForm(form);
-  modal.close();
   if (!form.checkValidity()) {
     submitButton.disabled = false;
     error(new Error('Invalid input. Please check and try again'));
   }
+  modal.close();
+
+  const formVals = readForm(form);
 
   if (!formVals.has('id')) {
     M.toast({
       html: 'Click on the canvas to insert the class',
     });
-
-    createClass({
-      name: formVals.get('name') as string,
-      level: formVals.has('level') ? Number.parseFloat(formVals.get('level') as string) : null,
-      isAbstract: formVals.has('isAbstract'),
-      metaclassId: formVals.get('metaclass') as string,
-      externalLanguage: formVals.has('externalLanguage')
-        ? (formVals.get('externalLanguage') as string)
-        : null,
-      externalMetaclass: formVals.has('externalMetaclass')
-        ? (formVals.get('externalLanguage') as string)
-        : null,
-      tags: formVals.has('tags') ? new Set(formVals.get('tags') as string[]) : undefined,
+    const point = await new Promise<{x: number; y: number}>(resolve => {
+      canvasDiv.addEventListener(
+        'click',
+        evt => {
+          resolve({x: (evt as MouseEvent).offsetX, y: (evt as MouseEvent).offsetY});
+        },
+        {once: true}
+      );
     });
-
+    const level = formVals.has('level') ? Number.parseFloat(formVals.get('level') as string) : null;
+    const extLanguage = formVals.has('externalLanguage')
+      ? (formVals.get('externalLanguage') as string)
+      : null;
+    const extMClass = formVals.has('externalMetaclass')
+      ? (formVals.get('externalLanguage') as string)
+      : null;
+    const tags = formVals.has('tags') ? new Set(formVals.get('tags') as string[]) : undefined;
+    studio.createClass(
+      point,
+      formVals.get('name') as string,
+      level,
+      formVals.has('isAbstract'),
+      formVals.get('metaclass') as string,
+      extLanguage,
+      extMClass,
+      tags
+    );
     return;
   }
 
+  /*
   const confirmMessage =
     'Please note that changing classification level can possibly break the instantiation and' +
     ' the inheritance chain. Do you wish to continue?';
@@ -348,8 +328,8 @@ export async function addEditClass() {
     modal.close();
     return;
   }
-
-  editFmmlxClass(
+*/
+  studio.editFmmlxClass(
     formVals.get('id') as string,
     formVals.get('name') as string,
     formVals.has('level') ? parseFloat(formVals.get('level') as string) : null,
@@ -359,14 +339,12 @@ export async function addEditClass() {
     formVals.has('externalMetaclass') ? (formVals.get('externalMetaclass') as string) : null,
     formVals.has('tags') ? (formVals.get('tags') as string[]) : undefined
   );
-  modal.close();
 }
 
 export function addEditClassMember() {
   const modalDiv = document.getElementById('fmmlxAttributeModal')! as HTMLDivElement;
   const form = modalDiv.querySelector('form')! as HTMLFormElement;
   const submitButton = form.querySelector<HTMLButtonElement>('.modal-action')!;
-  const modal = M.Modal.getInstance(modalDiv);
   submitButton.disabled = true;
 
   if (!form.checkValidity()) {
@@ -375,6 +353,10 @@ export function addEditClassMember() {
   }
 
   let formVals = readForm(form);
+  const intrinsicness =
+    formVals.get('intrinsicness') === '?'
+      ? null
+      : parseFloat(formVals.get('intrinsicness') as string);
 
   const behaviors: Behaviours = {
     derivable: formVals.has('isDerivable'),
@@ -383,13 +365,11 @@ export function addEditClassMember() {
   };
 
   if (formVals.has('id')) {
-    createMember(
+    studio.createMember(
       formVals.get('fmmlxClassId') as string,
       formVals.get('name') as string,
       formVals.get('type') as string,
-      formVals.has('intrinsicness')
-        ? Number.parseFloat(formVals.get('intrinsicness') as string)
-        : null,
+      intrinsicness,
       formVals.has('isOperation'),
       behaviors,
       formVals.get('isValue') as string,
@@ -398,24 +378,19 @@ export function addEditClassMember() {
       new Set(formVals.get('tags') as string[])
     );
   } else {
-    editMember(
+    studio.editMember(
       formVals.get('fmmlxClassId') as string,
       formVals.get('id') as string,
       formVals.get('name') as string,
       formVals.get('type') as string,
-      formVals.get('intrinsicness') as string,
-      {
-        derivable: formVals.has('isDerivable'),
-        obtainable: formVals.has('isObtainable'),
-        simulation: formVals.has('isSimulation'),
-      },
+      intrinsicness,
+      behaviors,
       formVals.get('value') as string,
       formVals.get('operationBody') as string,
       new Set(formVals.get('tags') as string[])
     );
   }
 
-  modal.close();
   if ((modalDiv.querySelector('.addAnother')! as HTMLInputElement).checked) {
     displayMemberForm(null, formVals.get('fmmlxClassId') as string);
   }
@@ -448,88 +423,77 @@ export function cloneFilterRow(filterRow: HTMLInputElement) {
   });
 }*/
 
-async function actionCreateAssociation(source?: Class): Promise<void> {
-  if (!source) {
-    M.toast({html: 'Select the source class'});
-    const source = (await getClickedPoint()) as Class;
-    return actionCreateAssociation(source);
-  }
+function getClickedShape(
+  shapeType: typeof Class | Property | Value | Inheritance | Association
+): Promise<Class | Property | Value | Inheritance | Association> {
+  return new Promise(resolve => {
+    const listener = (e: Event) => {
+      const shape = (e as IShapeMouseEvent).shape;
+      if (shape.constructor === shapeType) {
+        resolve(shape);
+        e.target!.removeEventListener(ShapeEventType.shapeClick, listener);
+      }
+    };
+    canvasDiv.addEventListener(ShapeEventType.shapeClick, listener);
+  });
+}
+
+async function actionCreateAssociation() {
+  M.toast({html: 'Select the source class'});
+  const source = (await getClickedShape(Class)) as Class;
   M.toast({html: 'Select the target class'});
-  const target = (await getClickedPoint()) as Class;
-  createAssociation(source, target);
+  const target = (await getClickedShape(Class)) as Class;
+  const assoc = studio.createAssociation(source, target);
+  displayAssociationForm(assoc);
 }
 
 /**
  * Given an association, creates an instance (refinement) of it
  */
-function createInstanceOrRefinement(association: Association, refinement: boolean) {
-  let instanceSrc: Class, instanceTgt: Class;
-
+async function createInstanceOrRefinement(association: Association, refinement: boolean) {
   let toast = M.toast({
     html: 'Choose source',
   });
-  const canvas = document.querySelector<HTMLCanvasElement>('canvas')!;
-
-  canvas.addEventListener(
-    'click',
-    _e => {
-      toast.dismiss();
-      toast.options.html = 'Choose target...';
-      toast = M.toast({
-        html: 'Choose target',
-      });
-    },
-    {once: true}
+  studio.setNodesVisibility(false);
+  const validSources = studio.findValidRelationshipClasses(
+    association.source,
+    refinement,
+    association.sourceIntrinsicness
   );
+  studio.showClasses(validSources);
+  const source = (await getClickedShape(Class)) as Class;
+  toast.dismiss();
 
-  let handlerSrc = function (event: go.DiagramEvent) {
-    if (event.subject.part.constructor === Node) {
-      diagram.removeDiagramListener('ObjectSingleClicked', handlerSrc);
-      toast.dismiss();
-      instanceSrc = event.subject.part.data;
-    }
-    setNodesVisibility(false);
-    let validDescendants = findValidRelationshipClasses(
-      association.target,
-      refinement,
-      association.targetIntrinsicness
-    );
-    showClasses(validDescendants);
-    let handlerTgt = function (event: go.DiagramEvent) {
-      if (event.subject.part.constructor === Node) {
-        diagram.removeDiagramListener('ObjectSingleClicked', handlerTgt);
-        setNodesVisibility(true);
-        instanceTgt = event.subject.part.data;
-        createAssociationInstanceOrRefinement(association, instanceSrc, instanceTgt, refinement);
-      }
-    };
-    diagram.addDiagramListener('ObjectSingleClicked', handlerTgt);
-    document.querySelectorAll('.toast-action').forEach(element =>
-      element.addEventListener('click', _evt => {
-        diagram.removeDiagramListener('ObjectSingleClicked', handlerTgt);
-        diagram.removeDiagramListener('ObjectSingleClicked', handlerSrc);
-      })
-    );
-  };
-
+  studio.setNodesVisibility(false);
+  const validTargets = studio.findValidRelationshipClasses(
+    association.target,
+    refinement,
+    association.targetIntrinsicness
+  );
+  studio.showClasses(validTargets);
   showFilterToast();
+  toast = M.toast({
+    html: 'Choose target...',
+  });
+  const target = (await getClickedShape(Class)) as Class;
+  const assoc = studio.createAssociationInstanceOrRefinement(
+    association,
+    source,
+    target,
+    refinement
+  );
+  toast.dismiss();
+  resetFilters();
+  displayAssociationForm(assoc);
 }
 
-function createInheritance(subclass: Class) {
-  M.toast({
+async function createInheritance(subclass: Class) {
+  const toast = M.toast({
     html: 'Select the superclass',
   });
-  let handler = function (event: go.DiagramEvent) {
-    try {
-      diagram.removeDiagramListener('ObjectSingleClicked', handler);
-      let superclass = event.subject.part.data;
-      changeClassSuperclass(superclass, subclass);
-    } catch (err) {
-      error(err);
-    }
-  };
-
-  diagram.addDiagramListener('ObjectSingleClicked', handler);
+  const sup = (await getClickedShape(Class)) as Class;
+  studio.changeSuperclass(sup, subclass);
+  toast.dismiss();
 }
 
 /**
@@ -538,7 +502,7 @@ function createInheritance(subclass: Class) {
  */
 function deleteClass(fmmlxClass: Class) {
   try {
-    deleteFmmlxClass(fmmlxClass);
+    studio.deleteFmmlxClass(fmmlxClass);
   } catch (e) {
     error(e);
   }
@@ -549,7 +513,7 @@ function deleteClass(fmmlxClass: Class) {
  */
 function deleteMemberEverywhere(fmmlxClass: Class, member: Property) {
   try {
-    deleteMember(fmmlxClass, member, true, true);
+    studio.deleteMember(fmmlxClass, member, true, true);
   } catch (e) {
     error(e);
   }
@@ -560,13 +524,13 @@ function deleteMemberEverywhere(fmmlxClass: Class, member: Property) {
  */
 function deleteMemberUpstream(fmmlxClass: Class, member: Property) {
   try {
-    deleteMember(fmmlxClass, member, true, false);
+    studio.deleteMember(fmmlxClass, member, true, false);
   } catch (e) {
     error(e);
   }
 }
 
-export function displayAssociationForm(association: Association) {
+function displayAssociationForm(association: Association) {
   document.getElementById('addClass')!.classList.remove('pulse');
   const div = document.getElementById('fmmlxAssociationModal')!;
   div.querySelector('form')!.replaceWith(associationForm.cloneNode(true));
@@ -594,7 +558,7 @@ export function displayAssociationForm(association: Association) {
   M.Modal.getInstance(div).open();
 }
 
-export function displayClassForm(fmmlxClass?: Class) {
+function displayClassForm(fmmlxClass?: Class) {
   document.getElementById('addClass')!.classList.remove('pulse');
   const modal = document.getElementById('fmmlxClassModal')! as HTMLDivElement;
   modal.querySelector('form')!.replaceWith(classForm.cloneNode(true));
@@ -607,7 +571,7 @@ export function displayClassForm(fmmlxClass?: Class) {
       const levelStr = (event.target as HTMLInputElement).value;
       const level = levelStr === '?' ? null : Number.parseFloat(levelStr);
       let options = [];
-      for (let fmmlxClass of getClassesByLevel(level)) {
+      for (let fmmlxClass of studio.getClassesByLevel(level)) {
         const idField = modal.querySelector<HTMLInputElement>(`[name=id]`)!;
         if (fmmlxClass.id !== idField.value) {
           options.push(new Option(fmmlxClass.name, fmmlxClass.id));
@@ -634,7 +598,7 @@ export function displayClassForm(fmmlxClass?: Class) {
   M.Modal.getInstance(modal).open();
 }
 
-function prepareClassContextMenu(classObject: Class) {
+function setupClassContextMenu(classObject: Class) {
   const menu = document.getElementById('classMenu')!;
   const listeners = new Map<string, Function>([
     ['#inherit', createInheritance],
@@ -642,7 +606,7 @@ function prepareClassContextMenu(classObject: Class) {
     ['#deleteClass', deleteClass],
     ['#abstractClass', abstractClass],
     ['#addMember', displayMemberForm],
-    ['#filterChain', filterChains],
+    //['#filterChain', filterChains],
   ]);
 
   listeners.forEach((callback: Function, selector) =>
@@ -654,14 +618,14 @@ function prepareClassContextMenu(classObject: Class) {
   return menu;
 }
 
-function preparePropertyContextMenu(propertyObject: Property, classObject: Class) {
+function setupPropertyContextMenu(propertyObject: Property, classObject: Class) {
   const menu = document.getElementById('propertyMenu')!;
 
   const listeners = new Map<string, Function>([
     ['#deleteMemberUpstream', deleteMemberUpstream],
     ['#deleteMember', deleteMemberEverywhere],
-    ['#toMetaclass', copyMemberToMetaclass],
-    ['#toSuperclass', copyMemberToSuperclass],
+    ['#toMetaclass', studio.copyMemberToMetaclass],
+    ['#toSuperclass', studio.copyMemberToSuperclass],
   ]);
   listeners.forEach((callback: Function, selector) =>
     menu
@@ -672,7 +636,7 @@ function preparePropertyContextMenu(propertyObject: Property, classObject: Class
   return menu;
 }
 
-function prepareAssociationContextMenu(association: Association) {
+function setupAssociationContextMenu(association: Association) {
   const menu = document.getElementById('associationMenu')!;
   const del = menu.querySelector<HTMLElement>('deleteAssociation')!;
   const refine = menu.querySelector<HTMLElement>('#refineAssociation')!;
@@ -685,7 +649,7 @@ function prepareAssociationContextMenu(association: Association) {
     refine.style.display = 'block';
     instantiate.style.display = 'none';
   }
-  del.addEventListener('click', _ev => deleteAssociation(association), {once: true});
+  del.addEventListener('click', _ev => studio.deleteAssociation(association), {once: true});
   refine.addEventListener('click', _ev => createInstanceOrRefinement(association, true), {
     once: true,
   });
@@ -695,64 +659,43 @@ function prepareAssociationContextMenu(association: Association) {
   return menu;
 }
 
-function prepareInheritanceContextMenu(fmmlxClass: Class) {
-  // Inheritance has no model because its just a plain link
+function setupInheritanceContextMenu(inheritance: Inheritance) {
   const menu = document.getElementById('inheritanceMenu')!;
   menu
     .querySelector<HTMLElement>('#deleteInheritance')!
-    .addEventListener('click', _ev => deleteSuperclass(fmmlxClass));
+    .addEventListener('click', _ev => deleteClass(inheritance.superclass));
   return menu;
 }
 
-export function displayContextMenu({
-  mouseEvent,
-  target1,
-  target2,
-}: {
-  mouseEvent: MouseEvent;
-  target1?: Class | Property | Association | Value;
-  target2?: Class | Property | Association | Value;
-}) {
-  document.getElementById('addClass')!.classList.remove('pulse');
+function displayShapeContextMenus(event: IShapeMouseEvent) {
   let menu: HTMLElement;
-  let contextMenus = document.querySelectorAll<HTMLElement>('.contextMenu');
-  contextMenus.forEach(menu => (menu.style.display = 'none'));
-  const condition = target1 !== undefined ? target1.constructor : undefined;
-  switch (condition) {
+  //hide all other context menus
+  /*  document
+    .querySelectorAll<HTMLDivElement>('.contextMenu')
+    .forEach(menu => menu.classList.remove('visibleContextMenu'));*/
+
+  switch (event.shape.constructor) {
     case Class:
-      menu = prepareClassContextMenu(target1 as Class)!;
+      console.debug('Class');
+      menu = setupClassContextMenu(event.shape as Class);
       break;
     case Property:
-      menu = preparePropertyContextMenu(target1 as Property, target1 as Class)!;
+      const classObject = studio.getClassAt({x: event.offsetX, y: event.offsetY});
+      menu = setupPropertyContextMenu(event.shape as Property, classObject);
       break;
     case Association:
-      menu = prepareAssociationContextMenu(target1 as Association)!;
+      menu = setupAssociationContextMenu(event.shape as Association);
       break;
     case Value:
       return;
     default:
-      menu = prepareInheritanceContextMenu(target2 as Class)!;
+      menu = setupInheritanceContextMenu(event.shape as Inheritance);
       break;
   }
 
-  let width = menu.style.width;
-  menu.style.cssText = `top: ${mouseEvent.pageY}; left: ${
-    mouseEvent.pageX + 5
-  }; display: block; width: 0`;
-
-  menu.animate({width: width, easing: 'ease-in'}, 300);
-
-  document
-    .querySelector('body')!
-    .addEventListener('click', _ev => contextMenus.forEach(menu => (menu.style.display = 'none')), {
-      once: true,
-    });
-
-  document
-    .querySelector('canvas')!
-    .addEventListener('click', _ev => contextMenus.forEach(menu => (menu.style.display = 'none')), {
-      once: true,
-    });
+  menu.style.cssText = `position: absolute; top: ${event.pageY}px; left: ${event.pageX + 5}px;`;
+  menu.classList.add('visibleContextMenu');
+  window.addEventListener('click', () => menu.classList.remove('visibleContextMenu'), {once: true});
 }
 
 /**
@@ -783,10 +726,10 @@ export function displayFilterForm() {
   M.Modal.getInstance(modal).open();
 }*/
 
-export function displayMemberForm(obj: any, id?: string) {
+function displayMemberForm(obj: any, id?: string) {
   document.getElementById('addClass')!.classList.remove('pulse');
   const modal = document.getElementById('fmmlxAttributeModal') as HTMLDivElement;
-  modal.querySelector('form')!.replaceWith(propertyForm.clone());
+  modal.querySelector('form')!.replaceWith(propertyForm.cloneNode());
   setupExtraDataFields(modal);
   setupSelect(modal.querySelector('select')!);
 
@@ -846,7 +789,7 @@ export function displayMemberForm(obj: any, id?: string) {
 }
 
 function downloadImage() {
-  let data = toPNG() as string;
+  let data = studio.toPNG() as string;
   let fileType = 'png';
   let anchor = document.getElementById('image') as HTMLAnchorElement;
   return download(anchor, data, fileType);
@@ -861,7 +804,7 @@ function editFmmlxAssociation() {
     error(new Error('Invalid input. Check the highlighted fields and try again.'));
   }
   const formVals = readForm(form);
-  editAssociation(
+  studio.editAssociation(
     formVals.get('id') as string,
     formVals.get('name') as string,
     formVals.get('sourceCardinality') as string,
@@ -875,7 +818,7 @@ function editFmmlxAssociation() {
 }
 
 function exportJson() {
-  let data = `data:text/plain;UTF-8,${encodeURIComponent(toJSON())}`;
+  let data = `data:text/plain;UTF-8,${encodeURIComponent(studio.toJSON())}`;
   let fileType = 'txt';
   let anchor = document.getElementById('export') as HTMLAnchorElement;
   return download(anchor, data, fileType);
@@ -884,12 +827,12 @@ function exportJson() {
 /**
  * Shows only the inheritance trees of the selected classes
  */
-function filterChains(selection: go.Set<go.Part>) {
+/*function filterChains(selection: go.Set<go.Part>) {
   showFilterToast();
   let classes: Class[] = [];
   selection.each(part => classes.push(part.data));
-  showClasses(findTrees(classes));
-}
+  studio.showClasses(studio.findTrees(classes));
+}*/
 
 /*
 export function doFilter(matches: any) {
@@ -969,7 +912,7 @@ function importJson() {
   let reader = new FileReader();
   reader.onload = () => {
     let json = reader.result as string;
-    fromJSON(json);
+    studio.fromJSON(json);
   };
   const form = document.getElementById('importFile') as HTMLFormElement;
   reader.readAsText(form.files[0]);
@@ -979,7 +922,7 @@ function importJson() {
  * Resets all filters, showing all classes
  */
 export function resetFilters() {
-  setNodesVisibility(true);
+  studio.setNodesVisibility(true);
   // Show Everything
 
   let toastElement = document.querySelector('.filterMessage')!.parentElement!;

@@ -29,12 +29,12 @@ export class Class implements Comparable, Serializable {
   constructor(
     name: string,
     level: number | null = null,
+    x: number,
+    y: number,
     isAbstract = false,
     externalLanguage: string | null = null,
     externalMetaclass: string | null = null,
-    tags: Set<string>,
-    x: number,
-    y: number
+    tags = new Set<string>()
   ) {
     this.x = x;
     this.y = y;
@@ -65,7 +65,7 @@ export class Class implements Comparable, Serializable {
     return [...this.#subclasses, ...this.#instances];
   }
 
-  get loc() {
+  get location() {
     return `${this.x} ${this.y}`;
   }
 
@@ -87,7 +87,7 @@ export class Class implements Comparable, Serializable {
     this.#metaclass = metaclass;
   }
 
-  static category = 'FmmlxClass';
+  readonly category = 'FmmlxClass';
 
   /**
    * Returns a partially inflated copy of a flattened class
@@ -108,7 +108,7 @@ export class Class implements Comparable, Serializable {
   }
 
   get isExternal() {
-    return this.externalLanguage === null;
+    return this.externalLanguage !== null;
   }
 
   get metaclassName() {
@@ -117,11 +117,19 @@ export class Class implements Comparable, Serializable {
     return this.metaclass.name;
   }
 
+  get properties() {
+    return [...this.#attributes, ...this.#operations];
+  }
+
   get values() {
     return new Set([...this.#operationValues, ...this.#slotValues]);
   }
   get members() {
-    return [...this.#attributes, ...this.#operations];
+    return [...this.properties, ...this.values];
+  }
+
+  getMember(id: string) {
+    return this.members.filter(value => value.id === id);
   }
 
   equals(obj: Class) {

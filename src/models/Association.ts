@@ -2,7 +2,7 @@
 
 import {Class} from './Class'; //.js';
 import * as Helpers from '../helpers/Helpers'; //.js';
-import {Serializable, Comparable} from '../helpers/Helpers'; //.js';
+import {Serializable, Comparable} from '../helpers/Helpers';
 
 /**
  * Represents an Association
@@ -37,15 +37,15 @@ export class Association implements Serializable, Comparable {
   constructor(
     source: Class,
     target: Class,
-    name: string,
-    sourceCardinality: string,
-    targetCardinality: string,
-    sourceRole: string,
-    targetRole: string,
-    sourceIntrinsicness: number | null,
-    targetIntrinsicness: number | null,
-    primitive: Association | null,
-    metaAssociation: Association | null,
+    name = Helpers.Helper.randomString(),
+    sourceCardinality = '0,*',
+    targetCardinality = '0,*',
+    sourceRole = 'src',
+    targetRole = 'dst',
+    sourceIntrinsicness: number | null = null,
+    targetIntrinsicness: number | null = null,
+    primitive: Association | null = null,
+    metaAssociation: Association | null = null,
     tags: Set<string> = new Set<string>()
   ) {
     Object.setPrototypeOf(this, {});
@@ -204,19 +204,12 @@ export class Association implements Serializable, Comparable {
     this.#refinements.add(refinement);
   }
 
-  deflate() {
-    return this.toJSON();
-  }
-
   /**
    * Returns a flat JSON representation of the Association state, namely the references to other models (namely FmmlxClass & FmmlxAssociation)
    * are replaced by their respective id
    * @todo persist in indexeddb
    */
   toJSON(): Object {
-    const refinements: string[] = [];
-    const instances: string[] = [];
-
     const flat = {
       source: this.#source.id,
       target: this.#target.id,

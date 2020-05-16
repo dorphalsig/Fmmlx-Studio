@@ -19,7 +19,7 @@ export class CustomSet<T> {
 
   /**
    * Adds an item or array to the collection if it doesnt exist. (Comparing it with all others (using obj.equals()) )
-   * Because the items contained are to be compared based on their properties, there is no way to use
+   * Because the items contained are to be compared based on their properties, there is no way to use a calculated hash.
    */
   add(newData: (T & Comparable) | (T & Comparable)[]) {
     if (newData === null) throw new Error('This implementation cannot hold null values');

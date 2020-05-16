@@ -1,48 +1,15 @@
-import * as go from 'gojs/release/go-module'; //.js';
-import {displayContextMenu, displayMemberForm} from '../controllers/ViewController';
-import {Property, Value} from '../models/Models';
 import {
   Binding,
   GraphObject,
-  Margin,
   Panel,
   Shape,
   Size,
   Spot,
   TextBlock,
+  Margin,
 } from 'gojs/release/go-module';
-import {ShapeEventType} from './shapeEvents'; //.js';
-
-const behaviourBlockTemplate = GraphObject.make(
-  Panel,
-  'Auto',
-  {
-    stretch: GraphObject.Fill,
-    minSize: new Size(10, 20),
-    margin: new Margin(0, 2, 0, 0),
-  },
-  GraphObject.make(Shape, 'Rectangle', {
-    fill: 'black',
-  }),
-  GraphObject.make(
-    TextBlock,
-    {
-      stroke: 'white',
-      margin: new Margin(0, 2, 0, 2),
-      font: 'bold 14px monospace',
-    },
-    new Binding('text', '')
-  )
-);
-
-function createBehaviourArray(member: Property | Value) {
-  if (member.constructor === Value) return [];
-  const intrinsicness = member.intrinsicness == null ? '?' : member.intrinsicness.toString();
-  const obtainable = (member as Property).behaviors.obtainable ? 'O' : '';
-  const derivable = (member as Property).behaviors.derivable ? 'D' : '';
-  const simulation = (member as Property).behaviors.simulation ? 'S' : '';
-  return [intrinsicness, obtainable, derivable, simulation];
-}
+import {emitAsShapeEvent} from '../helpers/Helper';
+import {ShapeEventType} from './shapeEvents';
 
 const behaviourBlock = GraphObject.make(
   Panel,
@@ -52,9 +19,31 @@ const behaviourBlock = GraphObject.make(
     alignment: Spot.Left,
     margin: 0,
   },
-  new Binding('itemArray', '', createBehaviourArray),
+  new Binding('itemArray', '', prop =>
+    !prop.isValue ? [prop.intrinsicness].concat(prop.behaviors) : []
+  ),
   {
-    itemTemplate: behaviourBlockTemplate,
+    itemTemplate: GraphObject.make(
+      Panel,
+      'Auto',
+      {
+        stretch: GraphObject.Fill,
+        minSize: new Size(10, 20),
+        margin: new Margin(0, 2, 0, 0),
+      },
+      GraphObject.make(Shape, 'Rectangle', {
+        fill: 'black',
+      }),
+      GraphObject.make(
+        TextBlock,
+        {
+          stroke: 'white',
+          margin: new Margin(0, 2, 0, 2),
+          font: 'bold 14px monospace',
+        },
+        new Binding('text', '')
+      )
+    ),
   }
 );
 
@@ -73,25 +62,26 @@ const assignmentBlock = GraphObject.make(
 const typeBlock = GraphObject.make(
   TextBlock,
   new Binding('text', '', prop => (prop.isValue ? prop.value : prop.type)),
-  {margin: new Margin(0, 5, 0, 0)}
+  {
+    margin: new Margin(0, 5, 0, 0),
+  }
 );
 
-//@todo handle click events properly
-export const propertyShape: Panel = GraphObject.make(
+export const propertyShape = GraphObject.make(
   Panel,
   'Horizontal',
-  /*new gojs.Binding("name", "id"),*/ {
-    doubleClick: (event, panel) => {
-      //edit
-      //const click = new CustomEvent(ShapeEventType.shapeDblclick, {});
+  /*new Binding("name", "id"),*/ {
+    click: (event, propertyShape: GraphObject) => {
+      emitAsShapeEvent(event.event!, propertyShape, ShapeEventType.shapeClick);
       event.handled = true;
     },
-    contextClick: (event, panel) => {
-      displayContextMenu({
-        mouseEvent: event.event as MouseEvent,
-        target1: (panel as Panel).data,
-        target2: (panel as Panel).part!.data,
-      });
+
+    doubleClick: (event, propertyShape: GraphObject) => {
+      emitAsShapeEvent(event.event!, propertyShape, ShapeEventType.shapeDblclick);
+      event.handled = true;
+    },
+    contextClick: (event, propertyShape) => {
+      emitAsShapeEvent(event.event!, propertyShape, ShapeEventType.shapeContextmenu);
       event.handled = true;
     },
     minSize: new Size(100, 20),
@@ -101,4 +91,4 @@ export const propertyShape: Panel = GraphObject.make(
   nameBlock,
   assignmentBlock,
   typeBlock
-) as Panel;
+);

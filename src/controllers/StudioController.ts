@@ -1,19 +1,23 @@
-//import * as go from 'g'; //.js';
-import * as go from 'gojs/release/go-module'; //.js';
-import {diagram} from './ViewController';
-import {Comparable, Helper} from '../helpers/Helpers'; //.js';
-import {Association, Class, Inheritance, Property, Value} from '../models/Models';
-import {Behaviours} from '../models/Property';
+import {Comparable, Helper} from '../helpers/Helpers';
+
+import {Behaviours, Property} from '../models/Property';
 import {
   ChangedEvent,
   Diagram,
-  DiagramEvent,
   GraphLinksModel,
+  GraphObject,
   Part,
   Point,
-} from 'gojs/release/go-module'; //.js';
+  Panel,
+} from 'gojs/release/go-module';
+import {classShape} from '../shapes/ClassShape';
+import {Class} from '../models/Class';
+import {Association} from '../models/Association';
+import {Inheritance} from '../models/Inheritance';
+import {Value} from '../models/Value';
 
 export let tags = new Set<string>();
+export let diagram: Diagram;
 
 /**
  * returns a list of fmmlx classes that meets each of <filters> criteria
@@ -31,7 +35,7 @@ function filterClasses(filter: any): Class[] {
   return matching;
 }
 
-function findCommonMembers(parts: Part[]): Property[] {
+function findCommonProperties(parts: Part[]): Property[] {
   if (parts.length === 0) return [];
   if (parts.length === 1) {
     return parts[0].data.members;
@@ -39,7 +43,7 @@ function findCommonMembers(parts: Part[]): Property[] {
 
   let base: Class = parts.pop()!.data;
 
-  return base.members.filter(member => {
+  return base.properties.filter(member => {
     let common = true;
     for (let part of parts) {
       common = common && part.data.members.some((t: Comparable) => t.equals(member));
@@ -53,156 +57,181 @@ function updateTags(newTags: Set<string>) {
   //newTags.forEach(tag => tags.add(tag));
 }
 
-/**
- * @todo this goes in viewcontroller
- */
-export function abstractClasses() {
-  let fmmlxClassNodes = diagram.selection.toArray();
-  let classLevel = fmmlxClassNodes[0].data.level;
-  let partCreatedHandler = (diagramEvent: DiagramEvent) => {
-    diagramEvent.diagram.removeDiagramListener('PartCreated', partCreatedHandler);
-    Helper.beginTransaction('Abstracting Selection...', 'AbsSel');
+export function init(div: HTMLDivElement) {
+  // @ts-ignore
+  const licenseKey = `54fe4ee3b01c28c702d95d76423d6cbc5cf07f21de8349a00a5042a3b95c6e172099bc2a01d68dc986ea5efa4e2dc8d8dc96397d914a0c3aee38d7d843eb81fdb53174b2440e128ca75420c691ae2ca2f87f23fb91e076a68f28d8f4b9a8c0985dbbf28741ca08b87b7d55370677ab19e2f98b7afd509e1a3f659db5eaeffa19fc6c25d49ff6478bee5977c1bbf2a3`;
+  diagram = GraphObject.make(Diagram, div, {
+    'undoManager.isEnabled': true,
+    // enable Ctrl-Z to undo and Ctrl-Y to redo
+    model: new GraphLinksModel(),
+    allowDelete: false,
+  });
+  // @ts-ignore
+  diagram.licenseKey = licenseKey;
+  Object.defineProperty(window, 'PIXELRATIO', diagram.computePixelRatio);
+  diagram.computePixelRatio();
+  //diagram.nodeTemplateMap.add(Class.category, classShape as any);
+  //templateMap.add(Association.category, associationShape);
+  //templateMap.add(Inheritance.category, inheritanceShape);
 
-    let commonMembers = findCommonMembers(fmmlxClassNodes);
-    for (let member of commonMembers) {
-      addMemberToClass(diagramEvent.subject.data, member);
-    }
-    for (let fmmlxClassNode of fmmlxClassNodes) {
-      if (fmmlxClassNode.data.level !== classLevel) {
-        Helper.rollbackTransaction();
-        throw new Error('All classes to be abstracted must have the same level');
-      }
-      changeMetaclass(fmmlxClassNode.data, diagramEvent.subject.data.id);
-    }
-    Helper.commitTransaction();
-  };
+  //diagram.model.nodeKeyProperty = `id`;
+  (diagram.model as GraphLinksModel).linkKeyProperty = `id`;
+}
 
-  let randomName = `AbstractClass ${Helper.randomString()}`;
-  let level = classLevel === '?' ? '?' : classLevel + 1;
-  let x: number, y: number;
-  /*
-  createClass({
-    name: randomName,
-    level: level,
-    isAbstract: false,
-    metaclassId: null,
-    externalLanguage: null,
-    externalMetaclass: null,
-    tags: undefined,
-    x: x,
-    y: y,
-  });*/
+export function abstractClasses(point: {x: number; y: number}) {
+  const classNodes = diagram.selection.toArray();
+  const classLevel = (classNodes[0].data as Class).level;
+  const level = classLevel === null ? null : classLevel + 1;
+
+  Helper.beginTransaction('Abstracting Selection...', 'AbsSel');
+  const classObj = new Class(Helper.randomString(), level, point.x, point.y);
+  for (const classShape of classNodes) {
+    if (classShape.data.level !== classLevel) {
+      Helper.rollbackTransaction();
+      throw new Error('All classes to be abstracted must have the same level');
+    }
+    changeMetaclass(classShape.data, classObj.id);
+  }
+  const commonMembers = findCommonProperties(classNodes);
+  for (const member of commonMembers) {
+    addMemberToClass(classObj, member);
+  }
+  diagram.model.addNodeData(classObj);
+  Helper.commitTransaction();
 }
 
 /**
- * Adds <Property> to <fmmlxClass> and its descendants (if it does not exist)
- * Returns true if successful false otherwise
+ * Adds <memb er> to <classObject> and its descendants (if it does not exist)
  */
-export function addMemberToClass(fmmlxClass: Class, member: Property): boolean {
-  const transId = Helper.beginTransaction(`Adding Member to class...`, 'addMember');
-  fmmlxClass.lastChangeId = transId;
-  const collection = fmmlxClass.findCorrespondingCollection(member);
-  const collectionName = fmmlxClass.findCorrespondingCollectionName(member);
-  const oldCollection = new Set(Array.from(collection));
+export function addMemberToClass(classObject: Class, member: Property): Property | null {
+  const collection = classObject.findCorrespondingCollection(member);
 
-  member.classes.add(fmmlxClass);
+  if (collection.has(member)) return null;
+  if (
+    classObject.hasDefinedLevel &&
+    member.hasDefinedIntrinsicness &&
+    classObject.level! <= member.intrinsicness!
+  )
+    return null;
+
+  const collectionName = classObject.findCorrespondingCollectionName(member);
+  const oldCollection = new Set(Array.from(collection));
+  classObject.lastChangeId = Helper.beginTransaction(`Adding Member to class...`, 'addMember');
+  member.classes.add(classObject);
   collection.add(member);
   diagram.model.raiseChangedEvent(
     ChangedEvent.Insert,
     collectionName,
-    fmmlxClass,
+    classObject,
     oldCollection,
     collection
   );
-  processClass(fmmlxClass);
-  let descendants = [...fmmlxClass.instances, ...fmmlxClass.subclasses];
+
+  let descendants = [...classObject.instances, ...classObject.subclasses];
   for (let descendant of descendants) {
     addMemberToClass(descendant, member);
   }
   Helper.commitTransaction();
-  return true;
+  return member;
 }
 
 /**
  * Adds the corresponding value to a class
  * returns the value or null if nothing was done
  */
-export function addValueToClass(fmmlxClass: Class, member: Property, value: string | null) {
-  console.debug(`Adding a value (${value}) of ${member.name} to ${fmmlxClass.name}`);
+export function addValueToClass(
+  classObject: Class,
+  member: Property,
+  value: string | null
+): Value | null {
+  const collection = classObject.findCorrespondingCollection(member);
+
+  if (collection.has(member)) return null;
+  if (
+    classObject.hasDefinedLevel &&
+    member.hasDefinedIntrinsicness &&
+    classObject.level! !== member.intrinsicness!
+  )
+    return null;
+
+  console.debug(`Adding a value (${value}) of ${member.name} to ${classObject.name}`);
   value = value === null ? Helper.randomString() : value;
 
-  if (
-    (!member.hasDefinedIntrinsicness && fmmlxClass.hasDefinedLevel) ||
-    member.intrinsicness !== fmmlxClass.level
-  ) {
-    console.debug(
-      `${fmmlxClass.name}'s level is different from the member's (${member.name}) intrinsicness. Doing nothing`
-    );
-    return;
-  }
-
-  fmmlxClass.lastChangeId = Helper.beginTransaction('Adding Value to class...', 'addValue');
-  deleteMember(fmmlxClass, member);
-  const val = new Value(member, value, fmmlxClass);
-  const collection = fmmlxClass.findCorrespondingCollection(val);
+  classObject.lastChangeId = Helper.beginTransaction('Adding Value to class...', 'addValue');
+  deleteMember(classObject, member);
+  const val = new Value(member, value, classObject);
   const oldCollection = new Set(Array.from(collection));
-  const collectionName = fmmlxClass.findCorrespondingCollectionName(val);
-  member.values.set(fmmlxClass, val);
+  const collectionName = classObject.findCorrespondingCollectionName(val);
+  member.values.set(classObject, val);
   collection.add(val);
+
   diagram.model.raiseChangedEvent(
     ChangedEvent.Insert,
     collectionName,
-    fmmlxClass,
+    classObject,
     oldCollection,
     collection
   );
+
+  let descendants = [...classObject.instances, ...classObject.subclasses];
+  for (let descendant of descendants) {
+    deleteMember(descendant, member);
+  }
   Helper.commitTransaction();
-  //return val;
+  return val;
 }
 
 /**
  * Changes the level of an FMMLx Class, reevaluates its properties and propagates the changes downstream
  * returns false if the change was not done, true otherwise
  */
-export function changeClassLevel(fmmlxClass: Class, newLevel: number | null, transId: string) {
-  if (fmmlxClass.lastChangeId === transId) return;
-  fmmlxClass.lastChangeId = transId;
-  if (newLevel === fmmlxClass.level) {
+export function changeClassLevel(
+  classObj: Class,
+  newLevel: number | null,
+  transId = Helper.randomString()
+) {
+  if (classObj.lastChangeId === transId) return;
+
+  if (newLevel === classObj.level) {
     console.debug('Change class level: Initial and target levels are the same. Doing nothing.');
     return;
   } else if (newLevel !== null && newLevel < 0)
-    throw new Error(`Level would be negative for ${fmmlxClass.name}`);
+    throw new Error(`Level would be negative for ${classObj.name}`);
 
-  console.debug(`Changing ${fmmlxClass.name}'s level from ${fmmlxClass.level} to ${newLevel}`);
+  console.debug(`Changing ${classObj.name}'s level from ${classObj.level} to ${newLevel}`);
+  classObj.lastChangeId = transId;
   const instanceLevel = newLevel === null ? null : newLevel - 1;
 
-  /* -- Level change only works downstream
-                if (fmmlxClass.metaclass !== null && fmmlxClass.lastChangeId !== transId) {
-                    console.debug(`Processing metaclass ${fmmlxClass.metaclass.name}...`);
-                    changeClassLevel(fmmlxClass.metaclass, instanceLevel, transId);
-                }
-
-
-                if (fmmlxClass.superclass !== null && fmmlxClass.lastChangeId !== transId) {
-                    console.debug(`Processing supeclass... ${fmmlxClass.superclass.name}.`);
-                    changeClassLevel(fmmlxClass.superclass, newLevel, transId);
-                }
-                */
-  diagram.model.setDataProperty(fmmlxClass, 'level', newLevel);
-  processClass(fmmlxClass);
-
-  if (fmmlxClass.instances.size > 0) {
-    console.debug('Processing instances...');
-    for (let instance of fmmlxClass.instances) {
-      changeClassLevel(instance, instanceLevel, transId);
-    }
+  if (
+    classObj.metaclass !== null &&
+    classObj.hasDefinedLevel &&
+    classObj.metaclass.level != newLevel! + 1
+  ) {
+    deleteMetaclass(classObj);
   }
 
-  if (fmmlxClass.subclasses.size > 0) {
-    console.debug('Processing subclasses...');
-    for (let subclass of fmmlxClass.subclasses) {
-      deleteSuperclass(subclass);
-    }
+  /* -- Level change only works downstream
+                if (classObj.metaclass !== null && classObj.lastChangeId !== transId) {
+                    console.debug(`Processing metaclass ${classObj.metaclass.name}...`);
+                    changeClassLevel(classObj.metaclass, instanceLevel, transId);
+                }
+
+                if (classObj.superclass !== null && classObj.lastChangeId !== transId) {
+                    console.debug(`Processing supeclass... ${classObj.superclass.name}.`);
+                    changeClassLevel(classObj.superclass, newLevel, transId);
+                }
+                */
+  diagram.model.setDataProperty(classObj, 'level', newLevel);
+  processClass(classObj);
+
+  console.debug('Processing instances...');
+  for (let instance of classObj.instances) {
+    changeClassLevel(instance, instanceLevel, transId);
+  }
+
+  console.debug('Processing subclasses...');
+  for (let subclass of classObj.subclasses) {
+    deleteSuperclass(subclass);
   }
 }
 
@@ -260,7 +289,7 @@ export function changeMetaclass(fmmlxClass: Class, metaclassId: string | null = 
   return true;
 }
 
-export function changeClassSuperclass(superclass: Class, subclass: Class) {
+export function changeSuperclass(superclass: Class, subclass: Class) {
   if (superclass === null) {
     console.debug('Superclass is null, doing nothing');
     return;
@@ -272,11 +301,11 @@ export function changeClassSuperclass(superclass: Class, subclass: Class) {
   if (subclass.superclass !== null)
     throw new Error('Subclass already inherits from another class.');
 
-  let transId = Helper.beginTransaction('Creating inheritance', 'inherit');
+  Helper.beginTransaction('Creating inheritance', 'inherit');
   try {
-    let members = superclass.members;
-    for (let member of members) {
-      addMemberToClass(subclass, member);
+    let properties = superclass.properties;
+    for (let property of properties) {
+      addMemberToClass(subclass, property);
     }
     diagram.model.setDataProperty(subclass, 'superclass', superclass);
     superclass.addSubclass(subclass);
@@ -310,24 +339,11 @@ export function copyMemberToSuperclass(fmmlxClass: Class, member: Property | Val
  * Creates an association from source to target
  */
 export function createAssociation(source: Class, target: Class) {
-  Helper.beginTransaction(`Associating ${source.name} and ${target.name}`, 'assoc');
-  let assoc = new Association(
-    source,
-    target,
-    Helper.randomString(),
-    '0,*',
-    '0,*',
-    'src',
-    'dst',
-    null,
-    null,
-    null,
-    null
-  );
+  const assoc = new Association(source, target);
+  Helper.beginTransaction('Creating association');
   (diagram.model as GraphLinksModel).addLinkData(assoc);
-  source.addAssociation(assoc);
-  target.addAssociation(assoc);
-  Helper.commitTransaction();
+  Helper.commitTransaction('Creating association');
+  return assoc;
 }
 
 /**
@@ -339,40 +355,23 @@ export function createAssociationInstanceOrRefinement(
   target: Class,
   isRefinement: boolean = false
 ) {
-  let transId = Helper.beginTransaction(`Instantiating assoc ${association.name}`, 'instantiate');
+  const assoc = new Association(
+    source,
+    target,
+    Helper.randomString(),
+    association.sourceCardinality,
+    association.targetCardinality,
+    association.sourceRole,
+    association.targetRole,
+    isRefinement ? association.sourceIntrinsicness : null,
+    isRefinement ? association.targetIntrinsicness : null,
+    isRefinement ? association : null,
+    isRefinement ? null : association,
+    association.tags
+  );
+
+  Helper.beginTransaction(`Instantiating assoc ${association.name}`, 'instantiate');
   try {
-    let assoc;
-    if (isRefinement) {
-      assoc = new Association(
-        source,
-        target,
-        Helper.randomString(),
-        association.sourceCardinality,
-        association.targetCardinality,
-        association.sourceRole,
-        association.targetRole,
-        association.targetIntrinsicness,
-        association.sourceIntrinsicness,
-        association.primitive,
-        association.metaAssociation,
-        association.tags
-      );
-    } else {
-      assoc = new Association(
-        source,
-        target,
-        Helper.randomString(),
-        association.sourceCardinality,
-        association.targetCardinality,
-        association.sourceRole,
-        association.targetRole,
-        null,
-        null,
-        null,
-        association
-      );
-    }
-    (diagram.model as GraphLinksModel).addLinkData(assoc);
     source.addAssociation(assoc);
     target.addAssociation(assoc);
 
@@ -383,75 +382,45 @@ export function createAssociationInstanceOrRefinement(
       association.addInstance(assoc);
       assoc.metaAssociation = association;
     }
-
+    (diagram.model as GraphLinksModel).addLinkData(assoc);
     Helper.commitTransaction();
+    return assoc;
   } catch (err) {
     Helper.rollbackTransaction();
     throw err;
   }
 }
 
-export function deduplicate(
-  what: Association | Class | Inheritance | Property | Value,
-  where?: Diagram
-) {}
-
 /**
  * Adds a new FMMLX Class to the diagram
  */
-export async function createClass({
-  name,
-  level = null,
-  isAbstract,
-  metaclassId = null,
-  externalLanguage = null,
-  externalMetaclass = null,
-  tags = new Set(),
-}: {
-  name: string;
-  level: number | null;
-  isAbstract: boolean;
-  metaclassId: string | null;
-  externalLanguage: string | null;
-  externalMetaclass: string | null;
-  tags?: Set<string>;
-}): Promise<void> {
-  //step 0 wait for click
-  const point = await new Promise<Point>((resolve, reject) => {
-    setTimeout(() => reject, 45000);
-    diagram.addDiagramListener('BackgroundSingleClicked', _e =>
-      resolve(diagram.lastInput.documentPoint)
-    );
-  });
-
-  //Step 1 Search for dupes
-
-  let fmmlxClass = new Class(
+export function createClass(
+  point: {x: number; y: number},
+  name: string,
+  level: number | null,
+  isAbstract: boolean = false,
+  metaclassId: string | null = null,
+  externalLanguage: string | null = null,
+  externalMetaclass: string | null = null,
+  tags = new Set<string>()
+) {
+  console.debug(`Add Class ${name} at (${point.x}, ${point.y})`);
+  const docPoint = diagram.transformViewToDoc(new Point(point.x, point.y));
+  const classObject = new Class(
     name,
     level,
+    docPoint.x,
+    docPoint.y,
     isAbstract,
     externalLanguage,
     externalMetaclass,
-    tags,
-    point.x,
-    point.y
+    tags
   );
-  let dupe = diagram.model.findNodeDataForKey(fmmlxClass.id);
-  if (dupe !== null) {
-    throw new Error(`An equivalent class definition already exists.`);
-  }
+  changeMetaclass(classObject, metaclassId);
+  diagram.nodeTemplate = classShape;
+  diagram.model.addNodeData(classObject);
   updateTags(tags);
-  console.debug(`Add Class ${name}`);
-
-  let partCreatedHandler = (diagramEvent: DiagramEvent) => {
-    diagramEvent.diagram.removeDiagramListener('PartCreated', partCreatedHandler);
-    let tool = diagramEvent.diagram.toolManager.clickCreatingTool;
-    tool.archetypeNodeData = null;
-    tool.isDoubleClick = true;
-    changeMetaclass(diagramEvent.subject.data, metaclassId);
-  };
-  //Step 3 once we have a part instance we add its metaclass
-  diagram.addDiagramListener('PartCreated', partCreatedHandler);
+  return classObject;
 }
 
 /**
@@ -488,7 +457,7 @@ export function createMember(
  * returns true on success
  */
 export function deleteAssociation(association: Association) {
-  let transId = Helper.beginTransaction(`Deleting association ${association.name}`, 'deleteAssoc');
+  Helper.beginTransaction(`Deleting association ${association.name}`, 'deleteAssoc');
   try {
     association.source.removeAssociation(association);
     association.target.removeAssociation(association);
@@ -508,7 +477,7 @@ export function deleteAssociation(association: Association) {
  * Deletes an Fmmlx Class and its references
  */
 export function deleteFmmlxClass(fmmlxClass: Class) {
-  let transId = Helper.beginTransaction(`Deleting class ${fmmlxClass.name}`, 'deleteClass');
+  Helper.beginTransaction(`Deleting class ${fmmlxClass.name}`, 'deleteClass');
   try {
     //inheritance -  instantiation
     for (let instance of fmmlxClass.instances) {
@@ -527,8 +496,8 @@ export function deleteFmmlxClass(fmmlxClass: Class) {
       deleteValue(fmmlxClass, value);
     }
 
-    for (let member of fmmlxClass.members) {
-      deleteMember(fmmlxClass, member);
+    for (let property of fmmlxClass.properties) {
+      deleteMember(fmmlxClass, property);
     }
 
     let node = diagram.findNodeForData(fmmlxClass)!;
@@ -541,18 +510,22 @@ export function deleteFmmlxClass(fmmlxClass: Class) {
   Helper.commitTransaction();
 }
 
+export function getClassAt({x, y}: {x: number; y: number}): Class {
+  return diagram.findPartAt(new Point(x, y))?.data!;
+}
+
 /**
  * Deletes <Property> (and/or its corresponding <Value>) from <fmmlxClass>,
  * its predecessors (`upstream`) and descendants (`downstream`)
  */
 export function deleteMember(
   fmmlxClass: Class,
-  member: Property,
+  member: Property | Value,
   upstream: boolean = false,
   downstream: boolean = true
 ) {
   //delete own
-  console.log(`Delete member ${member.name} (and/or its value) from ${fmmlxClass.name}`);
+  console.log(`Delete member ${member.id} (and/or its value) from ${fmmlxClass.name}`);
   fmmlxClass.lastChangeId = Helper.beginTransaction('Deleting member...', 'deleteMember');
   const collection = fmmlxClass.findCorrespondingCollection(member);
   const collectionName = fmmlxClass.findCorrespondingCollectionName(member);
@@ -567,8 +540,9 @@ export function deleteMember(
     oldCollection,
     collection
   );
-  if (member.values.has(fmmlxClass)) {
-    deleteValueFromClass(fmmlxClass, member.values.get(fmmlxClass)!);
+
+  if (member.constructor === Property && (member as Property).values.has(fmmlxClass)) {
+    deleteValueFromClass(fmmlxClass, (member as Property).values.get(fmmlxClass)!);
   }
 
   //del downstream
@@ -619,11 +593,7 @@ export function deleteMetaclass(fmmlxClass: Class) {
   if (fmmlxClass.metaclass === null) {
     return false;
   }
-
-  const transId = Helper.beginTransaction(
-    `Removing old Metaclass from ${fmmlxClass.name}`,
-    'deleteMetaclass'
-  );
+  Helper.beginTransaction(`Removing old Metaclass from ${fmmlxClass.name}`, 'deleteMetaclass');
   try {
     let metaclass = fmmlxClass.metaclass;
     let deletableProperties = [...metaclass.attributes, ...metaclass.operations];
@@ -640,18 +610,6 @@ export function deleteMetaclass(fmmlxClass: Class) {
   return true;
 }
 
-/**
- * Returns the model for whatever was clicked in the Diagram
- */
-export function getClickedPoint(): Promise<Class | Value | Property | Association | Inheritance> {
-  return new Promise<any>(resolve => {
-    const handler = (event: DiagramEvent) => {
-      diagram.removeDiagramListener('ObjectSingleClicked', handler);
-      resolve(event.subject.part.data);
-    };
-    diagram.addDiagramListener('ObjectSingleClicked', handler);
-  });
-}
 /**
  * deletes the superclass, removes the fmmlxClass reference from the superclass, removes inherited members and
  * deletes the link
@@ -789,22 +747,16 @@ export function editMember(
   memberId: string,
   name: string,
   type: string,
-  intrinsicness: string,
+  intrinsicness: number | null,
   behaviors: Behaviours,
   value: string = '',
   operationBody: string | null = null,
   tags: Set<string> = new Set<string>()
 ) {
-  let node = diagram.findNodeForKey(classId);
-  let fmmlxClass: Class = node!.data;
-  let member = fmmlxClass.findMemberById(memberId);
-  let otherAttributes = {
-    name: name,
-    type: type,
-    behaviors: behaviors,
-    operationBody: operationBody,
-  };
+  let classShape = diagram.findNodeForKey(classId) as Panel;
+  let classObj: Class = classShape!.data;
   let transId = Helper.beginTransaction(`Edit Member`, 'editMember');
+  const member = classObj.findMemberById(memberId);
   updateTags(tags);
 
   if (member.constructor === Value) {
@@ -818,44 +770,37 @@ export function editMember(
     set(member, 'operationBody', operationBody);
   }
   tags.forEach(tag => member.tags.add(tag));
-  processClass(fmmlxClass);
+  processClass(classObj);
 
-  /*
-      diagram.model.setDataProperty(member, 'tags', new Set(tags));
+  diagram.model.setDataProperty(member, 'tags', new Set(tags));
 
-      if (member.constructor !== Value && member.intrinsicness !== intrinsicness) {
-        diagram.model.setDataProperty(member, 'intrinsicness', intrinsicness);
+  if (member.constructor !== Value && member.intrinsicness !== intrinsicness) {
+    diagram.model.setDataProperty(member, 'intrinsicness', intrinsicness);
 
-        //process each class related to the member
-        let classes = (member as Property).classes.toArray().slice(0);
-        let values = Array.from((member as Property).values.toArray()).slice(0);
-        //just in case we make a static clone
+    let classes = (member as Property).classes.entries(); //.next().value; //toArray().slice(0);
+    let values = (member as Property).values.entries(); //.next().value;
 
-        for (let fmmlxClass of classes) {
-          if (fmmlxClass.lastChangeId !== transId) {
-            processClass(fmmlxClass);
-            diagram.model.setDataProperty(fmmlxClass, 'lastChangeId', transId);
-          }
-        }
-
-        for (let value of values) {
-          let fmmlxClass = value.class;
-          if (fmmlxClass.lastChangeId !== transId) {
-            processClass(fmmlxClass);
-            diagram.model.setDataProperty(fmmlxClass, 'lastChangeId', transId);
-          }
-        }
-      } else if (member.isValue === false) {
-        //If the instrinsicness is unchanged, it is necessary to refresh the classes that have the edited member
-        for (let fmmlxClass of member.classes) {
-          let arrayName = fmmlxClass.findCorrespondingCollection(member, true);
-          diagram.model.updateTargetBindings(fmmlxClass, arrayName);
-        }
+    for (let [classObj] of classes) {
+      if (classObj.lastChangeId !== transId) {
+        processClass(classObj);
+        diagram.model.setDataProperty(classObj, 'lastChangeId', transId);
       }
-    } catch (e) {
-      Helper.commitTransaction();
-      throw e;
-    }*/
+    }
+
+    for (let [classObj] of values) {
+      if (classObj.lastChangeId !== transId) {
+        processClass(classObj);
+        diagram.model.setDataProperty(classObj, 'lastChangeId', transId);
+      }
+    }
+  } else if (member.constructor === Value) {
+    //If the instrinsicness is unchanged, it is necessary to refresh the classes that have the edited member
+    for (let classObj of (member as Property).classes) {
+      let arrayName = classObj.findCorrespondingCollectionName(member);
+      diagram.model.updateTargetBindings(classObj, arrayName);
+    }
+  }
+
   Helper.commitTransaction();
 }
 
@@ -1044,75 +989,8 @@ export function findValidRelationshipClasses(
  *
  *@todo revisit this keeping in mind the new toJSON() methods in each of the Models.* classes
  */
-export function fromJSON(jsonData: string) {
-  let transId = Helper.beginTransaction('Importing JSON', 'import');
-  try {
-    let flatData = JSON.parse(jsonData);
-
-    while (flatData.nodes.length > 0) {
-      let level = flatData.nodes.pop();
-      if (Array.isArray(level)) {
-        for (let data of level) {
-          let node = inflateClass(data.data);
-          node.location = Point.parse(data.location);
-        }
-      }
-    }
-    for (let link of flatData.links) {
-      if (link.category === Inheritance.category) {
-        let subclass = (diagram.model as GraphLinksModel).findLinkDataForKey(
-          link.subclass
-        ) as Class;
-        let superclass = (diagram.model as GraphLinksModel).findLinkDataForKey(
-          link.superclass
-        ) as Class;
-        changeClassSuperclass(superclass, subclass);
-      } else if (link.category === Association.category) {
-        let source = diagram.model.findNodeDataForKey(link.source) as Class;
-        let target = diagram.model.findNodeDataForKey(link.target) as Class;
-        let primitive =
-          link.primitive !== null
-            ? ((diagram.model as GraphLinksModel).findLinkDataForKey(
-                link.primitive
-              )! as Association)
-            : null;
-        let metaAssoc =
-          link.metaAssociation !== null
-            ? ((diagram.model as GraphLinksModel).findLinkDataForKey(
-                link.metaAssociation
-              )! as Association)
-            : null;
-        let assoc = Association.inflate(link, source, target, primitive, metaAssoc);
-        (diagram.model as GraphLinksModel).addLinkData(assoc);
-        link.instances.forEach((instance: any) => {
-          let assocInstance: Association = (diagram.model as GraphLinksModel).findLinkDataForKey(
-            instance
-          )! as Association;
-          if (assocInstance !== null) {
-            diagram.model.setDataProperty(assocInstance, 'metaAssoc', assoc);
-            assoc.addInstance(assocInstance);
-          }
-        });
-        link.refinements.forEach((refinement: any) => {
-          /**
-           * @type {Model.FmmlxAssociation}
-           */
-          let assocRefinement = (diagram.model as GraphLinksModel).findLinkDataForKey(
-            refinement
-          ) as Association;
-          if (assocRefinement !== null) {
-            diagram.model.setDataProperty(assocRefinement, 'primitive', assoc);
-            assoc.addRefinement(assocRefinement);
-          }
-        });
-      }
-    }
-
-    Helper.commitTransaction();
-  } catch (err) {
-    Helper.rollbackTransaction();
-    throw err;
-  }
+export function fromJSON(_jsonData: string) {
+  //@todo
 }
 
 /**
@@ -1121,47 +999,6 @@ export function fromJSON(jsonData: string) {
 export function getClassesByLevel(level: number | null): Array<Class> {
   let targetLevel = level !== null ? level + 1 : null;
   return filterClasses({level: targetLevel});
-}
-
-/**
- * Inflates an Fmmlx Class that was deflated
- * @todo revisit this keeping in mind the new toJSON() methods in each of the Models.* classes
- */
-
-export function inflateClass(flatClass: any): any {
-  let transId = Helper.beginTransaction(`Inflating ${flatClass.name}`, 'inflate');
-  try {
-    /**
-     * @type {Model.FmmlxClass}
-     */
-    let fmmlxClass: Class = Class.inflate(flatClass);
-    diagram.model.addNodeData(fmmlxClass);
-    changeMetaclass(fmmlxClass, flatClass.metaclass);
-    updateTags(flatClass.tags);
-
-    if (flatClass.superclass !== null) {
-      let superclass = diagram.model.findNodeDataForKey(flatClass.superclass)! as Class;
-      changeClassSuperclass(superclass, fmmlxClass);
-    }
-
-    for (let flatMember of flatClass.members) {
-      let member = Property.inflate(flatMember);
-      addMemberToClass(fmmlxClass, member);
-      if (flatMember.tags !== null && flatMember.tags.length > 0) updateTags(flatMember.tags);
-    }
-
-    for (let flatValue of flatClass.values) {
-      let member = Property.inflate(flatValue);
-      addValueToClass(fmmlxClass, member, flatValue.value);
-    }
-
-    diagram.findNodeForKey(fmmlxClass.id)!.updateTargetBindings();
-    Helper.commitTransaction();
-    return diagram.findNodeForKey(fmmlxClass.id);
-  } catch (e) {
-    Helper.rollbackTransaction();
-    throw e;
-  }
 }
 
 /**

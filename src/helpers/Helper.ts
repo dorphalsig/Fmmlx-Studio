@@ -1,6 +1,6 @@
-import {diagram} from '../controllers/ViewController';
 import {GraphObject} from 'gojs/release/go-module';
 import {ShapeEventType, ShapeMouseEvent} from '../shapes/shapeEvents';
+import {diagram} from '../controllers/StudioController';
 
 export function randomString() {
   return Math.random().toString(36).substring(2);
@@ -29,10 +29,9 @@ export function commitTransaction(transId?: string) {
   console.log(`✅ ${transId} :: Transaction committed`);
 }
 
-export function reEmitAsShapeEvent(event: Event, shape: GraphObject, eventType: ShapeEventType) {
-  const shapeEvent = event as ShapeMouseEvent;
-  const target = event.target!;
-  shapeEvent.shape = shape.part!.data;
-  shapeEvent.type = eventType;
-  target.dispatchEvent(shapeEvent);
+export function emitAsShapeEvent(event: Event, shape: GraphObject, eventType: ShapeEventType) {
+  console.debug(`Dispatching ${eventType} on a ${event.target}`);
+  Object.defineProperty(event, 'shape', {value: shape.part!.data});
+  const shapeEvent = new ShapeMouseEvent(eventType, event as any);
+  event.target!.dispatchEvent(shapeEvent);
 }

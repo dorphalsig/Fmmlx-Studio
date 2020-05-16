@@ -14,5 +14,9 @@ export interface Serializable {
 }
 
 export interface IShapeMouseEvent extends MouseEvent {
-  shape?: Class | Association | Inheritance | Property | Value;
+  shape: Class | Association | Inheritance | Property | Value;
+}
+
+export interface IShapeMouseEventInit extends MouseEventInit {
+  shape: Class | Association | Inheritance | Property | Value;
 }

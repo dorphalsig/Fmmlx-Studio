@@ -1,6 +1,3 @@
-import * as Models from '../models/Models'; //.js';
-import {propertyShape} from './PropertyShape'; //.js';
-import {displayClassForm, displayContextMenu} from '../controllers/ViewController';
 import {
   Adornment,
   Binding,
@@ -11,92 +8,76 @@ import {
   Size,
   Spot,
   TextBlock,
-} from 'gojs/release/go-module'; //.js';
+  Part,
+} from 'gojs/release/go-module';
+import {emitAsShapeEvent} from '../helpers/Helper';
+import {ShapeEventType} from './shapeEvents';
+import {propertyShape} from './PropertyShape';
+import {Class} from '../models/Class';
 
-function externalLanguageBlock() {
-  return GraphObject.make(
-    Panel,
-    'Auto',
-    {
-      stretch: GraphObject.Fill,
-      alignment: new Spot(1, 0),
-      maxSize: new Size(54, Infinity),
-      name: 'externalLanguageBlock',
-    },
-    new Binding('visible', '', IsExternal),
-    GraphObject.make(Shape, 'Rectangle', {
-      fill: 'orange',
-    }),
-    GraphObject.make(TextBlock, new Binding('text', 'externalLanguage'), {
-      margin: 2,
-      wrap: TextBlock.None,
-      stroke: 'black',
-      overflow: TextBlock.OverflowEllipsis,
-      toolTip: GraphObject.make(
-        Adornment,
-        'Auto',
-        GraphObject.make(Shape, {
-          fill: '#FFFFCC',
-        }),
-        GraphObject.make(
-          TextBlock,
-          {
-            margin: 4,
-          },
-          new Binding('text', 'externalLanguage')
-        )
-      ), // end of Adornment
-    })
-  );
-}
+const externalLanguageBlock = GraphObject.make(
+  Panel,
+  'Auto',
+  {
+    stretch: GraphObject.Fill,
+    alignment: new Spot(0.9, 0),
+    maxSize: new Size(45, 18),
+  },
+  new Binding('visible', '', getIsExternal),
+  GraphObject.make(Shape, 'Rectangle', {
+    fill: 'orange',
+  }),
+  GraphObject.make(TextBlock, new Binding('text', 'externalLanguage'), {
+    margin: 2,
+    wrap: TextBlock.None,
+    stroke: 'black',
+    overflow: TextBlock.OverflowEllipsis,
+    toolTip: GraphObject.make(
+      Adornment,
+      'Auto',
+      GraphObject.make(Shape, {
+        fill: '#FFFFCC',
+      }),
+      GraphObject.make(
+        TextBlock,
+        {
+          margin: 4,
+        }
+        //new Binding('text', 'externalLanguage')
+      )
+    ), // end of Adornment
+  })
+);
 
-function mainBlock() {
-  return GraphObject.make(
-    Panel,
-    'Vertical',
-    {name: 'mainBlock'},
-    nameBlock(),
-    genericBlock('attributes'),
-    genericBlock('operations'),
-    genericBlock('slotValues'),
-    genericBlock('operationValues')
-  );
-}
-
-function nameBlock() {
-  return GraphObject.make(
-    Panel,
-    'Auto',
-    {
-      stretch: GraphObject.Fill,
-      minSize: new Size(100, 20),
-      name: 'nameBlock',
-    },
-    GraphObject.make(Shape, 'Rectangle', new Binding('fill', 'level', BgColor)),
-    GraphObject.make(
-      TextBlock,
-      new Binding('text', '', MetaclassName),
-      new Binding('font', 'isAbstract', FontStyle),
-      new Binding('stroke', 'level', FontColor),
-      {
-        textAlign: 'center',
-        margin: 7,
-      }
-    )
-  );
-}
-
-function ellipsis() {
-  return GraphObject.make(TextBlock, {
-    name: 'ellipsis',
+const nameBlock = GraphObject.make(
+  Panel,
+  'Auto',
+  {
     stretch: GraphObject.Fill,
     minSize: new Size(100, 20),
-    text: '…',
-    font: 'bold 20px monospace',
-    textAlign: 'center',
-    visible: false,
-  });
-}
+  },
+  GraphObject.make(Shape, 'Rectangle', new Binding('fill', 'level', getBgColor)),
+  GraphObject.make(
+    TextBlock,
+    new Binding('text', '', getName),
+    new Binding('font', 'isAbstract', getFontStyle),
+    new Binding('stroke', 'level', getFontColor),
+    {
+      textAlign: 'center',
+      margin: 7,
+    }
+  )
+);
+
+const mainBlock = GraphObject.make(
+  Panel,
+  'Vertical',
+  nameBlock,
+  genericBlock('attributes'),
+  genericBlock('operations'),
+  genericBlock('slotValues'),
+  genericBlock('operationValues')
+);
 
 function genericBlock(collectionName: string) {
   return GraphObject.make(
@@ -114,20 +95,12 @@ function genericBlock(collectionName: string) {
       'Vertical',
       {
         margin: 4,
-        name: collectionName,
         defaultAlignment: Spot.Left,
       },
-      GraphObject.make(
-        Panel,
-        'Vertical',
-        {
-          name: 'items',
-          defaultAlignment: Spot.Left,
-          itemTemplate: propertyShape,
-        },
-        new Binding('itemArray', collectionName)
-      ),
-      ellipsis()
+      new Binding('itemArray', collectionName),
+      {
+        itemTemplate: propertyShape,
+      }
     )
   );
 }
@@ -135,10 +108,10 @@ function genericBlock(collectionName: string) {
 /**
  * Specifies background color based on level
  */
-function BgColor(level: string) {
-  if (isNaN(+level)) return '#C45911';
-  let color;
-  switch (isNaN(+level) || +level) {
+function getBgColor(level: number | null) {
+  console.debug('define Bgcolor for level ' + level);
+  let color: string;
+  switch (level) {
     case 0:
       color = '#E6E6E6';
       break;
@@ -157,9 +130,13 @@ function BgColor(level: string) {
     case 5:
       color = '#007C36';
       break;
+    case null: // "?" <-- its a NaN
+      color = '#C45911';
+      break;
     default:
       //6+
       color = '#653C7B';
+      break;
   }
 
   return color;
@@ -169,14 +146,14 @@ function BgColor(level: string) {
  *  Returns the font color based on the classification level of the Fmmlx Class
  *  (black for 0 and 1, white all else)
  */
-function FontColor(level: string) {
-  return Number.parseInt(level) < 2 ? '#000000' : '#FFFFFF';
+function getFontColor(level: number | null) {
+  return level !== null && level < 2 ? '#000000' : '#FFFFFF';
 }
 
 /**
  * Returns font Style for the name block. if class isAbstract then the style is Oblique
  */
-function FontStyle(isAbstract: boolean) {
+function getFontStyle(isAbstract: boolean) {
   let font = `15px 'Roboto', sans-serif`;
   if (isAbstract) {
     font = `Italic ${font}`;
@@ -184,34 +161,39 @@ function FontStyle(isAbstract: boolean) {
   return font;
 }
 
-function IsExternal(fmmlxClass: Models.Class) {
-  return fmmlxClass.isExternal;
+function getIsExternal(classObj: Class) {
+  return classObj.isExternal;
 }
 
 /**
- *  s the name string to display. that is ^^ META ^^ \n Name
+ *  Gets the name string to display. that is ^^ META ^^ \n Name
  */
-function MetaclassName(fmmlxClass: Models.Class) {
-  return `^${fmmlxClass.metaclassName!.toUpperCase()}^\n${fmmlxClass.name} (${fmmlxClass.level})`;
+function getName(classObj: Class) {
+  return `^${classObj.metaclassName!.toUpperCase()}^\n${classObj.name} (${classObj.level})`;
 }
 
+/**
+ * The shape
+ */
 export const classShape = GraphObject.make(
-  Panel,
+  Part,
   'Spot',
   {
-    doubleClick: (event, graphObject) => {
-      displayClassForm(graphObject.part!.data);
+    name: 'classShape',
+    click: (event, link) => {
       event.handled = true;
+      emitAsShapeEvent(event.event!, link, ShapeEventType.shapeClick);
     },
-
-    contextClick: (event, panel) => {
-      const data: Models.Class = (panel as Panel).data;
-      displayContextMenu({mouseEvent: event.event as MouseEvent, target1: data});
+    doubleClick: (event, link) => {
+      event.handled = true;
+      emitAsShapeEvent(event.event!, link, ShapeEventType.shapeDblclick);
+    },
+    contextClick: (event, link) => {
+      emitAsShapeEvent(event.event!, link, ShapeEventType.shapeContextmenu);
       event.handled = true;
     },
   },
-
   new Binding('location', 'location', Point.parse),
-  mainBlock(),
-  externalLanguageBlock()
-) as Panel;
+  mainBlock,
+  externalLanguageBlock
+);
